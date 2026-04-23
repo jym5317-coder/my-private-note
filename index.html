@@ -6,7 +6,8 @@
     <title>개인 보관함</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
-        .container { max-width: 500px; margin: 0 auto; display: none; } /* 인증 전에는 숨김 */
+        /* 인증 전에는 아예 보이지 않게 처리 */
+        #mainContent { max-width: 500px; margin: 0 auto; display: none; } 
         .card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         h2 { color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 5px; }
         .info-item { margin: 10px 0; font-size: 14px; }
@@ -16,46 +17,36 @@
 <body>
 
 <script>
-    // 🔓 나만 아는 비밀번호를 설정하세요 (예: 1234)
+    // 🔓 비밀번호 설정 (원하시는 숫자로 바꾸세요)
     const myPassword = "1234"; 
     
     const input = prompt("비밀번호를 입력해야 접속할 수 있습니다.");
     
     if (input === myPassword) {
-        // 비밀번호가 맞으면 화면을 보여줌
-        window.onload = function() {
+        // 비밀번호가 맞으면 페이지가 다 로드된 후 보여줌
+        document.addEventListener("DOMContentLoaded", function() {
             document.getElementById('mainContent').style.display = 'block';
-        };
+        });
     } else {
         alert("비밀번호가 틀렸습니다.");
         document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>접근 권한이 없습니다.</h2>";
     }
 </script>
 
-<div class="container" id="mainContent">
+<div id="mainContent">
     <h2>🔒 개인 메모장</h2>
     
     <div class="card">
-        <div class="info-item"><span class="label">항목:</span> 성격의 성격</div>
-        <div class="info-item"><span class="label">내용:</span> 일화 및 사적인 기록들...</div>
+        <div class="info-item"><span class="label">항목:</span> 성격 및 일화</div>
+        <div class="info-item"><span class="label">내용:</span> 여기에 사적인 기록들을 적으세요.</div>
     </div>
 
     <div class="card">
-        <div class="info-item"><span class="label">기타:</span> 신체 사이즈 및 민감 정보</div>
+        <div class="info-item"><span class="label">신체정보:</span> 사이즈 기록</div>
         <div class="info-item"><span class="label">메모:</span> 발사이즈 270 / 상의 100 등</div>
-<div class="container" id="mainContent">
-    <h2>🔒 개인 메모장</h2>,
+    </div>
     
-    <div class="card">
-        <div class="info-item"><span class="label">항목:</span> 성격의 성격</div>
-        <div class="info-item"><span class="label">내용:</span> 일화 및 사적인 기록들...</div>
     </div>
-
-    <div class="card">
-        <div class="info-item"><span class="label">기타:</span> 신체 사이즈 및 민감 정보</div>
-        <div class="info-item"><span class="label">메모:</span> 발사이즈 270 / 상의 100 등</div>
-    </div>
-</div>
 
 </body>
 </html>
