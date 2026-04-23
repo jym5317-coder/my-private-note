@@ -3,50 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>개인 보관함</title>
+    <title>비공개 통합 보관함</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
-        /* 인증 전에는 아예 보이지 않게 처리 */
-        #mainContent { max-width: 500px; margin: 0 auto; display: none; } 
-        .card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        h2 { color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 5px; }
-        .info-item { margin: 10px 0; font-size: 14px; }
-        .label { font-weight: bold; color: #555; width: 80px; display: inline-block; }
+        #mainContent { max-width: 600px; margin: 0 auto; display: none; }
+        .search-box { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .name-header { font-size: 18px; font-weight: bold; color: #1a73e8; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 10px; }
+        .info-grid { display: grid; grid-template-columns: 90px 1fr; gap: 8px; font-size: 14px; }
+        .label { font-weight: bold; color: #666; }
+        .value { color: #333; }
+        h2 { text-align: center; color: #333; }
     </style>
 </head>
 <body>
 
 <script>
-    // 🔓 비밀번호 설정 (원하시는 숫자로 바꾸세요)
-    const myPassword = "1234"; 
-    
-    const input = prompt("비밀번호를 입력해야 접속할 수 있습니다.");
-    
+    const myPassword = "1234"; // 🔓 사용할 비밀번호
+    const input = prompt("비밀번호를 입력하세요.");
+
+    // 📝 데이터 입력 구역 (여기에 사람을 계속 추가하세요!)
+    const privateData = [
+        {
+            name: "홍길동",
+            phone: "010-1234-5678",
+            address: "서울시 어딘가",
+            size: "상의 100 / 하의 32 / 발 270",
+            trait: "성격 급함, 일 처리는 정확함",
+            memo: "작년 여름 현장에서 같이 근무함"
+        },
+        {
+            name: "김철수",
+            phone: "010-9876-5432",
+            address: "경기도 용인시",
+            size: "상의 105 / 하의 34 / 발 280",
+            trait: "꼼꼼함, 술 안 마심",
+            memo: "특별 관리 대상"
+        },
+        // 추가하고 싶으면 아래 양식을 복사해서 계속 붙여넣으세요
+    ];
+
     if (input === myPassword) {
-        // 비밀번호가 맞으면 페이지가 다 로드된 후 보여줌
         document.addEventListener("DOMContentLoaded", function() {
             document.getElementById('mainContent').style.display = 'block';
+            displayData(privateData);
         });
     } else {
         alert("비밀번호가 틀렸습니다.");
-        document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>접근 권한이 없습니다.</h2>";
+        document.body.innerHTML = "<h2>접근 권한이 없습니다.</h2>";
+    }
+
+    // 화면에 목록을 그려주는 기능
+    function displayData(data) {
+        const container = document.getElementById('listContainer');
+        container.innerHTML = data.map(person => `
+            <div class="card">
+                <div class="name-header">${person.name}</div>
+                <div class="info-grid">
+                    <div class="label">연락처:</div><div class="value">${person.phone}</div>
+                    <div class="label">주소:</div><div class="value">${person.address}</div>
+                    <div class="label">신체사이즈:</div><div class="value">${person.size}</div>
+                    <div class="label">성격/특징:</div><div class="value">${person.trait}</div>
+                    <div class="label">기타메모:</div><div class="value">${person.memo}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // 검색 기능
+    function filterData() {
+        const query = document.getElementById('search').value.toLowerCase();
+        const filtered = privateData.filter(p => p.name.includes(query) || p.trait.includes(query));
+        displayData(filtered);
     }
 </script>
 
 <div id="mainContent">
-    <h2>🔒 개인 메모장</h2>
-    
-    <div class="card">
-        <div class="info-item"><span class="label">항목:</span> 성격 및 일화</div>
-        <div class="info-item"><span class="label">내용:</span> 여기에 사적인 기록들을 적으세요.</div>
-    </div>
-
-    <div class="card">
-        <div class="info-item"><span class="label">신체정보:</span> 사이즈 기록</div>
-        <div class="info-item"><span class="label">메모:</span> 발사이즈 270 / 상의 100 등</div>
-    </div>
-    
-    </div>
+    <h2>🔒 나만의 비공개 명부</h2>
+    <input type="text" id="search" class="search-box" placeholder="이름이나 특징 검색..." onkeyup="filterData()">
+    <div id="listContainer">
+        </div>
+</div>
 
 </body>
 </html>
