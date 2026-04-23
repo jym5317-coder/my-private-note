@@ -3,44 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>비공개 통합 보관함</title>
+    <title>🔒 현장 비공개 명부</title>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        :root { --primary-color: #2563eb; --bg-color: #f8fafc; }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: #1e293b; }
         #mainContent { max-width: 600px; margin: 0 auto; display: none; }
-        .search-box { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .name-header { font-size: 18px; font-weight: bold; color: #1a73e8; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 10px; }
-        .info-grid { display: grid; grid-template-columns: 90px 1fr; gap: 8px; font-size: 14px; }
-        .label { font-weight: bold; color: #666; }
-        .value { color: #333; }
-        h2 { text-align: center; color: #333; }
+        
+        .header { text-align: center; margin-bottom: 25px; }
+        .search-box { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; margin-bottom: 20px; outline: none; transition: border 0.3s; }
+        .search-box:focus { border-color: var(--primary-color); }
+
+        .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); position: relative; overflow: hidden; }
+        .card::before { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 6px; background: var(--primary-color); }
+        
+        .card-top { display: flex; align-items: center; margin-bottom: 15px; gap: 15px; }
+        .profile-img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; background: #eee; border: 2px solid #f1f5f9; }
+        .name-info h3 { margin: 0; font-size: 20px; color: #0f172a; }
+        .name-info p { margin: 4px 0 0; font-size: 14px; color: #64748b; }
+
+        .info-grid { display: grid; grid-template-columns: 1fr; gap: 10px; background: #f1f5f9; padding: 15px; border-radius: 12px; }
+        .info-item { display: flex; flex-direction: column; gap: 2px; }
+        .label { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; }
+        .value { font-size: 15px; color: #334155; line-height: 1.4; }
+        
+        .btn-call { display: block; text-align: center; background: #dcfce7; color: #166534; text-decoration: none; padding: 10px; border-radius: 8px; margin-top: 15px; font-weight: bold; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <script>
-    const myPassword = "1234"; // 🔓 사용할 비밀번호
+    const myPassword = "1234"; 
     const input = prompt("비밀번호를 입력하세요.");
 
-    // 📝 데이터 입력 구역 (여기에 사람을 계속 추가하세요!)
+    // 📝 데이터 관리 구역 (항목을 맘껏 늘려보세요!)
     const privateData = [
         {
-            name: "홍길동",
-            phone: "010-1234-5678",
-            address: "서울시 어딘가",
-            size: "상의 100 / 하의 32 / 발 270",
-            trait: "성격 급함, 일 처리는 정확함",
-            memo: "작년 여름 현장에서 같이 근무함"
+            name: "제영모",
+            role: "득우건설 / 안전관리",
+            phone: "010-8343-5317",
+            photo: "1.jpg", // 사진 파일명
+            address: "현장 숙소 A동",
+            size: "발 270 / 상의 100",
+            history: "25년 성주 현장 투입, 품질 경력 다수",
+            trait: "성실함, 리스크 관리 철저",
+            memo: "개인적인 메모 내용들..."
         },
         {
-            name: "김철수",
-            phone: "010-9876-5432",
-            address: "경기도 용인시",
-            size: "상의 105 / 하의 34 / 발 280",
-            trait: "꼼꼼함, 술 안 마심",
-            memo: "특별 관리 대상"
-        },
-        // 추가하고 싶으면 아래 양식을 복사해서 계속 붙여넣으세요
+            name: "김광석",
+            role: "골조 / 팀장",
+            phone: "010-4737-0684",
+            photo: "2.jpg",
+            address: "경기도 용인시 처인구",
+            size: "발 280 / 상의 105",
+            history: "관리감독자 교육 수료",
+            trait: "팀원 통솔력 좋음, 꼼꼼한 성격",
+            memo: "특별 관리 요망"
+        }
     ];
 
     if (input === myPassword) {
@@ -50,39 +68,48 @@
         });
     } else {
         alert("비밀번호가 틀렸습니다.");
-        document.body.innerHTML = "<h2>접근 권한이 없습니다.</h2>";
+        document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>접근 권한이 없습니다.</h2>";
     }
 
-    // 화면에 목록을 그려주는 기능
     function displayData(data) {
         const container = document.getElementById('listContainer');
-        container.innerHTML = data.map(person => `
+        container.innerHTML = data.map(p => `
             <div class="card">
-                <div class="name-header">${person.name}</div>
-                <div class="info-grid">
-                    <div class="label">연락처:</div><div class="value">${person.phone}</div>
-                    <div class="label">주소:</div><div class="value">${person.address}</div>
-                    <div class="label">신체사이즈:</div><div class="value">${person.size}</div>
-                    <div class="label">성격/특징:</div><div class="value">${person.trait}</div>
-                    <div class="label">기타메모:</div><div class="value">${person.memo}</div>
+                <div class="card-top">
+                    <img src="${p.photo}" class="profile-img" onerror="this.src='https://via.placeholder.com/100?text=No+Photo'">
+                    <div class="name-info">
+                        <h3>${p.name}</h3>
+                        <p>${p.role}</p>
+                    </div>
                 </div>
+                <div class="info-grid">
+                    ${p.phone ? `<div class="info-item"><span class="label">연락처</span><span class="value">${p.phone}</span></div>` : ''}
+                    ${p.address ? `<div class="info-item"><span class="label">주소</span><span class="value">${p.address}</span></div>` : ''}
+                    ${p.size ? `<div class="info-item"><span class="label">신체 사이즈</span><span class="value">${p.size}</span></div>` : ''}
+                    ${p.history ? `<div class="info-item"><span class="label">경력사항</span><span class="value">${p.history}</span></div>` : ''}
+                    ${p.trait ? `<div class="info-item"><span class="label">성향/특징</span><span class="value">${p.trait}</span></div>` : ''}
+                    ${p.memo ? `<div class="info-item"><span class="label">비밀 메모</span><span class="value">${p.memo}</span></div>` : ''}
+                </div>
+                <a href="tel:${p.phone}" class="btn-call">📞 바로 전화걸기</a>
             </div>
         `).join('');
     }
 
-    // 검색 기능
     function filterData() {
         const query = document.getElementById('search').value.toLowerCase();
-        const filtered = privateData.filter(p => p.name.includes(query) || p.trait.includes(query));
+        const filtered = privateData.filter(p => 
+            p.name.includes(query) || p.trait.includes(query) || p.memo.includes(query)
+        );
         displayData(filtered);
     }
 </script>
 
 <div id="mainContent">
-    <h2>🔒 나만의 비공개 명부</h2>
-    <input type="text" id="search" class="search-box" placeholder="이름이나 특징 검색..." onkeyup="filterData()">
-    <div id="listContainer">
-        </div>
+    <div class="header">
+        <h2>🔒 비공개 인물 수첩</h2>
+    </div>
+    <input type="text" id="search" class="search-box" placeholder="이름, 성격, 메모 검색..." onkeyup="filterData()">
+    <div id="listContainer"></div>
 </div>
 
 </body>
