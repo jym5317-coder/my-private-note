@@ -3,28 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔒 스마트 인물 수첩 (데이터 정밀 연동)</title>
+    <title>🔒 스마트 인물 수첩 (최종본)</title>
     <style>
         :root { --primary-color: #2563eb; --bg-color: #f8fafc; }
         body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); margin: 0; padding: 10px; color: #1e293b; }
         #mainContent { max-width: 600px; margin: 0 auto; display: none; }
         .header { text-align: center; margin-bottom: 20px; }
         .search-box { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; margin-bottom: 20px; outline: none; box-sizing: border-box; }
+        
         .card { background: white; border-radius: 16px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--primary-color); }
         .card-top { display: flex; align-items: center; margin-bottom: 15px; gap: 15px; }
-        .profile-img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; background: #eee; }
-        .name-info h3 { margin: 0; font-size: 20px; color: #1e293b; }
-        .name-info p { margin: 5px 0 0; font-size: 14px; color: #64748b; font-weight: 600; }
+        .profile-img { width: 85px; height: 85px; border-radius: 12px; object-fit: cover; background: #eee; border: 1px solid #e2e8f0; }
+        .name-info h3 { margin: 0; font-size: 22px; color: #1e293b; }
+        .name-info p { margin: 5px 0 0; font-size: 15px; color: #475569; font-weight: 700; }
         
         .info-grid { display: grid; grid-template-columns: 1fr; gap: 8px; background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #f1f5f9; }
-        .info-item { display: flex; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px; }
+        .info-item { display: flex; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px; align-items: flex-start; }
         .info-item:last-child { border-bottom: none; }
-        .label { font-size: 12px; font-weight: 800; color: #64748b; width: 100px; flex-shrink: 0; }
-        .value { font-size: 14px; color: #334155; white-space: pre-wrap; word-break: break-all; flex-grow: 1; }
+        .label { font-size: 12px; font-weight: 800; color: #64748b; width: 100px; flex-shrink: 0; padding-top: 2px; }
+        .value { font-size: 14px; color: #334155; white-space: pre-wrap; word-break: break-all; flex-grow: 1; line-height: 1.4; }
         
         .live-memo-container { margin-top: 15px; padding: 12px; background: #fffde7; border-radius: 10px; border: 1px solid #fde68a; }
-        .live-memo-area { width: 100%; height: 80px; border: none; background: transparent; font-size: 14px; resize: none; outline: none; margin-top: 5px; }
-        .btn-call { display: block; text-align: center; background: #2563eb; color: white; text-decoration: none; padding: 12px; border-radius: 10px; margin-top: 15px; font-weight: bold; }
+        .live-memo-area { width: 100%; height: 80px; border: none; background: transparent; font-size: 14px; resize: none; outline: none; margin-top: 5px; font-family: inherit; }
+        .btn-call { display: block; text-align: center; background: #2563eb; color: white; text-decoration: none; padding: 12px; border-radius: 10px; margin-top: 15px; font-weight: bold; font-size: 16px; }
+        
+        .notion-link { color: #2563eb; font-weight: 800; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -41,7 +44,7 @@
         window.stop();
         document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>접근 권한이 없습니다.</h2>";
     } else {
-        // 복합적인 CSV 파싱 (따옴표 내 쉼표 보존)
+        // [핵심] CSV 파싱 함수: 따옴표 안의 쉼표를 완벽하게 보호하여 칸 밀림 방지
         function parseCSV(text) {
             const rows = [];
             let currentLine = [];
@@ -76,7 +79,7 @@
                         name: cols[1] || "",
                         role: cols[2] || "",
                         phone: cols[3] || "",
-                        photo: cols[4] || "", // 프로필 이미지 파일명
+                        photo: cols[4] || "",
                         birth: cols[5] || "",
                         address: cols[6] || "",
                         size: cols[7] || "",
@@ -85,9 +88,9 @@
                         skinship: cols[10] || "",
                         sexDate: cols[11] || "",
                         school: cols[12] || "",
-                        personal: cols[13] || "", // 개인신상
-                        takenPhoto: cols[14] || "", // [추가] 찍은사진 (Index 14)
-                        action: cols[15] || "", // 행위
+                        personal: cols[13] || "",
+                        takenPhoto: cols[14] || "", // 요청하신 '찍은사진'
+                        action: cols[15] || "",
                         memo: cols[16] || "",
                         notion: cols[17] || ""
                     };
@@ -96,7 +99,7 @@
                 displayData(privateData);
                 document.getElementById('mainContent').style.display = 'block';
             } catch (error) {
-                alert("인명.csv 로드 실패");
+                alert("인명.csv 파일을 읽지 못했습니다. 파일명과 위치를 확인하세요.");
             }
         }
 
@@ -111,9 +114,13 @@
                 return `
                 <div class="card">
                     <div class="card-top">
-                        <img src="${p.photo}" class="profile-img" onerror="this.src='https://via.placeholder.com/100?text=No+Photo'">
-                        <div class="name-info"><h3>${p.name}</h3><p>${p.role}</p></div>
+                        <img src="${p.photo}" class="profile-img" onerror="this.src='https://via.placeholder.com/150?text=No+Photo'">
+                        <div class="name-info">
+                            <h3>${p.name}</h3>
+                            <p>${p.role}</p>
+                        </div>
                     </div>
+                    
                     <div class="info-grid">
                         ${p.phone ? `<div class="info-item"><span class="label">연락처</span><span class="value">${p.phone}</span></div>` : ''}
                         ${p.birth ? `<div class="info-item"><span class="label">생년월일</span><span class="value">${p.birth}</span></div>` : ''}
@@ -128,12 +135,14 @@
                         ${p.takenPhoto ? `<div class="info-item"><span class="label">찍은사진</span><span class="value">${p.takenPhoto}</span></div>` : ''}
                         ${p.action ? `<div class="info-item"><span class="label">행위</span><span class="value">${p.action}</span></div>` : ''}
                         ${p.memo ? `<div class="info-item"><span class="label">기본 메모</span><span class="value">${p.memo}</span></div>` : ''}
-                        ${p.notion ? `<div class="info-item"><span class="label">노션 링크</span><span class="value"><a href="${p.notion}" target="_blank" style="color:#2563eb; font-weight:bold;">노션 열기</a></span></div>` : ''}
+                        ${p.notion ? `<div class="info-item"><span class="label">노션 링크</span><span class="value"><a href="${p.notion}" target="_blank" class="notion-link">노션 상세페이지 열기</a></span></div>` : ''}
                     </div>
+
                     <div class="live-memo-container">
-                        <span class="label" style="color:#854d0e;">📍 실시간 메모 (자동 저장)</span>
-                        <textarea class="live-memo-area" placeholder="내용 입력..." oninput="saveMemo('${p.id}', this.value)">${savedMemo}</textarea>
+                        <span class="label" style="color:#854d0e;">📍 실시간 현장 메모 (기기 저장)</span>
+                        <textarea class="live-memo-area" placeholder="새로운 내용을 입력하면 자동 저장됩니다..." oninput="saveMemo('${p.id}', this.value)">${savedMemo}</textarea>
                     </div>
+
                     ${p.phone ? `<a href="tel:${p.phone}" class="btn-call">📞 전화 걸기</a>` : ''}
                 </div>
             `}).join('');
@@ -141,7 +150,9 @@
 
         window.filterData = function() {
             const query = document.getElementById('search').value.toLowerCase();
-            const filtered = privateData.filter(p => p.name.includes(query) || p.trait.includes(query));
+            const filtered = privateData.filter(p => 
+                p.name.includes(query) || p.trait.includes(query) || p.role.includes(query)
+            );
             displayData(filtered);
         };
 
@@ -151,7 +162,7 @@
 
 <div id="mainContent">
     <div class="header"><h2>🔒 SMART 인물 수첩</h2></div>
-    <input type="text" id="search" class="search-box" placeholder="이름 또는 특징 검색..." onkeyup="filterData()">
+    <input type="text" id="search" class="search-box" placeholder="이름, 특징, 소속 검색..." onkeyup="filterData()">
     <div id="listContainer"></div>
 </div>
 
