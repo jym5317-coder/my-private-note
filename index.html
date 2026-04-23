@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔒 스마트 인물 수첩 (엑셀 연동형)</title>
+    <title>🔒 스마트 인물 수첩 (CSV 연동형)</title>
     <style>
         :root { --primary-color: #2563eb; --bg-color: #f8fafc; }
         body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: #1e293b; }
@@ -25,8 +25,6 @@
 <body>
 
 <script>
-    // ⚠️ 주의: 로컬 파일(D:\...)은 웹브라우저 보안상 직접 불러올 수 없습니다.
-    // 엑셀에서 'CSV(쉼표로 구분)'로 저장한 후, 이 HTML 파일과 같은 폴더에 넣고 아래 파일명만 적으세요.
     const csvUrl = "인명.csv"; 
     const myPassword = "1234"; 
     let privateData = [];
@@ -38,7 +36,6 @@
         window.stop();
         document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>접근 권한이 없습니다.</h2>";
     } else {
-        // ✅ [수정된 부분] 데이터를 더 튼튼하게 읽어오는 함수
         async function fetchExcelData() {
             try {
                 const response = await fetch(csvUrl);
@@ -46,10 +43,10 @@
                 
                 // 줄바꿈으로 행 나누기
                 const rows = text.split(/\r?\n/).filter(row => row.trim() !== "");
-                const dataRows = rows.slice(1); // 첫 줄(제목) 제외
+                const dataRows = rows.slice(1); // 첫 줄(헤더) 제외
 
                 privateData = dataRows.map(row => {
-                    // 만약 엑셀 저장 시 쉼표(,)가 아니라 탭이나 다른 걸로 나뉜다면 이 부분을 수정해야 합니다.
+                    // CSV 파싱 (쉼표 기준)
                     const cols = row.split(','); 
                     return {
                         id: cols[0]?.trim() || "",
@@ -57,11 +54,12 @@
                         role: cols[2]?.trim() || "",
                         phone: cols[3]?.trim() || "",
                         photo: cols[4]?.trim() || "",
-                        address: cols[5]?.trim() || "",
-                        size: cols[6]?.trim() || "",
-                        trait: cols[7]?.trim() || "",
-                        memo: cols[8]?.trim() || "",
-                        notion: cols[9]?.trim() || ""
+                        birth: cols[5]?.trim() || "",    // 생년월일 (추가)
+                        address: cols[6]?.trim() || "",  // 주소 위치 수정
+                        size: cols[7]?.trim() || "",     // 사이즈 위치 수정
+                        trait: cols[8]?.trim() || "",    // 성향 위치 수정
+                        memo: cols[16]?.trim() || "",    // 실제 memo 컬럼 (17번째)
+                        notion: cols[17]?.trim() || ""   // 실제 notion 컬럼 (18번째)
                     };
                 }).filter(p => p.name); 
 
@@ -69,7 +67,7 @@
                 document.getElementById('mainContent').style.display = 'block';
             } catch (error) {
                 console.error(error);
-                alert("데이터 로드 실패!\n1. 파일이 '인명.csv' 인지 확인\n2. HTML 파일과 같은 폴더에 있는지 확인하세요.");
+                alert("인명.csv 파일을 찾을 수 없거나 불러오기에 실패했습니다.");
             }
         }
 
@@ -89,9 +87,10 @@
                     </div>
                     <div class="info-grid">
                         ${p.phone ? `<div class="info-item"><span class="label">연락처</span><span class="value">${p.phone}</span></div>` : ''}
+                        ${p.birth ? `<div class="info-item"><span class="label">생년월일</span><span class="value">${p.birth}</span></div>` : ''}
                         ${p.address ? `<div class="info-item"><span class="label">주소</span><span class="value">${p.address}</span></div>` : ''}
                         ${p.size ? `<div class="info-item"><span class="label">사이즈</span><span class="value">${p.size}</span></div>` : ''}
-                        ${p.trait ? `<div class="info-item"><span class="label">성향/특징</span><span class="value">${p.trait}</span></div>` : ''}
+                        ${p.trait ? `<div class="info-item"><span class="label">특징</span><span class="value">${p.trait}</span></div>` : ''}
                         ${p.memo ? `<div class="info-item"><span class="label">기본 메모</span><span class="value">${p.memo}</span></div>` : ''}
                         ${p.notion ? `<div class="info-item"><span class="label">노션 링크</span><span class="value"><a href="${p.notion}" target="_blank" style="color:#2563eb; font-weight:bold;">노션 바로가기</a></span></div>` : ''}
                     </div>
@@ -117,7 +116,7 @@
 </script>
 
 <div id="mainContent">
-    <div class="header"><h2>🔒 인물 수첩 (엑셀 연동형)</h2></div>
+    <div class="header"><h2>🔒 인물 수첩 (CSV 연동형)</h2></div>
     <input type="text" id="search" class="search-box" placeholder="이름 검색..." onkeyup="filterData()">
     <div id="listContainer"></div>
 </div>
