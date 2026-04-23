@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔒 인물 수첩</title>
+    <title>🔒 인물 수첩 (메모형)</title>
     <style>
         :root { --primary-color: #2563eb; --bg-color: #f8fafc; }
         body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: #1e293b; }
@@ -11,7 +11,6 @@
         
         .link-container { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .link-item { margin-bottom: 10px; font-size: 14px; color: #475569; line-height: 1.6; border-bottom: 1px dashed #eee; padding-bottom: 5px; }
-        .link-item:last-child { margin-bottom: 0; border-bottom: none; }
         .link-item b { color: var(--primary-color); display: inline-block; min-width: 80px; }
         .link-item a { color: #2563eb; text-decoration: none; word-break: break-all; font-weight: 500; }
 
@@ -28,9 +27,12 @@
         .label { font-size: 11px; font-weight: 800; color: #64748b; }
         .value { font-size: 15px; color: #334155; white-space: pre-wrap; }
         
-        /* 인물 카드 내부 링크 스타일 */
-        .notion-link { color: #2563eb; font-weight: bold; text-decoration: underline; word-break: break-all; }
-        
+        /* 📝 실시간 메모장 스타일 */
+        .live-memo-container { margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0; }
+        .live-memo-area { width: 100%; height: 80px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; font-size: 14px; resize: none; box-sizing: border-box; background: #fffde7; outline-color: var(--primary-color); }
+        .memo-status { font-size: 11px; color: #94a3b8; text-align: right; margin-top: 4px; }
+
+        .notion-link { color: #2563eb; font-weight: bold; text-decoration: underline; }
         .btn-call { display: block; text-align: center; background: #2563eb; color: white; text-decoration: none; padding: 12px; border-radius: 8px; margin-top: 15px; font-weight: bold; }
     </style>
 </head>
@@ -52,110 +54,23 @@
             { title: "지도 보기", url: "https://map.naver.com/p/" }
         ];
 
+        // 데이터 (ID값을 이름으로 대체하거나 고유하게 주어야 메모가 섞이지 않습니다.)
         const privateData = [
-            {
-                name: "제영모",
-                role: "득우건설 / 안전관리",
-                phone: "010-8343-5317",
-                photo: "1.jpg",
-                address: "현장 숙소 A동",
-                size: "발 270 / 상의 100",
-                trait: "성실함, 리스크 관리 철저",
-                memo: "여기에 사적인 긴 메모를 적으셔도 됩니다."
-            },
-            {
-                name: "제영모",
-                role: "득우건설 / 안전관리",
-                phone: "010-8343-5317",
-                photo: "1.jpg",
-                address: "현장 숙소 A동",
-                size: "발 270 / 상의 100",
-                trait: "성실함, 리스크 관리 철저",
-                memo: "여기에 사적인 긴 메모를 적으셔도 됩니다."
-            },
-            {
-                name: "남영선",
-                role: "구미방면 / 서울연락소",
-                phone: "010-5880-6009",
-                photo: "2.jpg",
-                address: "서울특별시 관악구 신원로3가길 6",
-                size: "발 / 상의 / 85B / 100",
-                trait: "선각",
-                memo: "젖꼭지빨아.",
-                // 🔗 남영선 님 전용 노션 링크 추가
-                notion: "https://www.notion.so/0929e7701ab240deb53c492ce155fe32?source=copy_link"
-            },
-            {
-                name: "장희정",
-                role: "구미방면 / 경산회실",
-                phone: "010-4181-9400",
-                photo: "2.jpg",
-                address: "경북 경산시 경안로39길 7",
-                size: "발 / 상의 / 75A / 90",
-                trait: "같이사업",
-                memo: "브라팬티사진, 몸사진, 자는사진.",
-                // 🔗 장희정 님 전용 노션 링크 추가
-                notion: "https://www.notion.so/c98bf27247b540e9a40a55b28b646f6f?source=copy_link"
-            },
-            {
-                name: "이예림",
-                role: "구미방면 / 서울연락소",
-                phone: "010-6482-3108",
-                photo: "2.jpg",
-                address: "서울특별시 관악구 신원로3가길 6",
-                size: "발 / 상의 / 80A / 90",
-                trait: "같이사업",
-                memo: "잘때 가슴, 보지만져, 키스, 젖꼭지빨아.",
-                // 🔗 이예림 님 전용 노션 링크 추가
-                notion: "https://www.notion.so/778aa5f4d5584716ba23765119e9f818?source=copy_link"
-            },
-            {
-                name: "차영슬",
-                role: "구미방면 / 서울연락소",
-                phone: "010-2501-1656",
-                photo: "2.jpg",
-                address: "서울특별시 관악구 신원로3가길 6",
-                size: "발 / 상의 / 75A / 90",
-                trait: "같이생활",
-                memo: "브라팬티사진, 가슴만지는사진, 자지내놓고사진.",
-                // 🔗 차영슬 님 전용 노션 링크 추가
-                notion: "https://www.notion.so/90bae82823c44ac1a79724f2b5272453?source=copy_link"
-            },
-            {
-                name: "강혜정",
-                role: "구미방면 / 경산회실",
-                phone: "010-3191-5400",
-                photo: "2.jpg",
-                address: "경북 경산시 경안로39길 7",
-                size: "발 / 상의 / 85B / 100",
-                trait: "같이사업",
-                memo: "치마속사진, 가슴사진, 엉덩이사진, 자지내놓고사진.",
-                // 🔗 강혜정 님 전용 노션 링크 추가
-                notion: "https://www.notion.so/6211dc04e86a4c029bffbd749981e7e6?source=copy_link"
-            },
-            {
-                name: "이영민",
-                role: "구미방면 / 경산회실",
-                phone: "010-3923-2700",
-                photo: "2.jpg",
-                address: "경북 경산시 경안로39길 7",
-                size: "발 / 상의 / 75A / 90",
-                trait: "같이사업",
-                memo: "브라팬티사진, 자지내놓고사진.",
-                // 🔗 이영민 님 전용 노션 링크 추가
-                notion: "https://www.notion.so/ccb5930e5d0f4cc8961a89a3431936d1?source=copy_link"
-            },
-            {
-                name: "최지혜",
-                role: "경주방면 / 신기도장사무실",
-                phone: "010-5880-6009",
-                photo: "2.jpg",
-                address: "강원 삼척시 신기면 강원남부로 3016",
-                size: "발 / 상의",
-                trait: "음료와 간단히 먹을것 나눔",
-                memo: "몸매 볼륨 좋아."
-            }
+            { id: "제영모", name: "제영모", role: "득우건설 / 안전관리", phone: "010-8343-5317", photo: "1.jpg", address: "현장 숙소 A동", size: "발 270 / 상의 100", trait: "성실함", memo: "기존 고정 메모" },
+            { id: "남영선", name: "남영선", role: "구미방면 / 서울연락소", phone: "010-5880-6009", photo: "2.jpg", address: "서울특별시 관악구", size: "발 / 상의 / 85B / 100", trait: "선각", memo: "...", notion: "https://www.notion.so/..." },
+            { id: "장희정", name: "장희정", role: "구미방면 / 경산회실", phone: "010-4181-9400", photo: "2.jpg", address: "경북 경산시", size: "발 / 상의 / 75A / 90", trait: "같이사업", memo: "...", notion: "https://www.notion.so/..." },
+            { id: "이예림", name: "이예림", role: "구미방면 / 서울연락소", phone: "010-6482-3108", photo: "2.jpg", address: "서울특별시 관악구", size: "발 / 상의 / 80A / 90", trait: "같이사업", memo: "...", notion: "https://www.notion.so/..." },
+            { id: "차영슬", name: "차영슬", role: "구미방면 / 서울연락소", phone: "010-2501-1656", photo: "2.jpg", address: "서울특별시 관악구", size: "발 / 상의 / 75A / 90", trait: "같이생활", memo: "...", notion: "https://www.notion.so/..." },
+            { id: "강혜정", name: "강혜정", role: "구미방면 / 경산회실", phone: "010-3191-5400", photo: "2.jpg", address: "경북 경산시", size: "발 / 상의 / 85B / 100", trait: "같이사업", memo: "...", notion: "https://www.notion.so/..." },
+            { id: "이영민", name: "이영민", role: "구미방면 / 경산회실", phone: "010-3923-2700", photo: "2.jpg", address: "경북 경산시", size: "발 / 상의 / 75A / 90", trait: "같이사업", memo: "...", notion: "https://www.notion.so/..." },
+            { id: "최지혜", name: "최지혜", role: "경주방면 / 신기도장사무실", phone: "010-5880-6009", photo: "2.jpg", address: "강원 삼척시", size: "발 / 상의", trait: "음료 나눔", memo: "몸매 볼륨 좋아." }
         ];
+
+        // 메모 저장 함수
+        window.saveMemo = function(id, val) {
+            localStorage.setItem('memo_' + id, val);
+            document.getElementById('status_' + id).innerText = "자동 저장됨";
+        };
 
         function displayLinks() {
             const linkDiv = document.getElementById('quickLinks');
@@ -166,7 +81,11 @@
 
         function displayData(data) {
             const container = document.getElementById('listContainer');
-            container.innerHTML = data.map(p => `
+            container.innerHTML = data.map(p => {
+                // 로컬 스토리지에서 저장된 메모 불러오기
+                const savedMemo = localStorage.getItem('memo_' + p.id) || "";
+                
+                return `
                 <div class="card">
                     <div class="card-top">
                         <img src="${p.photo}" class="profile-img" onerror="this.src='https://via.placeholder.com/100?text=No+Photo'">
@@ -175,14 +94,22 @@
                     <div class="info-grid">
                         ${p.phone ? `<div class="info-item"><span class="label">연락처</span><span class="value">${p.phone}</span></div>` : ''}
                         ${p.address ? `<div class="info-item"><span class="label">주소</span><span class="value">${p.address}</span></div>` : ''}
-                        ${p.size ? `<div class="info-item"><span class="label">신체 사이즈</span><span class="value">${p.size}</span></div>` : ''}
-                        ${p.trait ? `<div class="info-item"><span class="label">성향/특징</span><span class="value">${p.trait}</span></div>` : ''}
-                        ${p.memo ? `<div class="info-item"><span class="label">비밀 메모</span><span class="value">${p.memo}</span></div>` : ''}
+                        ${p.size ? `<div class="info-item"><span class="label">사이즈</span><span class="value">${p.size}</span></div>` : ''}
+                        ${p.memo ? `<div class="info-item"><span class="label">기본 메모</span><span class="value">${p.memo}</span></div>` : ''}
                         ${p.notion ? `<div class="info-item"><span class="label">노션 링크</span><span class="value"><a href="${p.notion}" target="_blank" class="notion-link">노션 바로가기</a></span></div>` : ''}
                     </div>
+                    
+                    <div class="live-memo-container">
+                        <span class="label">현장 추가 기록 (자동 저장)</span>
+                        <textarea class="live-memo-area" 
+                                  placeholder="여기에 직접 내용을 입력하세요..." 
+                                  oninput="saveMemo('${p.id}', this.value)">${savedMemo}</textarea>
+                        <div id="status_${p.id}" class="memo-status">${savedMemo ? '저장된 내용 있음' : '입력 대기 중'}</div>
+                    </div>
+
                     ${p.phone ? `<a href="tel:${p.phone}" class="btn-call">📞 전화 걸기</a>` : ''}
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         window.filterData = function() {
@@ -202,9 +129,9 @@
 </script>
 
 <div id="mainContent">
-    <div class="header"><h2>🔒 인물 수첩</h2></div>
+    <div class="header"><h2>🔒 인물 수첩 + 현장 기록</h2></div>
     <div id="quickLinks" class="link-container"></div>
-    <input type="text" id="search" class="search-box" placeholder="이름, 특징, 메모 검색..." onkeyup="filterData()">
+    <input type="text" id="search" class="search-box" placeholder="이름, 특징 검색..." onkeyup="filterData()">
     <div id="listContainer"></div>
 </div>
 
