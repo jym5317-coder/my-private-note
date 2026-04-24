@@ -1,50 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔒 SMART 인물 공략 수첩 (V3)</title>
+    <style>
+        :root { --primary-color: #f43f5e; --strategy-color: #0ea5e9; --bg-color: #fff1f2; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; margin: 0; padding: 10px; }
+        #mainContent { max-width: 600px; margin: 0 auto; display: none; }
+        .search-box { width: 100%; padding: 15px; border: 2px solid #fb7185; border-radius: 15px; font-size: 16px; margin-bottom: 20px; outline: none; box-sizing: border-box; box-shadow: 0 4px 10px rgba(244, 63, 94, 0.1); }
+        
+        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 25px; border: 1px solid #ffe4e6; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); overflow: hidden; position: relative; }
+        /* 집중 공략 대상 표시 */
+        .card.target { border: 3px solid var(--primary-color); }
+        .target-badge { position: absolute; top: 0; right: 0; background: var(--primary-color); color: white; padding: 5px 15px; font-size: 12px; font-weight: 800; border-bottom-left-radius: 15px; }
+
+        .card-top { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; }
+        .profile-img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid #fff1f2; }
+        .name-info h3 { margin: 0; font-size: 24px; color: #1e293b; }
+        .status-tag { display: inline-block; background: #fff1f2; color: #e11d48; padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 800; margin-top: 5px; }
+        
+        .section-title { font-size: 13px; font-weight: 800; color: #94a3b8; margin: 15px 0 8px 5px; display: flex; align-items: center; gap: 5px; }
+        .section-title::before { content: ''; width: 3px; height: 13px; background: var(--primary-color); display: inline-block; }
+
+        .info-grid { display: grid; grid-template-columns: 1fr; gap: 8px; background: #f8fafc; padding: 15px; border-radius: 15px; }
+        .info-item { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 5px; }
+        .label { font-size: 12px; font-weight: 700; color: #64748b; }
+        .value { font-size: 14px; color: #334155; text-align: right; font-weight: 500; }
+
+        /* 공략 계획 섹션 */
+        .strategy-box { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 15px; padding: 15px; margin-top: 15px; }
+        .strategy-text { font-size: 14px; color: #0369a1; line-height: 1.5; font-weight: 600; }
+
+        .memo-area { width: 100%; height: 80px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-top: 10px; font-size: 14px; background: #fffde7; resize: none; box-sizing: border-box; }
+        .btn-call { display: block; text-align: center; background: linear-gradient(135deg, #f43f5e, #e11d48); color: white; text-decoration: none; padding: 15px; border-radius: 15px; margin-top: 15px; font-weight: 800; font-size: 16px; }
+    </style>
+</head>
+<body>
+
 <script>
-    // ... 기존 파싱 로직 동일 ...
+    const csvUrl = "인명.csv";
+    const myPassword = "1234";
+    let privateData = [];
 
-    function render(data) {
-        const container = document.getElementById('listContainer');
-        container.innerHTML = data.map(p => {
-            const liveMemo = localStorage.getItem('memo_' + p.id) || "";
-            // 아가씨(미혼) 여부 판단 (shinsang에 '유부'가 없는 경우 등)
-            const isSingle = !p.shinsang.includes('유부');
-            const isTarget = (p.name === "김보라" || p.name === "손경옥");
+    const login = prompt("암호 입력");
 
-            return `
-            <div class="card ${p.isTarget ? 'target' : ''}" style="${isSingle ? 'border-left: 6px solid #10b981;' : ''}">
-                ${p.isTarget ? `<div class="target-badge">🔥 집중 공략: ${p.name}</div>` : ''}
-                ${isSingle ? `<div style="position:absolute; top:0; left:0; background:#10b981; color:white; padding:2px 10px; font-size:10px; border-bottom-right-radius:10px;">✨ 미혼(아가씨) 관리</div>` : ''}
-                
-                <div class="card-top">
-                    <img src="${p.photo}" class="profile-img" onerror="this.src='https://via.placeholder.com/100?text=No+Img'">
-                    <div class="name-info">
-                        <h3>${p.name} ${isSingle ? '<small style="font-size:12px; color:#10b981;">(Single)</small>' : ''}</h3>
-                        <div class="status-tag">${p.role || '상태 미설정'}</div>
+    if (login !== myPassword) {
+        alert("접근 불가");
+        window.stop();
+    } else {
+        function parseCSV(text) {
+            const rows = [];
+            let currentLine = [];
+            let currentToken = "";
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                if (char === '"') { inQuotes = !inQuotes; }
+                else if (char === ',' && !inQuotes) { currentLine.push(currentToken.trim()); currentToken = ""; }
+                else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    if (currentToken || currentLine.length > 0) { currentLine.push(currentToken.trim()); rows.push(currentLine); }
+                    currentToken = ""; currentLine = [];
+                } else { currentToken += char; }
+            }
+            if (currentToken || currentLine.length > 0) { currentLine.push(currentToken.trim()); rows.push(currentLine); }
+            return rows;
+        }
+
+        async function loadData() {
+            try {
+                const res = await fetch(csvUrl);
+                const text = await res.text();
+                const all = parseCSV(text);
+                privateData = all.slice(1).map(cols => ({
+                    id: cols[0], name: cols[1], role: cols[2], phone: cols[3], photo: cols[4],
+                    birth: cols[5], addr: cols[6], size: cols[7], trait: cols[8],
+                    meet: cols[9], skin: cols[10], sex: cols[11], school: cols[12],
+                    shinsang: cols[13], takenPhoto: cols[14], action: cols[15],
+                    memo: cols[16], notion: cols[17],
+                    // 특별 관리 대상 (예: 김보라) 설정 - 이름으로 자동 감지
+                    isTarget: (cols[1] === "김보라") 
+                })).filter(p => p.name);
+                render(privateData);
+                document.getElementById('mainContent').style.display = 'block';
+            } catch (e) { alert("파일 로드 실패"); }
+        }
+
+        function render(data) {
+            const container = document.getElementById('listContainer');
+            container.innerHTML = data.map(p => {
+                const liveMemo = localStorage.getItem('memo_' + p.id) || "";
+                return `
+                <div class="card ${p.isTarget ? 'target' : ''}">
+                    ${p.isTarget ? '<div class="target-badge">🔥 집중 공략 대상</div>' : ''}
+                    <div class="card-top">
+                        <img src="${p.photo}" class="profile-img" onerror="this.src='https://via.placeholder.com/100?text=No+Img'">
+                        <div class="name-info">
+                            <h3>${p.name}</h3>
+                            <div class="status-tag">${p.role || '상태 미설정'}</div>
+                        </div>
                     </div>
-                </div>
 
-                <div class="info-grid">
-                    <div class="info-item"><span class="label">첫빠구리 일자</span><span class="value" style="color:#e11d48;">${p.sex || '진도 미달성'}</span></div>
-                    <div class="info-item"><span class="label">사이즈/성향</span><span class="value">${p.size} / ${p.trait}</span></div>
-                    <div class="info-item"><span class="label">경쟁자/남친유무</span><span class="value">${p.shinsang}</span></div>
-                </div>
-
-                <div class="strategy-box" style="background:#f0fdf4; border:1px solid #dcfce7;">
-                    <div class="section-title" style="margin:0 0 10px 0; color:#15803d;">
-                        🎯 ${p.name === "손경옥" ? '최종 정복(입싸) 전략' : '진입 및 스킨십 전략'}
+                    <div class="section-title">기본 데이터</div>
+                    <div class="info-grid">
+                        <div class="info-item"><span class="label">사이즈/성향</span><span class="value">${p.size} / ${p.trait}</span></div>
+                        <div class="info-item"><span class="label">첫스킨십/첫빠</span><span class="value">${p.skin || '미달성'} / ${p.sex || '미달성'}</span></div>
+                        <div class="info-item"><span class="label">개인신상</span><span class="value">${p.shinsang}</span></div>
                     </div>
-                    <div class="strategy-text">
-                        ${p.name === "손경옥" ? 
-                            "지배력 강화 필요. 사정 전 압박감을 주며 복종 유도." : 
-                            (p.memo || '명분을 만들어 1:1 술자리 유도 후 스킨십 시도')}
+
+                    <div class="section-title">공략 및 행위</div>
+                    <div class="info-grid">
+                        <div class="info-item"><span class="label">찍은사진</span><span class="value">${p.takenPhoto}</span></div>
+                        <div class="info-item"><span class="label">성적행위</span><span class="value">${p.action}</span></div>
                     </div>
+
+                    <div class="strategy-box">
+                        <div class="section-title" style="margin:0 0 10px 0; color:#0369a1;">🎯 공략 가이드</div>
+                        <div class="strategy-text">${p.memo || '공략 계획을 엑셀 memo란에 입력하세요.'}</div>
+                    </div>
+
+                    <div class="section-title">현장 반응 (실시간 저장)</div>
+                    <textarea class="memo-area" placeholder="오늘 만남에서의 반응, 약점 등을 기록..." oninput="localStorage.setItem('memo_${p.id}', this.value)">${liveMemo}</textarea>
+
+                    <a href="tel:${p.phone}" class="btn-call">📞 공략 전화 걸기</a>
+                    ${p.notion ? `<center><a href="${p.notion}" target="_blank" style="font-size:12px; color:#94a3b8; text-decoration:none; margin-top:10px; display:block;">노션 상세 데이터 열기</a></center>` : ''}
                 </div>
+            `;}).join('');
+        }
 
-                <div class="section-title">📍 실시간 호감도 및 반응 기록</div>
-                <textarea class="memo-area" placeholder="멘트에 대한 반응, 스킨십 허용 범위 등 기록..." oninput="localStorage.setItem('memo_${p.id}', this.value)">${liveMemo}</textarea>
+        window.search = function() {
+            const val = document.getElementById('q').value.toLowerCase();
+            const filtered = privateData.filter(p => p.name.includes(val) || p.trait.includes(val));
+            render(filtered);
+        };
 
-                <a href="tel:${p.phone}" class="btn-call" style="background:#10b981;">📞 아가씨에게 연락하기</a>
-            </div>
-            `;
-        }).join('');
+        document.addEventListener("DOMContentLoaded", loadData);
     }
 </script>
+
+<div id="mainContent">
+    <div class="header"><h2>🔒 SMART 인물 공략</h2></div>
+    <input type="text" id="q" class="search-box" placeholder="이름, 특징 검색..." onkeyup="search()">
+    <div id="listContainer"></div>
+</div>
+
+</body>
+</html>
