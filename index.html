@@ -3,31 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔒 스마트 인물 수첩 (최종본)</title>
+    <title>🔒 스마트 인물 수첩 (성능 개선 버전)</title>
     <style>
-        :root { --primary-color: #2563eb; --bg-color: #f8fafc; }
+        :root { --primary-color: #e11d48; --bg-color: #f8fafc; }
         body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); margin: 0; padding: 10px; color: #1e293b; }
         #mainContent { max-width: 600px; margin: 0 auto; display: none; }
         .header { text-align: center; margin-bottom: 20px; }
         .search-box { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; margin-bottom: 20px; outline: none; box-sizing: border-box; }
-        
         .card { background: white; border-radius: 16px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--primary-color); }
         .card-top { display: flex; align-items: center; margin-bottom: 15px; gap: 15px; }
-        .profile-img { width: 85px; height: 85px; border-radius: 12px; object-fit: cover; background: #eee; border: 1px solid #e2e8f0; }
-        .name-info h3 { margin: 0; font-size: 22px; color: #1e293b; }
-        .name-info p { margin: 5px 0 0; font-size: 15px; color: #475569; font-weight: 700; }
+        .profile-img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; background: #eee; border: 1px solid #e2e8f0; }
+        .name-info h3 { margin: 0; font-size: 20px; color: #1e293b; }
+        .name-info p { margin: 5px 0 0; font-size: 14px; color: #e11d48; font-weight: 800; }
         
         .info-grid { display: grid; grid-template-columns: 1fr; gap: 8px; background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #f1f5f9; }
-        .info-item { display: flex; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px; align-items: flex-start; }
+        .info-item { display: flex; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px; }
         .info-item:last-child { border-bottom: none; }
-        .label { font-size: 12px; font-weight: 800; color: #64748b; width: 100px; flex-shrink: 0; padding-top: 2px; }
-        .value { font-size: 14px; color: #334155; white-space: pre-wrap; word-break: break-all; flex-grow: 1; line-height: 1.4; }
+        .label { font-size: 12px; font-weight: 800; color: #64748b; width: 100px; flex-shrink: 0; }
+        .value { font-size: 14px; color: #334155; white-space: pre-wrap; word-break: break-all; flex-grow: 1; }
         
         .live-memo-container { margin-top: 15px; padding: 12px; background: #fffde7; border-radius: 10px; border: 1px solid #fde68a; }
         .live-memo-area { width: 100%; height: 80px; border: none; background: transparent; font-size: 14px; resize: none; outline: none; margin-top: 5px; font-family: inherit; }
-        .btn-call { display: block; text-align: center; background: #2563eb; color: white; text-decoration: none; padding: 12px; border-radius: 10px; margin-top: 15px; font-weight: bold; font-size: 16px; }
+        .btn-call { display: block; text-align: center; background: #e11d48; color: white; text-decoration: none; padding: 12px; border-radius: 10px; margin-top: 15px; font-weight: bold; cursor: pointer; border: none; font-size: 14px; width: 100%; }
         
-        .notion-link { color: #2563eb; font-weight: 800; text-decoration: underline; }
+        .no-results { text-align: center; padding: 40px 20px; color: #64748b; font-size: 16px; }
+        .search-info { text-align: center; color: #64748b; font-size: 12px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -36,6 +36,7 @@
     const csvUrl = "인명.csv"; 
     const myPassword = "1234"; 
     let privateData = [];
+    let nameIndex = new Map(); 
 
     const login = prompt("비밀번호를 입력하세요.");
 
@@ -44,7 +45,6 @@
         window.stop();
         document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>접근 권한이 없습니다.</h2>";
     } else {
-        // [핵심] CSV 파싱 함수: 따옴표 안의 쉼표를 완벽하게 보호하여 칸 밀림 방지
         function parseCSV(text) {
             const rows = [];
             let currentLine = [];
@@ -85,84 +85,113 @@
                         size: cols[7] || "",
                         trait: cols[8] || "",
                         meetDate: cols[9] || "",
-                        skinship: cols[10] || "",
-                        sexDate: cols[11] || "",
+                        skinship: cols[10] || "", // 원본 항목명 유지용 (내부 변수)
+                        sexDate: cols[11] || "",   // 원본 항목명 유지용 (내부 변수)
                         school: cols[12] || "",
                         personal: cols[13] || "",
-                        takenPhoto: cols[14] || "", // 요청하신 '찍은사진'
+                        takenPhoto: cols[14] || "",
                         action: cols[15] || "",
                         memo: cols[16] || "",
                         notion: cols[17] || ""
                     };
                 }).filter(p => p.name); 
 
+                buildNameIndex();
                 displayData(privateData);
                 document.getElementById('mainContent').style.display = 'block';
             } catch (error) {
-                alert("인명.csv 파일을 읽지 못했습니다. 파일명과 위치를 확인하세요.");
+                alert("인명.csv 로드 실패: " + error.message);
             }
         }
 
+        function buildNameIndex() {
+            nameIndex.clear();
+            privateData.forEach(person => {
+                const key = person.name.toLowerCase();
+                if (!nameIndex.has(key)) { nameIndex.set(key, []); }
+                nameIndex.get(key).push(person);
+            });
+        }
+
         window.saveMemo = function(id, val) {
-            localStorage.setItem('memo_' + id, val);
+            try { localStorage.setItem('memo_' + id, val); } 
+            catch (e) { console.error("메모 저장 실패:", e); }
         };
+
+        function escapeHtml(text) {
+            const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        window.callPhone = function(phone) { window.location.href = 'tel:' + phone; };
 
         function displayData(data) {
             const container = document.getElementById('listContainer');
-            container.innerHTML = data.map(p => {
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="no-results">검색 결과가 없습니다.</div>';
+                return;
+            }
+
+            const searchBox = document.getElementById('search');
+            const query = searchBox.value.toLowerCase();
+            let infoHTML = query ? `<div class="search-info">검색 결과: ${data.length}명</div>` : '';
+
+            container.innerHTML = infoHTML + data.map(p => {
                 const savedMemo = localStorage.getItem('memo_' + p.id) || "";
                 return `
                 <div class="card">
                     <div class="card-top">
-                        <img src="${p.photo}" class="profile-img" onerror="this.src='https://via.placeholder.com/150?text=No+Photo'">
-                        <div class="name-info">
-                            <h3>${p.name}</h3>
-                            <p>${p.role}</p>
-                        </div>
+                        <img src="${p.photo}" class="profile-img" onerror="this.src='https://via.placeholder.com/100?text=No+Photo'">
+                        <div class="name-info"><h3>${escapeHtml(p.name)}</h3><p>${escapeHtml(p.role)}</p></div>
                     </div>
-                    
                     <div class="info-grid">
-                        ${p.phone ? `<div class="info-item"><span class="label">연락처</span><span class="value">${p.phone}</span></div>` : ''}
-                        ${p.birth ? `<div class="info-item"><span class="label">생년월일</span><span class="value">${p.birth}</span></div>` : ''}
-                        ${p.address ? `<div class="info-item"><span class="label">주소</span><span class="value">${p.address}</span></div>` : ''}
-                        ${p.size ? `<div class="info-item"><span class="label">사이즈</span><span class="value">${p.size}</span></div>` : ''}
-                        ${p.trait ? `<div class="info-item"><span class="label">특징</span><span class="value">${p.trait}</span></div>` : ''}
-                        ${p.meetDate ? `<div class="info-item"><span class="label">처음만난시기</span><span class="value">${p.meetDate}</span></div>` : ''}
-                        ${p.skinship ? `<div class="info-item"><span class="label">첫스킨십</span><span class="value">${p.skinship}</span></div>` : ''}
-                        ${p.sexDate ? `<div class="info-item"><span class="label">첫빠구리</span><span class="value">${p.sexDate}</span></div>` : ''}
-                        ${p.school ? `<div class="info-item"><span class="label">출신학교</span><span class="value">${p.school}</span></div>` : ''}
-                        ${p.personal ? `<div class="info-item"><span class="label">개인신상</span><span class="value">${p.personal}</span></div>` : ''}
-                        ${p.takenPhoto ? `<div class="info-item"><span class="label">찍은사진</span><span class="value">${p.takenPhoto}</span></div>` : ''}
-                        ${p.action ? `<div class="info-item"><span class="label">행위</span><span class="value">${p.action}</span></div>` : ''}
-                        ${p.memo ? `<div class="info-item"><span class="label">기본 메모</span><span class="value">${p.memo}</span></div>` : ''}
-                        ${p.notion ? `<div class="info-item"><span class="label">노션 링크</span><span class="value"><a href="${p.notion}" target="_blank" class="notion-link">노션 상세페이지 열기</a></span></div>` : ''}
+                        ${p.phone ? `<div class="info-item"><span class="label">연락처</span><span class="value">${escapeHtml(p.phone)}</span></div>` : ''}
+                        ${p.birth ? `<div class="info-item"><span class="label">생년월일</span><span class="value">${escapeHtml(p.birth)}</span></div>` : ''}
+                        ${p.address ? `<div class="info-item"><span class="label">주소</span><span class="value">${escapeHtml(p.address)}</span></div>` : ''}
+                        ${p.size ? `<div class="info-item"><span class="label">사이즈</span><span class="value">${escapeHtml(p.size)}</span></div>` : ''}
+                        ${p.trait ? `<div class="info-item"><span class="label">특징</span><span class="value">${escapeHtml(p.trait)}</span></div>` : ''}
+                        ${p.meetDate ? `<div class="info-item"><span class="label">처음만난시기</span><span class="value">${escapeHtml(p.meetDate)}</span></div>` : ''}
+                        ${p.skinship ? `<div class="info-item"><span class="label">첫스킨십</span><span class="value">${escapeHtml(p.skinship)}</span></div>` : ''}
+                        ${p.sexDate ? `<div class="info-item"><span class="label">첫빠구리</span><span class="value">${escapeHtml(p.sexDate)}</span></div>` : ''}
+                        ${p.school ? `<div class="info-item"><span class="label">출신학교</span><span class="value">${escapeHtml(p.school)}</span></div>` : ''}
+                        ${p.personal ? `<div class="info-item"><span class="label">개인신상</span><span class="value">${escapeHtml(p.personal)}</span></div>` : ''}
+                        ${p.takenPhoto ? `<div class="info-item"><span class="label">/찍은사진</span><span class="value">${escapeHtml(p.takenPhoto)}</span></div>` : ''}
+                        ${p.action ? `<div class="info-item"><span class="label">행위</span><span class="value">${escapeHtml(p.action)}</span></div>` : ''}
+                        ${p.memo ? `<div class="info-item"><span class="label">기본메모</span><span class="value">${escapeHtml(p.memo)}</span></div>` : ''}
+                        ${p.notion ? `<div class="info-item"><span class="label">노션 링크</span><span class="value"><a href="${escapeHtml(p.notion)}" target="_blank" style="color:#e11d48; font-weight:bold;">노션 열기</a></span></div>` : ''}
                     </div>
-
                     <div class="live-memo-container">
-                        <span class="label" style="color:#854d0e;">📍 실시간 현장 메모 (기기 저장)</span>
-                        <textarea class="live-memo-area" placeholder="새로운 내용을 입력하면 자동 저장됩니다..." oninput="saveMemo('${p.id}', this.value)">${savedMemo}</textarea>
+                        <span class="label" style="color:#854d0e;">📍 실시간 메모 (자동 저장)</span>
+                        <textarea class="live-memo-area" placeholder="내용 입력..." oninput="saveMemo('${escapeHtml(p.id)}', this.value)">${escapeHtml(savedMemo)}</textarea>
                     </div>
-
-                    ${p.phone ? `<a href="tel:${p.phone}" class="btn-call">📞 전화 걸기</a>` : ''}
-                </div>
-            `}).join('');
+                    ${p.phone ? `<button class="btn-call" onclick="callPhone('${escapeHtml(p.phone)}')">📞 전화 걸기</button>` : ''}
+                </div>`;
+            }).join('');
         }
 
         window.filterData = function() {
-            const query = document.getElementById('search').value.toLowerCase();
-            const filtered = privateData.filter(p => 
-                p.name.includes(query) || p.trait.includes(query) || p.role.includes(query)
-            );
+            const query = document.getElementById('search').value.toLowerCase().trim();
+            if (!query) { displayData(privateData); return; }
+
+            let filtered = nameIndex.has(query) ? [...nameIndex.get(query)] : [];
+            filtered = filtered.concat(privateData.filter(p => 
+                (p.name.toLowerCase().includes(query) && !filtered.includes(p)) ||
+                (p.role.toLowerCase().includes(query) && !filtered.includes(p)) ||
+                (p.trait.toLowerCase().includes(query) && !filtered.includes(p))
+            ));
             displayData(filtered);
         };
 
-        document.addEventListener("DOMContentLoaded", fetchExcelData);
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchExcelData();
+            document.getElementById('search').addEventListener('keypress', (e) => { if (e.key === 'Enter') filterData(); });
+        });
     }
 </script>
 
 <div id="mainContent">
     <div class="header"><h2>🔒 SMART 인물 수첩</h2></div>
-    <input type="text" id="search" class="search-box" placeholder="이름, 특징, 소속 검색..." onkeyup="filterData()">
+    <input type="text" id="search" class="search-box" placeholder="이름 또는 특징 검색..." onkeyup="filterData()">
     <div id="listContainer"></div>
 </div>
 
