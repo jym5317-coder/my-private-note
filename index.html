@@ -3,24 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔒 스마트 인물 수첩</title>
+    <title>🔒 스마트 인물 수첩 (항목 커스텀)</title>
     <style>
         :root { --primary-color: #e11d48; --bg-color: #0f172a; --card-bg: #1e293b; --text-main: #f1f5f9; }
         body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); margin: 0; padding: 10px; color: var(--text-main); }
         #mainContent { max-width: 600px; margin: 0 auto; display: none; }
         .header { text-align: center; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
         .search-box { width: 100%; padding: 15px; border: 2px solid #334155; border-radius: 12px; font-size: 16px; margin-bottom: 20px; background: #1e293b; color: white; box-sizing: border-box; outline: none; }
-        .card { background: var(--card-bg); border-radius: 16px; padding: 15px; margin-bottom: 20px; border-left: 6px solid var(--primary-color); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); }
-        .card-top { display: flex; align-items: center; margin-bottom: 12px; gap: 15px; }
-        .profile-img { width: 75px; height: 75px; border-radius: 12px; object-fit: cover; background: #334155; border: 1px solid #475569; }
-        .name-info h3 { margin: 0; font-size: 22px; color: #fb7185; }
-        .name-info p { margin: 3px 0 0; font-size: 14px; color: #94a3b8; }
-        .info-grid { display: grid; grid-template-columns: 1fr; gap: 5px; background: #0f172a; padding: 10px; border-radius: 8px; }
-        .info-item { display: flex; border-bottom: 1px solid #1e293b; padding: 4px 0; }
-        .label { font-size: 12px; font-weight: 800; color: #fb7185; width: 85px; flex-shrink: 0; }
-        .value { font-size: 14px; color: #cbd5e1; white-space: pre-wrap; word-break: break-all; }
-        .live-memo { margin-top: 15px; padding: 10px; background: #334155; border-radius: 10px; }
-        .live-memo textarea { width: 100%; height: 60px; border: none; background: transparent; font-size: 14px; color: #fff; resize: none; outline: none; }
+        
+        .card { background: var(--card-bg); border-radius: 16px; padding: 18px; margin-bottom: 20px; border-left: 6px solid var(--primary-color); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); }
+        .card-top { display: flex; align-items: center; margin-bottom: 15px; gap: 15px; }
+        .profile-img { width: 75px; height: 75px; border-radius: 14px; object-fit: cover; background: #334155; border: 1px solid #475569; }
+        .name-info h3 { margin: 0; font-size: 24px; color: #fb7185; }
+        .name-info p { margin: 3px 0 0; font-size: 14px; color: #94a3b8; font-weight: bold; }
+        
+        .info-grid { display: grid; grid-template-columns: 1fr; gap: 6px; background: #0f172a; padding: 12px; border-radius: 10px; }
+        .info-item { display: flex; align-items: flex-start; padding: 5px 0; border-bottom: 1px solid #1e293b; }
+        .label { font-size: 13px; font-weight: 800; color: #fb7185; width: 95px; flex-shrink: 0; }
+        .value { font-size: 14px; color: #cbd5e1; white-space: pre-wrap; flex-grow: 1; line-height: 1.4; }
+        
+        .memo-container { margin-top: 15px; padding: 10px; background: #334155; border-radius: 10px; }
+        .memo-area { width: 100%; height: 70px; border: none; background: transparent; font-size: 14px; resize: none; outline: none; color: #fff; line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -30,9 +33,11 @@
     const myPassword = "1234";
     let privateData = [];
 
-    const login = prompt("접근 암호:");
-    if (login !== myPassword) { alert("인증 실패"); window.stop(); }
-    else {
+    const login = prompt("접근 암호를 입력하세요.");
+    if (login !== myPassword) {
+        alert("접근 권한이 없습니다.");
+        window.stop();
+    } else {
         function parseCSV(text) {
             const rows = [];
             const lines = text.split(/\r?\n/);
@@ -53,36 +58,42 @@
             return rows;
         }
 
-        async function loadData() {
+        async function fetchAndRender() {
             try {
                 const response = await fetch(csvUrl + "?v=" + new Date().getTime());
                 const text = await response.text();
                 const allRows = parseCSV(text);
-                
-                // 사장님의 CSV 열 순서에 정확히 맞춘 매핑
-                privateData = allRows.slice(1).map((cols, index) => ({
-                    id: cols[0] || 'idx_' + index, // A: id
-                    name: cols[1] || "",           // B: name
-                    role: cols[2] || "",           // C: role
-                    phone: cols[3] || "",          // D: phone
-                    photo: cols[4] || "",          // E: photo
-                    size: cols[7] || "",           // H: size
-                    trait: cols[8] || "",          // I: trait
-                    meet: cols[9] || "",           // J: 처음만난시기
-                    skinship: cols[10] || "",      // K: 첫스킨십
-                    sexDate: cols[11] || "",       // L: 첫빠구리
-                    action: cols[15] || "",        // P: 행위
-                    notion: cols[17] || ""         // R: notion
-                })).filter(p => p.name && p.name !== "name");
+                const dataRows = allRows.slice(1);
 
-                display(privateData);
+                privateData = dataRows.map((cols, idx) => {
+                    return {
+                        id: cols[0] || 'idx_' + idx,
+                        name: cols[1] || "",      // B열
+                        role: cols[2] || "",      // C열
+                        photo: cols[4] || "",     // E열
+                        size: cols[7] || "",      // H열
+                        trait: cols[8] || "",     // I열
+                        meetDate: cols[9] || "",  // J열
+                        skinship: cols[10] || "", // K열
+                        sexDate: cols[11] || "",  // L열
+                        action: cols[15] || "",   // P열
+                        notion: cols[17] || ""    // R열
+                        // 💡 항목 추가법: name: cols[번호] 형식으로 추가하고 아래 HTML 영역에 넣어주면 됩니다.
+                    };
+                }).filter(p => p.name !== "" && p.name !== "id");
+
+                displayData(privateData);
                 document.getElementById('mainContent').style.display = 'block';
-            } catch (e) { alert("데이터 로드 실패"); }
+            } catch (error) {
+                alert("데이터 로딩 중 오류가 발생했습니다. CSV 인코딩(UTF-8)을 확인하세요.");
+            }
         }
 
-        function display(data) {
+        function displayData(data) {
             const container = document.getElementById('listContainer');
-            container.innerHTML = data.map(p => `
+            container.innerHTML = data.map(p => {
+                const savedMemo = localStorage.getItem('m_' + p.id) || "";
+                return `
                 <div class="card">
                     <div class="card-top">
                         <img src="${p.photo}" class="profile-img" onerror="this.src='https://via.placeholder.com/100?text=NO+IMG'">
@@ -92,33 +103,36 @@
                         </div>
                     </div>
                     <div class="info-grid">
+                        <div class="info-item"><span class="label">첫시기</span><span class="value">${p.meetDate}</span></div>
                         <div class="info-item"><span class="label">첫스킨십</span><span class="value" style="color:#fb7185; font-weight:bold;">${p.skinship}</span></div>
                         <div class="info-item"><span class="label">첫빠구리</span><span class="value" style="color:#fb7185; font-weight:bold;">${p.sexDate}</span></div>
                         <div class="info-item"><span class="label">사이즈</span><span class="value">${p.size}</span></div>
                         <div class="info-item"><span class="label">특징</span><span class="value">${p.trait}</span></div>
-                        <div class="info-item"><span class="label">행위기록</span><span class="value">${p.action}</span></div>
-                        ${p.notion ? `<div class="info-item"><span class="label">노션상세</span><span class="value"><a href="${p.notion}" target="_blank" style="color:#fb7185;">링크 열기</a></span></div>` : ''}
+                        <div class="info-item"><span class="label">행위 기록</span><span class="value">${p.action}</span></div>
+                        ${p.notion ? `<div class="info-item"><span class="label">노션 상세</span><span class="value"><a href="${p.notion}" target="_blank" style="color:#fb7185;">노션 열기</a></span></div>` : ''}
                     </div>
-                    <div class="live-memo">
-                        <textarea placeholder="현장 메모..." oninput="localStorage.setItem('m_'+'${p.id}', this.value)">${localStorage.getItem('m_'+p.id) || ""}</textarea>
+                    <div class="memo-container">
+                        <textarea class="memo-area" placeholder="현장 실시간 메모..." oninput="localStorage.setItem('m_'+'${p.id}', this.value)">${savedMemo}</textarea>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         window.filterData = function() {
-            const q = document.getElementById('search').value.toLowerCase();
-            display(privateData.filter(p => p.name.includes(q) || p.trait.includes(q)));
+            const query = document.getElementById('search').value.toLowerCase();
+            const filtered = privateData.filter(p => p.name.includes(query) || p.trait.includes(query) || p.action.includes(query));
+            displayData(filtered);
         };
 
-        document.addEventListener("DOMContentLoaded", loadData);
+        document.addEventListener("DOMContentLoaded", fetchAndRender);
     }
 </script>
 
 <div id="mainContent">
     <div class="header"><h2>🔒 SMART 인물 수첩</h2></div>
-    <input type="text" id="search" class="search-box" placeholder="이름 또는 특징 검색..." onkeyup="filterData()">
+    <input type="text" id="search" class="search-box" placeholder="이름, 특징, 행위 검색..." onkeyup="filterData()">
     <div id="listContainer"></div>
 </div>
+
 </body>
 </html>
