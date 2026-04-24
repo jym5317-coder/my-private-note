@@ -3,51 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔒 SMART 인물 공략 수첩 (V3)</title>
+    <title>🔒 스마트 인물 공략 수첩</title>
     <style>
-        :root { --primary-color: #f43f5e; --strategy-color: #0ea5e9; --bg-color: #fff1f2; }
-        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; margin: 0; padding: 10px; }
+        :root { --primary-color: #e11d48; --bg-color: #f8fafc; }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); margin: 0; padding: 10px; color: #1e293b; }
         #mainContent { max-width: 600px; margin: 0 auto; display: none; }
-        .search-box { width: 100%; padding: 15px; border: 2px solid #fb7185; border-radius: 15px; font-size: 16px; margin-bottom: 20px; outline: none; box-sizing: border-box; box-shadow: 0 4px 10px rgba(244, 63, 94, 0.1); }
+        .header { text-align: center; margin-bottom: 20px; }
+        .search-box { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; margin-bottom: 20px; outline: none; box-sizing: border-box; }
         
-        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 25px; border: 1px solid #ffe4e6; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); overflow: hidden; position: relative; }
-        /* 집중 공략 대상 표시 */
-        .card.target { border: 3px solid var(--primary-color); }
-        .target-badge { position: absolute; top: 0; right: 0; background: var(--primary-color); color: white; padding: 5px 15px; font-size: 12px; font-weight: 800; border-bottom-left-radius: 15px; }
-
-        .card-top { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; }
-        .profile-img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid #fff1f2; }
-        .name-info h3 { margin: 0; font-size: 24px; color: #1e293b; }
-        .status-tag { display: inline-block; background: #fff1f2; color: #e11d48; padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 800; margin-top: 5px; }
+        .card { background: white; border-radius: 16px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--primary-color); }
+        .card-top { display: flex; align-items: center; margin-bottom: 15px; gap: 15px; }
+        .profile-img { width: 85px; height: 85px; border-radius: 12px; object-fit: cover; background: #eee; border: 1px solid #e2e8f0; }
+        .name-info h3 { margin: 0; font-size: 22px; color: #1e293b; }
+        .name-info p { margin: 5px 0 0; font-size: 14px; color: #e11d48; font-weight: 800; }
         
-        .section-title { font-size: 13px; font-weight: 800; color: #94a3b8; margin: 15px 0 8px 5px; display: flex; align-items: center; gap: 5px; }
-        .section-title::before { content: ''; width: 3px; height: 13px; background: var(--primary-color); display: inline-block; }
-
-        .info-grid { display: grid; grid-template-columns: 1fr; gap: 8px; background: #f8fafc; padding: 15px; border-radius: 15px; }
-        .info-item { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 5px; }
-        .label { font-size: 12px; font-weight: 700; color: #64748b; }
-        .value { font-size: 14px; color: #334155; text-align: right; font-weight: 500; }
-
-        /* 공략 계획 섹션 */
-        .strategy-box { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 15px; padding: 15px; margin-top: 15px; }
-        .strategy-text { font-size: 14px; color: #0369a1; line-height: 1.5; font-weight: 600; }
-
-        .memo-area { width: 100%; height: 80px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-top: 10px; font-size: 14px; background: #fffde7; resize: none; box-sizing: border-box; }
-        .btn-call { display: block; text-align: center; background: linear-gradient(135deg, #f43f5e, #e11d48); color: white; text-decoration: none; padding: 15px; border-radius: 15px; margin-top: 15px; font-weight: 800; font-size: 16px; }
+        .info-grid { display: grid; grid-template-columns: 1fr; gap: 8px; background: #fff1f2; padding: 12px; border-radius: 10px; border: 1px solid #ffe4e6; }
+        .info-item { display: flex; border-bottom: 1px dashed #fecdd3; padding-bottom: 4px; align-items: flex-start; }
+        .info-item:last-child { border-bottom: none; }
+        .label { font-size: 11px; font-weight: 800; color: #9f1239; width: 100px; flex-shrink: 0; padding-top: 2px; }
+        .value { font-size: 14px; color: #334155; white-space: pre-wrap; word-break: break-all; flex-grow: 1; line-height: 1.4; }
+        
+        /* 공략 섹션 스타일 */
+        .strategy-container { margin-top: 15px; padding: 12px; background: #f0f9ff; border-radius: 10px; border: 1px solid #bae6fd; }
+        .strategy-label { font-size: 12px; font-weight: 800; color: #0369a1; display: block; margin-bottom: 5px; }
+        
+        .live-memo-container { margin-top: 15px; padding: 12px; background: #fffde7; border-radius: 10px; border: 1px solid #fde68a; }
+        .live-memo-area { width: 100%; height: 80px; border: none; background: transparent; font-size: 14px; resize: none; outline: none; margin-top: 5px; font-family: inherit; }
+        
+        .btn-call { display: block; text-align: center; background: #e11d48; color: white; text-decoration: none; padding: 12px; border-radius: 10px; margin-top: 15px; font-weight: bold; }
+        .notion-link { color: #e11d48; font-weight: 800; text-decoration: underline; }
     </style>
 </head>
 <body>
 
 <script>
-    const csvUrl = "인명.csv";
-    const myPassword = "1234";
+    const csvUrl = "인명.csv"; 
+    const myPassword = "1234"; 
     let privateData = [];
 
-    const login = prompt("암호 입력");
+    const login = prompt("비밀번호를 입력하세요.");
 
     if (login !== myPassword) {
-        alert("접근 불가");
+        alert("비밀번호가 틀렸습니다.");
         window.stop();
+        document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>접근 권한이 없습니다.</h2>";
     } else {
         function parseCSV(text) {
             const rows = [];
@@ -67,80 +66,105 @@
             return rows;
         }
 
-        async function loadData() {
+        async function fetchExcelData() {
             try {
-                const res = await fetch(csvUrl);
-                const text = await res.text();
-                const all = parseCSV(text);
-                privateData = all.slice(1).map(cols => ({
-                    id: cols[0], name: cols[1], role: cols[2], phone: cols[3], photo: cols[4],
-                    birth: cols[5], addr: cols[6], size: cols[7], trait: cols[8],
-                    meet: cols[9], skin: cols[10], sex: cols[11], school: cols[12],
-                    shinsang: cols[13], takenPhoto: cols[14], action: cols[15],
-                    memo: cols[16], notion: cols[17],
-                    // 특별 관리 대상 (예: 김보라) 설정 - 이름으로 자동 감지
-                    isTarget: (cols[1] === "김보라") 
-                })).filter(p => p.name);
-                render(privateData);
+                const response = await fetch(csvUrl);
+                const text = await response.text();
+                const allRows = parseCSV(text);
+                const dataRows = allRows.slice(1);
+
+                privateData = dataRows.map(cols => {
+                    return {
+                        id: cols[0] || "",
+                        name: cols[1] || "",
+                        role: cols[2] || "",
+                        phone: cols[3] || "",
+                        photo: cols[4] || "",
+                        birth: cols[5] || "",
+                        address: cols[6] || "",
+                        size: cols[7] || "",
+                        trait: cols[8] || "",
+                        meetDate: cols[9] || "",
+                        skinship: cols[10] || "",
+                        sexDate: cols[11] || "",
+                        school: cols[12] || "",
+                        personal: cols[13] || "",
+                        takenPhoto: cols[14] || "",
+                        action: cols[15] || "",
+                        memo: cols[16] || "",
+                        notion: cols[17] || "",
+                        // [공략용 새 항목] CSV 19~21번째 열에 데이터를 넣으시면 됩니다.
+                        strategyStatus: cols[18] || "미공략", // 현재 단계
+                        difficulty: cols[19] || "중",     // 난이도
+                        strategyPoint: cols[20] || "정보 없음" // 공략 포인트
+                    };
+                }).filter(p => p.name); 
+
+                displayData(privateData);
                 document.getElementById('mainContent').style.display = 'block';
-            } catch (e) { alert("파일 로드 실패"); }
+            } catch (error) {
+                alert("인명.csv 파일을 읽지 못했습니다.");
+            }
         }
 
-        function render(data) {
-            const container = document.getElementById('listContainer');
-            container.innerHTML = data.map(p => {
-                const liveMemo = localStorage.getItem('memo_' + p.id) || "";
-                return `
-                <div class="card ${p.isTarget ? 'target' : ''}">
-                    ${p.isTarget ? '<div class="target-badge">🔥 집중 공략 대상</div>' : ''}
-                    <div class="card-top">
-                        <img src="${p.photo}" class="profile-img" onerror="this.src='https://via.placeholder.com/100?text=No+Img'">
-                        <div class="name-info">
-                            <h3>${p.name}</h3>
-                            <div class="status-tag">${p.role || '상태 미설정'}</div>
-                        </div>
-                    </div>
-
-                    <div class="section-title">기본 데이터</div>
-                    <div class="info-grid">
-                        <div class="info-item"><span class="label">사이즈/성향</span><span class="value">${p.size} / ${p.trait}</span></div>
-                        <div class="info-item"><span class="label">첫스킨십/첫빠</span><span class="value">${p.skin || '미달성'} / ${p.sex || '미달성'}</span></div>
-                        <div class="info-item"><span class="label">개인신상</span><span class="value">${p.shinsang}</span></div>
-                    </div>
-
-                    <div class="section-title">공략 및 행위</div>
-                    <div class="info-grid">
-                        <div class="info-item"><span class="label">찍은사진</span><span class="value">${p.takenPhoto}</span></div>
-                        <div class="info-item"><span class="label">성적행위</span><span class="value">${p.action}</span></div>
-                    </div>
-
-                    <div class="strategy-box">
-                        <div class="section-title" style="margin:0 0 10px 0; color:#0369a1;">🎯 공략 가이드</div>
-                        <div class="strategy-text">${p.memo || '공략 계획을 엑셀 memo란에 입력하세요.'}</div>
-                    </div>
-
-                    <div class="section-title">현장 반응 (실시간 저장)</div>
-                    <textarea class="memo-area" placeholder="오늘 만남에서의 반응, 약점 등을 기록..." oninput="localStorage.setItem('memo_${p.id}', this.value)">${liveMemo}</textarea>
-
-                    <a href="tel:${p.phone}" class="btn-call">📞 공략 전화 걸기</a>
-                    ${p.notion ? `<center><a href="${p.notion}" target="_blank" style="font-size:12px; color:#94a3b8; text-decoration:none; margin-top:10px; display:block;">노션 상세 데이터 열기</a></center>` : ''}
-                </div>
-            `;}).join('');
-        }
-
-        window.search = function() {
-            const val = document.getElementById('q').value.toLowerCase();
-            const filtered = privateData.filter(p => p.name.includes(val) || p.trait.includes(val));
-            render(filtered);
+        window.saveMemo = function(id, val) {
+            localStorage.setItem('memo_' + id, val);
         };
 
-        document.addEventListener("DOMContentLoaded", loadData);
+        function displayData(data) {
+            const container = document.getElementById('listContainer');
+            container.innerHTML = data.map(p => {
+                const savedMemo = localStorage.getItem('memo_' + p.id) || "";
+                return `
+                <div class="card">
+                    <div class="card-top">
+                        <img src="${p.photo}" class="profile-img" onerror="this.src='https://via.placeholder.com/150?text=No+Photo'">
+                        <div class="name-info">
+                            <h3>${p.name}</h3>
+                            <p>🎯 ${p.strategyStatus}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-grid">
+                        <div class="info-item"><span class="label">공략 난이도</span><span class="value" style="color:red; font-weight:bold;">${p.difficulty}</span></div>
+                        <div class="info-item"><span class="label">공략 포인트</span><span class="value">${p.strategyPoint}</span></div>
+                        <div class="info-item"><span class="label">첫스킨십</span><span class="value">${p.skinship || '미달성'}</span></div>
+                        <div class="info-item"><span class="label">첫빠구리</span><span class="value">${p.sexDate || '미달성'}</span></div>
+                        <div class="info-item"><span class="label">사이즈/성향</span><span class="value">${p.size} / ${p.trait}</span></div>
+                        <div class="info-item"><span class="label">행위 기록</span><span class="value">${p.action}</span></div>
+                        <div class="info-item"><span class="label">찍은사진</span><span class="value">${p.takenPhoto}</span></div>
+                        <div class="info-item"><span class="label">개인신상</span><span class="value">${p.personal}</span></div>
+                        <div class="info-item"><span class="label">노션 상세</span><span class="value"><a href="${p.notion}" target="_blank" class="notion-link">페이지 열기</a></span></div>
+                    </div>
+
+                    <div class="strategy-container">
+                        <span class="strategy-label">💡 다음 단계 공략 계획</span>
+                        <div class="value" style="font-size:13px; color:#0c4a6e;">${p.memo || '계획 없음'}</div>
+                    </div>
+
+                    <div class="live-memo-container">
+                        <span class="label" style="color:#854d0e;">📍 실시간 반응 기록</span>
+                        <textarea class="live-memo-area" placeholder="오늘 만남에서의 반응을 기록하세요..." oninput="saveMemo('${p.id}', this.value)">${savedMemo}</textarea>
+                    </div>
+
+                    ${p.phone ? `<a href="tel:${p.phone}" class="btn-call">📞 지금 전화걸기</a>` : ''}
+                </div>
+            `}).join('');
+        }
+
+        window.filterData = function() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const filtered = privateData.filter(p => p.name.includes(query) || p.strategyStatus.includes(query));
+            displayData(filtered);
+        };
+
+        document.addEventListener("DOMContentLoaded", fetchExcelData);
     }
 </script>
 
 <div id="mainContent">
     <div class="header"><h2>🔒 SMART 인물 공략</h2></div>
-    <input type="text" id="q" class="search-box" placeholder="이름, 특징 검색..." onkeyup="search()">
+    <input type="text" id="search" class="search-box" placeholder="이름 또는 공략단계(미공략 등) 검색..." onkeyup="filterData()">
     <div id="listContainer"></div>
 </div>
 
