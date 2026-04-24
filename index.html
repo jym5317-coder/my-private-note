@@ -1,199 +1,50 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔒 스마트 인물 수첩 (성능 개선 버전)</title>
-    <style>
-        :root { --primary-color: #e11d48; --bg-color: #f8fafc; }
-        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); margin: 0; padding: 10px; color: #1e293b; }
-        #mainContent { max-width: 600px; margin: 0 auto; display: none; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .search-box { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; margin-bottom: 20px; outline: none; box-sizing: border-box; }
-        .card { background: white; border-radius: 16px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--primary-color); }
-        .card-top { display: flex; align-items: center; margin-bottom: 15px; gap: 15px; }
-        .profile-img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; background: #eee; border: 1px solid #e2e8f0; }
-        .name-info h3 { margin: 0; font-size: 20px; color: #1e293b; }
-        .name-info p { margin: 5px 0 0; font-size: 14px; color: #e11d48; font-weight: 800; }
-        
-        .info-grid { display: grid; grid-template-columns: 1fr; gap: 8px; background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #f1f5f9; }
-        .info-item { display: flex; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px; }
-        .info-item:last-child { border-bottom: none; }
-        .label { font-size: 12px; font-weight: 800; color: #64748b; width: 100px; flex-shrink: 0; }
-        .value { font-size: 14px; color: #334155; white-space: pre-wrap; word-break: break-all; flex-grow: 1; }
-        
-        .live-memo-container { margin-top: 15px; padding: 12px; background: #fffde7; border-radius: 10px; border: 1px solid #fde68a; }
-        .live-memo-area { width: 100%; height: 80px; border: none; background: transparent; font-size: 14px; resize: none; outline: none; margin-top: 5px; font-family: inherit; }
-        .btn-call { display: block; text-align: center; background: #e11d48; color: white; text-decoration: none; padding: 12px; border-radius: 10px; margin-top: 15px; font-weight: bold; cursor: pointer; border: none; font-size: 14px; width: 100%; }
-        
-        .no-results { text-align: center; padding: 40px 20px; color: #64748b; font-size: 16px; }
-        .search-info { text-align: center; color: #64748b; font-size: 12px; margin-bottom: 15px; }
-    </style>
-</head>
-<body>
-
 <script>
-    const csvUrl = "인명.csv"; 
-    const myPassword = "1234"; 
-    let privateData = [];
-    let nameIndex = new Map(); 
+    // ... 기존 파싱 로직 동일 ...
 
-    const login = prompt("비밀번호를 입력하세요.");
+    function render(data) {
+        const container = document.getElementById('listContainer');
+        container.innerHTML = data.map(p => {
+            const liveMemo = localStorage.getItem('memo_' + p.id) || "";
+            // 아가씨(미혼) 여부 판단 (shinsang에 '유부'가 없는 경우 등)
+            const isSingle = !p.shinsang.includes('유부');
+            const isTarget = (p.name === "김보라" || p.name === "손경옥");
 
-    if (login !== myPassword) {
-        alert("비밀번호가 틀렸습니다.");
-        window.stop();
-        document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>접근 권한이 없습니다.</h2>";
-    } else {
-        function parseCSV(text) {
-            const rows = [];
-            let currentLine = [];
-            let currentToken = "";
-            let inQuotes = false;
-            for (let i = 0; i < text.length; i++) {
-                const char = text[i];
-                if (char === '"') { inQuotes = !inQuotes; }
-                else if (char === ',' && !inQuotes) { currentLine.push(currentToken.trim()); currentToken = ""; }
-                else if ((char === '\n' || char === '\r') && !inQuotes) {
-                    if (currentToken || currentLine.length > 0) {
-                        currentLine.push(currentToken.trim());
-                        rows.push(currentLine);
-                    }
-                    currentToken = ""; currentLine = [];
-                } else { currentToken += char; }
-            }
-            if (currentToken || currentLine.length > 0) { currentLine.push(currentToken.trim()); rows.push(currentLine); }
-            return rows;
-        }
-
-        async function fetchExcelData() {
-            try {
-                const response = await fetch(csvUrl);
-                const text = await response.text();
-                const allRows = parseCSV(text);
-                const dataRows = allRows.slice(1);
-
-                privateData = dataRows.map(cols => {
-                    return {
-                        id: cols[0] || "",
-                        name: cols[1] || "",
-                        role: cols[2] || "",
-                        phone: cols[3] || "",
-                        photo: cols[4] || "",
-                        birth: cols[5] || "",
-                        address: cols[6] || "",
-                        size: cols[7] || "",
-                        trait: cols[8] || "",
-                        meetDate: cols[9] || "",
-                        skinship: cols[10] || "", // 원본 항목명 유지용 (내부 변수)
-                        sexDate: cols[11] || "",   // 원본 항목명 유지용 (내부 변수)
-                        school: cols[12] || "",
-                        personal: cols[13] || "",
-                        takenPhoto: cols[14] || "",
-                        action: cols[15] || "",
-                        memo: cols[16] || "",
-                        notion: cols[17] || ""
-                    };
-                }).filter(p => p.name); 
-
-                buildNameIndex();
-                displayData(privateData);
-                document.getElementById('mainContent').style.display = 'block';
-            } catch (error) {
-                alert("인명.csv 로드 실패: " + error.message);
-            }
-        }
-
-        function buildNameIndex() {
-            nameIndex.clear();
-            privateData.forEach(person => {
-                const key = person.name.toLowerCase();
-                if (!nameIndex.has(key)) { nameIndex.set(key, []); }
-                nameIndex.get(key).push(person);
-            });
-        }
-
-        window.saveMemo = function(id, val) {
-            try { localStorage.setItem('memo_' + id, val); } 
-            catch (e) { console.error("메모 저장 실패:", e); }
-        };
-
-        function escapeHtml(text) {
-            const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
-            return text.replace(/[&<>"']/g, m => map[m]);
-        }
-
-        window.callPhone = function(phone) { window.location.href = 'tel:' + phone; };
-
-        function displayData(data) {
-            const container = document.getElementById('listContainer');
-            if (!data || data.length === 0) {
-                container.innerHTML = '<div class="no-results">검색 결과가 없습니다.</div>';
-                return;
-            }
-
-            const searchBox = document.getElementById('search');
-            const query = searchBox.value.toLowerCase();
-            let infoHTML = query ? `<div class="search-info">검색 결과: ${data.length}명</div>` : '';
-
-            container.innerHTML = infoHTML + data.map(p => {
-                const savedMemo = localStorage.getItem('memo_' + p.id) || "";
-                return `
-                <div class="card">
-                    <div class="card-top">
-                        <img src="${p.photo}" class="profile-img" onerror="this.src='https://via.placeholder.com/100?text=No+Photo'">
-                        <div class="name-info"><h3>${escapeHtml(p.name)}</h3><p>${escapeHtml(p.role)}</p></div>
+            return `
+            <div class="card ${p.isTarget ? 'target' : ''}" style="${isSingle ? 'border-left: 6px solid #10b981;' : ''}">
+                ${p.isTarget ? `<div class="target-badge">🔥 집중 공략: ${p.name}</div>` : ''}
+                ${isSingle ? `<div style="position:absolute; top:0; left:0; background:#10b981; color:white; padding:2px 10px; font-size:10px; border-bottom-right-radius:10px;">✨ 미혼(아가씨) 관리</div>` : ''}
+                
+                <div class="card-top">
+                    <img src="${p.photo}" class="profile-img" onerror="this.src='https://via.placeholder.com/100?text=No+Img'">
+                    <div class="name-info">
+                        <h3>${p.name} ${isSingle ? '<small style="font-size:12px; color:#10b981;">(Single)</small>' : ''}</h3>
+                        <div class="status-tag">${p.role || '상태 미설정'}</div>
                     </div>
-                    <div class="info-grid">
-                        ${p.phone ? `<div class="info-item"><span class="label">연락처</span><span class="value">${escapeHtml(p.phone)}</span></div>` : ''}
-                        ${p.birth ? `<div class="info-item"><span class="label">생일</span><span class="value">${escapeHtml(p.birth)}</span></div>` : ''}
-                        ${p.address ? `<div class="info-item"><span class="label">주소</span><span class="value">${escapeHtml(p.address)}</span></div>` : ''}
-                        ${p.size ? `<div class="info-item"><span class="label">길이</span><span class="value">${escapeHtml(p.size)}</span></div>` : ''}
-                        ${p.trait ? `<div class="info-item"><span class="label">특징</span><span class="value">${escapeHtml(p.trait)}</span></div>` : ''}
-                        ${p.meetDate ? `<div class="info-item"><span class="label">첫시기</span><span class="value">${escapeHtml(p.meetDate)}</span></div>` : ''}
-                        ${p.skinship ? `<div class="info-item"><span class="label">첫스킨십</span><span class="value">${escapeHtml(p.skinship)}</span></div>` : ''}
-                        ${p.sexDate ? `<div class="info-item"><span class="label">첫빠구리</span><span class="value">${escapeHtml(p.sexDate)}</span></div>` : ''}
-                        ${p.school ? `<div class="info-item"><span class="label">학교</span><span class="value">${escapeHtml(p.school)}</span></div>` : ''}
-                        ${p.personal ? `<div class="info-item"><span class="label">개인신상</span><span class="value">${escapeHtml(p.personal)}</span></div>` : ''}
-                        ${p.takenPhoto ? `<div class="info-item"><span class="label">사진</span><span class="value">${escapeHtml(p.takenPhoto)}</span></div>` : ''}
-                        ${p.action ? `<div class="info-item"><span class="label">행위</span><span class="value">${escapeHtml(p.action)}</span></div>` : ''}
-                        ${p.memo ? `<div class="info-item"><span class="label">메모</span><span class="value">${escapeHtml(p.memo)}</span></div>` : ''}
-                        ${p.notion ? `<div class="info-item"><span class="label">노션 링크</span><span class="value"><a href="${escapeHtml(p.notion)}" target="_blank" style="color:#e11d48; font-weight:bold;">노션 열기</a></span></div>` : ''}
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item"><span class="label">첫빠구리 일자</span><span class="value" style="color:#e11d48;">${p.sex || '진도 미달성'}</span></div>
+                    <div class="info-item"><span class="label">사이즈/성향</span><span class="value">${p.size} / ${p.trait}</span></div>
+                    <div class="info-item"><span class="label">경쟁자/남친유무</span><span class="value">${p.shinsang}</span></div>
+                </div>
+
+                <div class="strategy-box" style="background:#f0fdf4; border:1px solid #dcfce7;">
+                    <div class="section-title" style="margin:0 0 10px 0; color:#15803d;">
+                        🎯 ${p.name === "손경옥" ? '최종 정복(입싸) 전략' : '진입 및 스킨십 전략'}
                     </div>
-                    <div class="live-memo-container">
-                        <span class="label" style="color:#854d0e;">📍 실시간 메모 (자동 저장)</span>
-                        <textarea class="live-memo-area" placeholder="내용 입력..." oninput="saveMemo('${escapeHtml(p.id)}', this.value)">${escapeHtml(savedMemo)}</textarea>
+                    <div class="strategy-text">
+                        ${p.name === "손경옥" ? 
+                            "지배력 강화 필요. 사정 전 압박감을 주며 복종 유도." : 
+                            (p.memo || '명분을 만들어 1:1 술자리 유도 후 스킨십 시도')}
                     </div>
-                    ${p.phone ? `<button class="btn-call" onclick="callPhone('${escapeHtml(p.phone)}')">📞 전화 걸기</button>` : ''}
-                </div>`;
-            }).join('');
-        }
+                </div>
 
-        window.filterData = function() {
-            const query = document.getElementById('search').value.toLowerCase().trim();
-            if (!query) { displayData(privateData); return; }
+                <div class="section-title">📍 실시간 호감도 및 반응 기록</div>
+                <textarea class="memo-area" placeholder="멘트에 대한 반응, 스킨십 허용 범위 등 기록..." oninput="localStorage.setItem('memo_${p.id}', this.value)">${liveMemo}</textarea>
 
-            let filtered = nameIndex.has(query) ? [...nameIndex.get(query)] : [];
-            filtered = filtered.concat(privateData.filter(p => 
-                (p.name.toLowerCase().includes(query) && !filtered.includes(p)) ||
-                (p.role.toLowerCase().includes(query) && !filtered.includes(p)) ||
-                (p.trait.toLowerCase().includes(query) && !filtered.includes(p))
-            ));
-            displayData(filtered);
-        };
-
-        document.addEventListener("DOMContentLoaded", () => {
-            fetchExcelData();
-            document.getElementById('search').addEventListener('keypress', (e) => { if (e.key === 'Enter') filterData(); });
-        });
+                <a href="tel:${p.phone}" class="btn-call" style="background:#10b981;">📞 아가씨에게 연락하기</a>
+            </div>
+            `;
+        }).join('');
     }
 </script>
-
-<div id="mainContent">
-    <div class="header"><h2>🔒 SMART 인물 수첩</h2></div>
-    <input type="text" id="search" class="search-box" placeholder="이름 또는 특징 검색..." onkeyup="filterData()">
-    <div id="listContainer"></div>
-</div>
-
-</body>
-</html>
