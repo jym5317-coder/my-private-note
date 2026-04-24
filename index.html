@@ -88,16 +88,14 @@
                         personal: cols[13] || "",
                         takenPhoto: cols[14] || "",
                         action: cols[15] || "",
-                        memo: cols[16] || "",
-                        notion: cols[17] || "",
-                        Special ability: cols[18] || "",
-                        important: cols[19] || "",
-                        notion: cols[20] || "",
-                        notion: cols[21] || "",
-                        notion: cols[22] || "",
-                        notion: cols[23] || ""
-                    };
-                }).filter(p => p.name); 
+                       memo: cols[16] || "",
+                       notion: cols[17] || "",
+                       tastes: cols[18] || "",       // 새로 추가: 취향/음식
+                      interest: cols[19] || "",     // 새로 추가: 최근 관심사
+                      taboo: cols[20] || "",        // 새로 추가: 금기사항
+                      family: cols[21] || ""        // 새로 추가: 주변인물
+    };
+}).filter(p => p.name);
 
                 displayData(privateData);
                 document.getElementById('mainContent').style.display = 'block';
