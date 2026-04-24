@@ -3,47 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔒 스마트 인물 수첩 (최종 정복 버전)</title>
+    <title>🔒 스마트 인물 수첩 (데이터 복구 버전)</title>
     <style>
         :root { --primary-color: #e11d48; --bg-color: #0f172a; --card-bg: #1e293b; --text-main: #f1f5f9; }
         body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); margin: 0; padding: 10px; color: var(--text-main); }
         #mainContent { max-width: 600px; margin: 0 auto; display: none; }
-        .header { text-align: center; margin-bottom: 20px; padding: 10px; border-bottom: 1px solid #334155; }
-        .search-box { width: 100%; padding: 15px; border: 2px solid #334155; border-radius: 12px; font-size: 16px; margin-bottom: 20px; outline: none; box-sizing: border-box; background: #1e293b; color: white; }
-        
-        .card { background: var(--card-bg); border-radius: 16px; padding: 15px; margin-bottom: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); border-left: 6px solid var(--primary-color); }
-        .card-top { display: flex; align-items: center; margin-bottom: 15px; gap: 15px; }
-        .profile-img { width: 85px; height: 85px; border-radius: 14px; object-fit: cover; background: #334155; border: 2px solid #475569; }
-        .name-info h3 { margin: 0; font-size: 22px; color: #fb7185; }
-        .name-info p { margin: 5px 0 0; font-size: 14px; color: #94a3b8; font-weight: bold; }
-        
-        .info-grid { display: grid; grid-template-columns: 1fr; gap: 6px; background: #0f172a; padding: 12px; border-radius: 10px; }
-        .info-item { display: flex; align-items: flex-start; padding: 4px 0; border-bottom: 1px solid #1e293b; }
-        .info-item:last-child { border-bottom: none; }
-        .label { font-size: 12px; font-weight: 800; color: #fb7185; width: 90px; flex-shrink: 0; }
-        .value { font-size: 14px; color: #cbd5e1; white-space: pre-wrap; flex-grow: 1; }
-        
-        /* 특수 항목 강조 */
-        .highlight-red { color: #ff4d4d; font-weight: bold; }
-        
-        .live-memo-container { margin-top: 15px; padding: 12px; background: #334155; border-radius: 10px; border: 1px solid #475569; }
-        .live-memo-area { width: 100%; height: 80px; border: none; background: transparent; font-size: 14px; resize: none; outline: none; margin-top: 5px; color: #fff; }
-        .btn-call { display: block; text-align: center; background: var(--primary-color); color: white; text-decoration: none; padding: 12px; border-radius: 10px; margin-top: 15px; font-weight: bold; cursor: pointer; border: none; width: 100%; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        .search-box { width: 100%; padding: 15px; border: 2px solid #334155; border-radius: 12px; font-size: 16px; margin-bottom: 20px; background: #1e293b; color: white; box-sizing: border-box; }
+        .card { background: var(--card-bg); border-radius: 16px; padding: 15px; margin-bottom: 20px; border-left: 6px solid var(--primary-color); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); }
+        .card-top { display: flex; align-items: center; margin-bottom: 12px; gap: 15px; }
+        .profile-img { width: 70px; height: 70px; border-radius: 12px; object-fit: cover; background: #334155; border: 1px solid #475569; }
+        .name-info h3 { margin: 0; font-size: 22px; color: #fb7185; } /* 이름 강조 */
+        .name-info p { margin: 3px 0 0; font-size: 14px; color: #94a3b8; }
+        .info-grid { display: grid; grid-template-columns: 1fr; gap: 5px; background: #0f172a; padding: 10px; border-radius: 8px; }
+        .info-item { display: flex; border-bottom: 1px solid #1e293b; padding: 3px 0; }
+        .label { font-size: 11px; font-weight: 800; color: #fb7185; width: 85px; flex-shrink: 0; }
+        .value { font-size: 14px; color: #cbd5e1; white-space: pre-wrap; word-break: break-all; }
+        .live-memo-container { margin-top: 15px; padding: 10px; background: #334155; border-radius: 10px; }
+        .live-memo-area { width: 100%; height: 60px; border: none; background: transparent; font-size: 14px; color: #fff; resize: none; outline: none; }
+        .btn-call { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 10px; font-weight: bold; margin-top: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <script>
-    const csvUrl = "인명.csv"; 
-    const myPassword = "1234"; // 사장님 비밀번호
+    const csvUrl = "인명.csv";
+    const myPassword = "1234";
     let privateData = [];
-    let nameIndex = new Map();
 
-    const login = prompt("접근 코드를 입력하세요.");
+    const login = prompt("접근 암호:");
     if (login !== myPassword) {
-        alert("접근 권한이 없습니다.");
+        alert("인증 실패");
         window.stop();
-        document.body.innerHTML = "";
     } else {
         function parseCSV(text) {
             const rows = [];
@@ -55,10 +46,7 @@
                 if (char === '"') inQuotes = !inQuotes;
                 else if (char === ',' && !inQuotes) { currentLine.push(currentToken.trim()); currentToken = ""; }
                 else if ((char === '\n' || char === '\r') && !inQuotes) {
-                    if (currentToken || currentLine.length > 0) {
-                        currentLine.push(currentToken.trim());
-                        rows.push(currentLine);
-                    }
+                    if (currentToken || currentLine.length > 0) { currentLine.push(currentToken.trim()); rows.push(currentLine); }
                     currentToken = ""; currentLine = [];
                 } else { currentToken += char; }
             }
@@ -66,111 +54,79 @@
             return rows;
         }
 
-        async function fetchExcelData() {
+        async function loadData() {
             try {
                 const response = await fetch(csvUrl);
                 const text = await response.text();
                 const allRows = parseCSV(text);
-                const dataRows = allRows.slice(1);
+                
+                // 첫 번째 줄(헤더)을 제외하고 데이터 생성
+                privateData = allRows.slice(1).map((cols, index) => {
+                    return {
+                        id: cols[0] || 'idx_' + index,
+                        name: cols[1] || "이름없음", // 이름이 없으면 '이름없음'으로 표시하여 빈 카드 방지
+                        role: cols[2] || "",
+                        phone: cols[3] || "",
+                        photo: cols[4] || "",
+                        birth: cols[5] || "",
+                        address: cols[6] || "",
+                        size: cols[7] || "",
+                        trait: cols[8] || "",
+                        meetDate: cols[9] || "",
+                        skinship: cols[10] || "",
+                        sexDate: cols[11] || "",
+                        school: cols[12] || "",
+                        personal: cols[13] || "",
+                        takenPhoto: cols[14] || "",
+                        action: cols[15] || "",
+                        memo: cols[16] || "",
+                        notion: cols[17] || ""
+                    };
+                }).filter(p => p.name !== "이름없음" || p.trait !== ""); // 데이터가 있는 것만 표시
 
-                privateData = dataRows.map(cols => ({
-                    id: cols[0] || "",
-                    name: cols[1] || "",
-                    role: cols[2] || "",
-                    phone: cols[3] || "",
-                    photo: cols[4] || "",
-                    birth: cols[5] || "",
-                    address: cols[6] || "",
-                    size: cols[7] || "",
-                    trait: cols[8] || "",
-                    meetDate: cols[9] || "",
-                    skinship: cols[10] || "", // 첫스킨십
-                    sexDate: cols[11] || "",   // 첫빠구리
-                    school: cols[12] || "",
-                    personal: cols[13] || "", // 개인신상
-                    takenPhoto: cols[14] || "", // 사진 (도촬/속옷 등)
-                    action: cols[15] || "", // 행위 (오염/전시 등)
-                    memo: cols[16] || "",
-                    notion: cols[17] || ""
-                })).filter(p => p.name);
-
-                buildNameIndex();
-                displayData(privateData);
+                display(privateData);
                 document.getElementById('mainContent').style.display = 'block';
-            } catch (error) {
-                alert("데이터 로드 실패: 인명.csv 파일을 확인하세요.");
-            }
+            } catch (e) { alert("인명.csv 파일을 찾을 수 없거나 형식이 잘못되었습니다."); }
         }
 
-        function buildNameIndex() {
-            nameIndex.clear();
-            privateData.forEach(p => {
-                const key = p.name.toLowerCase();
-                if (!nameIndex.has(key)) nameIndex.set(key, []);
-                nameIndex.get(key).push(p);
-            });
-        }
-
-        window.saveMemo = function(id, val) { localStorage.setItem('memo_' + id, val); };
-        window.callPhone = function(phone) { window.location.href = 'tel:' + phone; };
-
-        function escapeHtml(text) {
-            const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
-            return text.replace(/[&<>"']/g, m => map[m]);
-        }
-
-        function displayData(data) {
+        function display(data) {
             const container = document.getElementById('listContainer');
-            container.innerHTML = data.map(p => {
-                const savedMemo = localStorage.getItem('memo_' + p.id) || "";
-                return `
+            container.innerHTML = data.map(p => `
                 <div class="card">
                     <div class="card-top">
-                        <img src="${p.photo}" class="profile-img" onerror="this.src='https://via.placeholder.com/100?text=NO+IMAGE'">
+                        <img src="${p.photo}" class="profile-img" onerror="this.src='https://via.placeholder.com/100?text=NO+IMG'">
                         <div class="name-info">
-                            <h3>${escapeHtml(p.name)}</h3>
-                            <p>${escapeHtml(p.role)}</p>
+                            <h3>${p.name}</h3> <p>${p.role}</p>
                         </div>
                     </div>
                     <div class="info-grid">
-                        <div class="info-item"><span class="label">첫시기</span><span class="value">${escapeHtml(p.meetDate)}</span></div>
-                        <div class="info-item"><span class="label">첫스킨십</span><span class="value highlight-red">${escapeHtml(p.skinship)}</span></div>
-                        <div class="info-item"><span class="label">첫빠구리</span><span class="value highlight-red">${escapeHtml(p.sexDate)}</span></div>
-                        <div class="info-item"><span class="label">행위</span><span class="value">${escapeHtml(p.action)}</span></div>
-                        <div class="info-item"><span class="label">사진</span><span class="value">${escapeHtml(p.takenPhoto)}</span></div>
-                        <div class="info-item"><span class="label">특징</span><span class="value">${escapeHtml(p.trait)}</span></div>
-                        <div class="info-item"><span class="label">개인신상</span><span class="value">${escapeHtml(p.personal)}</span></div>
-                        <div class="info-item"><span class="label">사이즈</span><span class="value">${escapeHtml(p.size)}</span></div>
-                        ${p.notion ? `<div class="info-item"><span class="label">노션링크</span><span class="value"><a href="${p.notion}" target="_blank" style="color:#fb7185;">노션 사진첩 열기</a></span></div>` : ''}
+                        <div class="info-item"><span class="label">첫스킨십</span><span class="value">${p.skinship}</span></div>
+                        <div class="info-item"><span class="label">첫빠구리</span><span class="value">${p.sexDate}</span></div>
+                        <div class="info-item"><span class="label">행위</span><span class="value">${p.action}</span></div>
+                        <div class="info-item"><span class="label">사진기록</span><span class="value">${p.takenPhoto}</span></div>
+                        <div class="info-item"><span class="label">특징</span><span class="value">${p.trait}</span></div>
                     </div>
                     <div class="live-memo-container">
-                        <span class="label" style="color:#fde68a;">📍 현장 실시간 기록</span>
-                        <textarea class="live-memo-area" placeholder="새로운 관찰 내용..." oninput="saveMemo('${p.id}', this.value)">${escapeHtml(savedMemo)}</textarea>
+                        <textarea class="live-memo-area" placeholder="메모 입력..." oninput="localStorage.setItem('m_'+'${p.id}', this.value)">${localStorage.getItem('m_'+p.id) || ""}</textarea>
                     </div>
-                    ${p.phone ? `<button class="btn-call" onclick="callPhone('${p.phone}')">📞 바로 전화하기</button>` : ''}
-                </div>`;
-            }).join('');
+                </div>
+            `).join('');
         }
 
         window.filterData = function() {
-            const query = document.getElementById('search').value.toLowerCase().trim();
-            if (!query) { displayData(privateData); return; }
-            let filtered = nameIndex.has(query) ? [...nameIndex.get(query)] : [];
-            filtered = filtered.concat(privateData.filter(p => 
-                (p.name.includes(query) || p.trait.includes(query) || p.action.includes(query)) && !filtered.includes(p)
-            ));
-            displayData(filtered);
+            const q = document.getElementById('search').value.toLowerCase();
+            const f = privateData.filter(p => p.name.includes(q) || p.trait.includes(q) || p.action.includes(q));
+            display(f);
         };
 
-        document.addEventListener("DOMContentLoaded", fetchExcelData);
+        document.addEventListener("DOMContentLoaded", loadData);
     }
 </script>
 
 <div id="mainContent">
-    <div class="header"><h2>🔒 FINAL 정복 수첩</h2></div>
-    <input type="text" id="search" class="search-box" placeholder="이름, 특징, 행위 검색..." onkeyup="filterData()">
+    <div class="header"><h2>🔒 정복 인물 수첩</h2></div>
+    <input type="text" id="search" class="search-box" placeholder="이름 또는 특징 검색..." onkeyup="filterData()">
     <div id="listContainer"></div>
 </div>
-
 </body>
 </html>
