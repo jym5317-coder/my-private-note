@@ -2,81 +2,104 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>인물 공략 수첩 V2</title>
+    <title>인물 공략 수첩 - 보안 버전</title>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f0f2f5; padding: 20px; }
-        .card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .name { font-size: 1.2em; font-weight: bold; color: #1a73e8; cursor: pointer; }
-        .details { display: none; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }
-        .info-grid { display: grid; grid-template-columns: 100px 1fr; gap: 5px; font-size: 0.9em; }
-        .label { color: #666; font-weight: bold; }
-        .photo-container { margin-top: 10px; display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; }
-        .photo-container img { width: 150px; height: 200px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd; cursor: pointer; }
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f0f2f5; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        #auth-section { margin-top: 100px; text-align: center; }
+        #main-content { display: none; width: 100%; max-width: 600px; }
+        .card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 100%; }
+        .name { font-size: 1.3em; font-weight: bold; color: #1a73e8; cursor: pointer; display: block; padding: 5px 0; }
+        .details { display: none; margin-top: 10px; border-top: 2px solid #f0f2f5; padding-top: 15px; }
+        .info-grid { display: grid; grid-template-columns: 110px 1fr; gap: 8px; font-size: 0.95em; line-height: 1.5; }
+        .label { background: #e8f0fe; color: #1967d2; font-weight: bold; padding: 2px 8px; border-radius: 4px; text-align: center; }
+        .photo-container { margin-top: 15px; display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; border-top: 1px dashed #ccc; }
+        .photo-container img { width: 140px; height: 180px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; transition: transform 0.2s; }
+        .photo-container img:hover { transform: scale(1.05); }
+        input[type="password"] { padding: 10px; border-radius: 5px; border: 1px solid #ddd; width: 200px; }
+        button { padding: 10px 20px; background: #1a73e8; color: white; border: none; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <h2>👤 인물 공략 수첩 (경로 자동화 버전)</h2>
-    <div id="container">데이터를 불러오는 중...</div>
+    <div id="auth-section">
+        <h2>🔒 보안 인증</h2>
+        <p>비밀번호를 입력하세요.</p>
+        <input type="password" id="pw-input" onkeypress="if(event.keyCode==13) checkPw()">
+        <button onclick="checkPw()">확인</button>
+    </div>
+
+    <div id="main-content">
+        <h2 style="text-align:center;">👤 인물 공략 수첩</h2>
+        <div id="container">데이터 로드 중...</div>
+    </div>
 
     <script>
-        // CSV 파일을 읽어오는 함수
-        fetch('인명.csv')
-            .then(response => response.text())
-            .then(data => {
-                const rows = data.split('\n').slice(1); // 첫 줄(헤더) 제외
-                const container = document.getElementById('container');
-                container.innerHTML = '';
+        // 비밀번호 체크
+        function checkPw() {
+            const pw = document.getElementById('pw-input').value;
+            if(pw === '1234') { // <--- 사장님 비밀번호 여기를 수정하세요!
+                document.getElementById('auth-section').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                loadData();
+            } else {
+                alert('비밀번호가 틀렸습니다.');
+            }
+        }
 
-                rows.forEach(row => {
-                    if (!row.trim()) return;
-                    const cols = row.split(',');
-                    
-                    // 인덱스: 이름(1번), 사진파일명(4번) - 사장님 CSV 순서에 맞춰 자동 조절
-                    const name = cols[1]?.trim();
-                    const photoFiles = cols[4]?.trim(); 
+        function loadData() {
+            fetch('인명.csv')
+                .then(res => res.text())
+                .then(data => {
+                    const rows = data.split('\n').filter(r => r.trim());
+                    const container = document.getElementById('container');
+                    container.innerHTML = '';
 
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    
-                    // 사진 경로 자동 생성 마법 부분
-                    let photoHtml = '';
-                    if (photoFiles) {
-                        const fileList = photoFiles.split(';'); // 쉼표나 세미콜론 구분
-                        fileList.forEach(file => {
-                            const fileName = file.trim();
-                            if(fileName) {
-                                // 경로 조립: img / 이름 / 파일명
-                                const finalPath = `img/${name}/${fileName}`;
-                                photoHtml += `<img src="${finalPath}" onclick="window.open('${finalPath}')" onerror="this.style.display='none'" title="${fileName}">`;
-                            }
-                        });
-                    }
+                    // 첫 줄(헤더)은 건너뛰고 2번째 줄부터 반복
+                    for (let i = 1; i < rows.length; i++) {
+                        const cols = rows[i].split(',').map(c => c.trim());
+                        
+                        const name = cols[1]; // 이름
+                        const group = cols[2]; // 소속
+                        const phone = cols[3]; // 연락처
+                        const photos = cols[4]; // 사진파일명 (1.jpg, 얼굴/2.jpg 등)
+                        const plan = cols[18]; // 공략계획
 
-                    card.innerHTML = `
-                        <div class="name" onclick="toggleDetails(this)">+ ${name} (${cols[2] || '소속없음'})</div>
-                        <div class="details">
-                            <div class="info-grid">
-                                <div class="label">연락처</div><div>${cols[3] || '-'}</div>
-                                <div class="label">생년월일</div><div>${cols[5] || '-'}</div>
-                                <div class="label">특이사항</div><div>${cols[15] || '-'}</div>
-                                <div class="label">공략계획</div><div>${cols[18] || '-'}</div>
+                        const card = document.createElement('div');
+                        card.className = 'card';
+
+                        // 사진 경로 생성 로직
+                        let photoHtml = '';
+                        if (photos) {
+                            const fileList = photos.split(';'); // 세미콜론(;) 또는 쉼표(,) 구분
+                            fileList.forEach(file => {
+                                const f = file.trim();
+                                if(f) {
+                                    const path = `img/${name}/${f}`; // img/이름/파일명
+                                    photoHtml += `<img src="${path}" onclick="window.open('${path}')" onerror="this.src='https://via.placeholder.com/150x200?text=No+Image'">`;
+                                }
+                            });
+                        }
+
+                        card.innerHTML = `
+                            <div class="name" onclick="toggleDetails(this)">▶ ${name} <small style="color:gray; font-weight:normal;">(${group})</small></div>
+                            <div class="details">
+                                <div class="info-grid">
+                                    <div class="label">연락처</div><div>${phone || '-'}</div>
+                                    <div class="label">공략계획</div><div>${plan || '-'}</div>
+                                    <div class="label">기타</div><div>기타 메모 사항...</div>
+                                </div>
+                                <div class="photo-container">${photoHtml || '사진이 없습니다.'}</div>
                             </div>
-                            <div class="photo-container">${photoHtml || '사진 없음'}</div>
-                        </div>
-                    `;
-                    container.appendChild(card);
+                        `;
+                        container.appendChild(card);
+                    }
                 });
-            })
-            .catch(err => {
-                document.getElementById('container').innerHTML = 'CSV 파일을 찾을 수 없거나 형식이 잘못되었습니다.';
-                console.error(err);
-            });
+        }
 
         function toggleDetails(el) {
             const details = el.nextElementSibling;
             details.style.display = details.style.display === 'block' ? 'none' : 'block';
-            el.innerText = details.style.display === 'block' ? '- ' + el.innerText.substring(2) : '+ ' + el.innerText.substring(2);
+            el.innerHTML = details.style.display === 'block' ? '▼ ' + el.innerText.substring(2) : '▶ ' + el.innerText.substring(2);
         }
     </script>
 </body>
