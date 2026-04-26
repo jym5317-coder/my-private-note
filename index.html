@@ -2,168 +2,82 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔒 SMART 인물 전략 수첩 V5.0</title>
+    <title>인물 공략 수첩 V2</title>
     <style>
-        :root { --메인색: #e11d48; --포인트색: #2563eb; --배경색: #f1f5f9; }
-        body { font-family: 'Pretendard', sans-serif; background-color: var(--배경색); margin: 0; padding: 10px; color: #1e293b; }
-        #mainContent { max-width: 600px; margin: 0 auto; display: none; }
-        .header { text-align: center; margin-bottom: 20px; color: var(--메인색); }
-        .검색창 { width: 100%; padding: 15px; border: 2px solid #cbd5e1; border-radius: 12px; font-size: 16px; margin-bottom: 20px; outline: none; box-sizing: border-box; }
-        
-        .카드 { background: white; border-radius: 20px; padding: 18px; margin-bottom: 25px; box-shadow: 0 10px 15px rgba(0,0,0,0.1); border-top: 6px solid var(--메인색); position: relative; }
-        .난이도-배지 { position: absolute; top: 15px; right: 15px; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: bold; background: #f1f5f9; color: #475569; }
-        
-        .카드상단 { display: flex; align-items: center; margin-bottom: 15px; gap: 15px; }
-        .프로필사진 { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; background: #eee; border: 2px solid #fff; cursor: pointer; }
-        .이름정보 h3 { margin: 0; font-size: 22px; }
-        
-        /* 사진 토글 스타일 */
-        .사진토글-컨테이너 { margin-top: 10px; border-radius: 12px; overflow: hidden; background: #000; display: none; }
-        .토글사진-이미지 { width: 100%; display: block; margin-bottom: 2px; }
-        .토글버튼 { width: 100%; padding: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-size: 12px; font-weight: bold; color: #64748b; margin-bottom: 10px; transition: 0.3s; }
-        .토글버튼:hover { background: #f1f5f9; }
-
-        .섹션제목 { font-size: 11px; font-weight: 900; color: var(--포인트색); margin: 15px 0 8px 5px; text-transform: uppercase; }
-        .정보그리드 { display: grid; grid-template-columns: 1fr; gap: 6px; background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .정보항목 { display: flex; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px; }
-        .정보항목:last-child { border-bottom: none; }
-        .라벨 { font-size: 11px; font-weight: 800; color: #64748b; width: 105px; flex-shrink: 0; }
-        .값 { font-size: 13px; color: #334155; white-space: pre-wrap; flex-grow: 1; }
-        
-        .강조값 { color: var(--메인색); font-weight: bold; }
-        .파란값 { color: var(--포인트색); font-weight: bold; }
-
-        .실시간메모 { margin-top: 15px; padding: 12px; background: #fffbeb; border-radius: 12px; border: 1px solid #fef3c7; }
-        .메모창 { width: 100%; height: 50px; border: none; background: transparent; font-size: 13px; resize: none; outline: none; margin-top: 5px; color: #92400e; }
-        
-        .버튼그룹 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .버튼 { text-align: center; padding: 12px; border-radius: 10px; font-weight: bold; text-decoration: none; font-size: 14px; color: white; }
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f0f2f5; padding: 20px; }
+        .card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .name { font-size: 1.2em; font-weight: bold; color: #1a73e8; cursor: pointer; }
+        .details { display: none; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }
+        .info-grid { display: grid; grid-template-columns: 100px 1fr; gap: 5px; font-size: 0.9em; }
+        .label { color: #666; font-weight: bold; }
+        .photo-container { margin-top: 10px; display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; }
+        .photo-container img { width: 150px; height: 200px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<script>
-    const csv파일경로 = "인명.csv"; 
-    const 비밀번호 = "1234"; 
-    let 전체데이터 = [];
+    <h2>👤 인물 공략 수첩 (경로 자동화 버전)</h2>
+    <div id="container">데이터를 불러오는 중...</div>
 
-    const 입력비번 = prompt("관리자 암호:");
-    if (입력비번 !== 비밀번호) { alert("권한 없음"); window.stop(); }
+    <script>
+        // CSV 파일을 읽어오는 함수
+        fetch('인명.csv')
+            .then(response => response.text())
+            .then(data => {
+                const rows = data.split('\n').slice(1); // 첫 줄(헤더) 제외
+                const container = document.getElementById('container');
+                container.innerHTML = '';
 
-    function CSV파싱(text) {
-        const rows = [];
-        let cur = ""; let line = []; let inQ = false;
-        for (let i=0; i<text.length; i++) {
-            const c = text[i];
-            if (c === '"') inQ = !inQ;
-            else if (c === ',' && !inQ) { line.push(cur.trim()); cur = ""; }
-            else if ((c === '\n' || c === '\r') && !inQ) {
-                if (cur || line.length > 0) { line.push(cur.trim()); rows.push(line); }
-                cur = ""; line = [];
-            } else cur += c;
+                rows.forEach(row => {
+                    if (!row.trim()) return;
+                    const cols = row.split(',');
+                    
+                    // 인덱스: 이름(1번), 사진파일명(4번) - 사장님 CSV 순서에 맞춰 자동 조절
+                    const name = cols[1]?.trim();
+                    const photoFiles = cols[4]?.trim(); 
+
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    
+                    // 사진 경로 자동 생성 마법 부분
+                    let photoHtml = '';
+                    if (photoFiles) {
+                        const fileList = photoFiles.split(';'); // 쉼표나 세미콜론 구분
+                        fileList.forEach(file => {
+                            const fileName = file.trim();
+                            if(fileName) {
+                                // 경로 조립: img / 이름 / 파일명
+                                const finalPath = `img/${name}/${fileName}`;
+                                photoHtml += `<img src="${finalPath}" onclick="window.open('${finalPath}')" onerror="this.style.display='none'" title="${fileName}">`;
+                            }
+                        });
+                    }
+
+                    card.innerHTML = `
+                        <div class="name" onclick="toggleDetails(this)">+ ${name} (${cols[2] || '소속없음'})</div>
+                        <div class="details">
+                            <div class="info-grid">
+                                <div class="label">연락처</div><div>${cols[3] || '-'}</div>
+                                <div class="label">생년월일</div><div>${cols[5] || '-'}</div>
+                                <div class="label">특이사항</div><div>${cols[15] || '-'}</div>
+                                <div class="label">공략계획</div><div>${cols[18] || '-'}</div>
+                            </div>
+                            <div class="photo-container">${photoHtml || '사진 없음'}</div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            })
+            .catch(err => {
+                document.getElementById('container').innerHTML = 'CSV 파일을 찾을 수 없거나 형식이 잘못되었습니다.';
+                console.error(err);
+            });
+
+        function toggleDetails(el) {
+            const details = el.nextElementSibling;
+            details.style.display = details.style.display === 'block' ? 'none' : 'block';
+            el.innerText = details.style.display === 'block' ? '- ' + el.innerText.substring(2) : '+ ' + el.innerText.substring(2);
         }
-        if (cur || line.length > 0) { line.push(cur.trim()); rows.push(line); }
-        return rows;
-    }
-
-    async function 데이터로드() {
-        try {
-            const res = await fetch(csv파일경로 + "?v=" + new Date().getTime());
-            const text = await res.text();
-            const rows = CSV파싱(text).slice(1);
-            
-            전체데이터 = rows.map(cols => ({
-                아이디: cols[0], 이름: cols[1], 소속: cols[2], 연락처: cols[3], 사진파일: cols[4],
-                생년월일: cols[5], 주소: cols[6], 사이즈: cols[7],
-                관찰동기: cols[8], 진척도: cols[9], 첫만남: cols[10], 
-                첫스킨십: cols[11], 첫완전정복: cols[12], 최근수위: cols[13],
-                보유자료: cols[14], 특이반응: cols[15], 누적지출: cols[16],
-                노션링크: cols[17], 공략계획: cols[18], 주의사항: cols[19], 선호취향: cols[20],
-                공백기: cols[21], 접근시간: cols[22], 가성비: cols[23], 
-                호감도: cols[24], 공통화제: cols[25], 경계인물: cols[26],
-                최근고민: cols[27], 공략난이도: cols[28]
-            })).filter(p => p.이름);
-
-            화면표시(전체데이터);
-            document.getElementById('mainContent').style.display = 'block';
-        } catch(e) { alert("데이터 로드 실패: 엑셀 파일을 확인해주세요."); }
-    }
-
-    function togglePhotos(id) {
-        const el = document.getElementById('photo-box-' + id);
-        const btn = document.getElementById('btn-' + id);
-        if (el.style.display === 'none' || el.style.display === '') {
-            el.style.display = 'block';
-            btn.innerText = '▲ 사진 접기';
-        } else {
-            el.style.display = 'none';
-            btn.innerText = '▼ 사진 보기 (몸매 확인)';
-        }
-    }
-
-    function 화면표시(data) {
-        const container = document.getElementById('listContainer');
-        container.innerHTML = data.map(p => {
-            const 저장된메모 = localStorage.getItem('memo_' + p.아이디) || "";
-            // 사진 파일들을 쉼표로 나누어 배열로 만듬
-            const 사진배열 = p.사진파일 ? p.사진파일.split(',').map(s => s.trim()) : [];
-            const 메인사진 = 사진배열[0] || 'https://via.placeholder.com/100';
-
-            return `
-            <div class="카드">
-                <div class="난이도-배지">${p.공략난이도 || '탐색'}</div>
-                <div class="카드상단">
-                    <img src="${메인사진}" class="프로필사진" onclick="togglePhotos('${p.아이디}')">
-                    <div class="이름정보">
-                        <h3>${p.이름} <span style="font-size:12px; color:#f59e0b;">★ ${p.호감도 || '0'}</span></h3>
-                        <p>${p.소속} | ${p.사이즈 || '-'}</p>
-                    </div>
-                </div>
-
-                <button id="btn-${p.아이디}" class="토글버튼" onclick="togglePhotos('${p.아이디}')">▼ 사진 보기 (몸매 확인)</button>
-                <div id="photo-box-${p.아이디}" class="사진토글-컨테이너">
-                    ${사진배열.map(img => `<img src="${img}" class="토글사진-이미지" onerror="this.style.display='none'">`).join('')}
-                </div>
-
-                <div class="섹션제목">⏱️ 공략 및 관계 현황</div>
-                <div class="정보그리드">
-                    <div class="정보항목"><span class="라벨">연락주기/접근시간</span><span class="값 파란값">${p.공백기 || '-'} / ${p.접근시간 || '-'}</span></div>
-                    <div class="정보항목"><span class="라벨">스킨십/완전정복</span><span class="값 강조값">${p.첫스킨십 || '-'} / ${p.첫완전정복 || '-'}</span></div>
-                    <div class="정보항목"><span class="라벨">보유 전리품</span><span class="값 파란값">${p.보유자료 || '없음'}</span></div>
-                </div>
-
-                <div class="섹션제목">💬 실전 대화 포인트</div>
-                <div class="정보그리드">
-                    <div class="정보항목"><span class="라벨">공통화제/고민</span><span class="값 파란값">${p.공통화제 || '-'} / ${p.최근고민 || '-'}</span></div>
-                    <div class="정보항목"><span class="라벨">경계인물</span><span class="값" style="color:red; font-weight:bold;">${p.경계인물 || '-'}</span></div>
-                    <div class="정보항목"><span class="라벨">⚠️ 주의사항</span><span class="값" style="color:red; font-weight:bold;">${p.주의사항 || '-'}</span></div>
-                </div>
-
-                <div class="실시간메모">
-                    <textarea class="메모창" placeholder="오늘의 피드백..." oninput="localStorage.setItem('memo_${p.아이디}', this.value)">${저장된메모}</textarea>
-                </div>
-
-                <div class="버튼그룹">
-                    <a href="tel:${p.연락처}" class="버튼" style="background:var(--포인트색)">📞 전화</a>
-                    <a href="${p.노션링크}" target="_blank" class="버튼" style="background:#0f172a">📔 노션</a>
-                </div>
-            </div>`;
-        }).join('');
-    }
-
-    function 검색() {
-        const q = document.getElementById('search').value.toLowerCase();
-        화면표시(전체데이터.filter(p => p.이름.includes(q) || p.공통화제.includes(q)));
-    }
-
-    document.addEventListener("DOMContentLoaded", 데이터로드);
-</script>
-
-<div id="mainContent">
-    <div class="header"><h2>🔒 SMART 인물 전략 수첩</h2></div>
-    <input type="text" id="search" class="검색창" placeholder="이름, 대화주제 검색..." onkeyup="검색()">
-    <div id="listContainer"></div>
-</div>
+    </script>
 </body>
 </html>
