@@ -28,7 +28,7 @@
 
         .section-title { font-size: 14px; font-weight: bold; color: #2d5af0; margin: 15px 0 8px; border-left: 4px solid #2d5af0; padding-left: 8px; }
         .data-table { background: #f8faff; border-radius: 12px; padding: 12px; font-size: 13px; }
-        .data-row { display: grid; grid-template-columns: 90px 1fr; margin-bottom: 6px; border-bottom: 1px solid #eef2f8; padding-bottom: 4px; }
+        .data-row { display: grid; grid-template-columns: 95px 1fr; margin-bottom: 6px; border-bottom: 1px solid #eef2f8; padding-bottom: 4px; }
         .label { color: #777; font-weight: bold; }
         .val { color: #333; }
         .val-red { color: #e61e43; font-weight: bold; }
@@ -43,7 +43,7 @@
 <body>
 
     <div id="auth-section">
-        <h2>🔒 SMART 인물 전략 수첩</h2>
+        <h2 style="color:#e61e43;">🔒 SMART 인물 전략 수첩</h2>
         <input type="password" id="pw-input" placeholder="비밀번호 입력..." onkeypress="if(event.keyCode==13) checkPw()">
         <button onclick="checkPw()">확인</button>
     </div>
@@ -56,11 +56,11 @@
 
     <script>
         function checkPw() {
-            if(document.getElementById('pw-input').value === '1234') { // <--- 비밀번호
+            if(document.getElementById('pw-input').value === '1234') {
                 document.getElementById('auth-section').style.display = 'none';
                 document.getElementById('main-content').style.display = 'block';
                 loadData();
-            } else { alert('틀렸습니다.'); }
+            } else { alert('비밀번호가 틀렸습니다.'); }
         }
 
         function loadData() {
@@ -72,14 +72,28 @@
                     container.innerHTML = '';
 
                     rows.forEach(row => {
-                        const col = row.split(',').map(c => c.trim() || '-');
-                        // 엑셀 순서: 1이름, 2소속, 3연락처, 4사진, 5생일, 7사이즈, 11첫스킨십, 14보유자료, 19주의사항, 22접근시간, 23가성비, 24호감도
-                        const name=col[1], team=col[2], phone=col[3], photos=col[4], size=col[7], skin=col[11], items=col[14], warn=col[19], time=col[22], price=col[23], like=col[24], diff=col[28];
+                        // 쉼표로 구분하되, 큰따옴표 안의 쉼표는 무시하는 정규식
+                        const col = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
+                        const clean = (val) => val ? val.replace(/"/g, '').trim() : '-';
+
+                        const name = clean(col[1]);    // 이름
+                        const team = clean(col[2]);    // 소속
+                        const phone = clean(col[3]);   // 연락처
+                        const photos = clean(col[4]);  // 사진파일
+                        const size = clean(col[7]);    // 사이즈
+                        const skin = clean(col[11]);   // 첫스킨십
+                        const items = clean(col[14]);  // 보유자료
+                        const warn = clean(col[19]);   // 주의사항
+                        const time = clean(col[22]);   // 접근가능시간
+                        const price = clean(col[23]);  // 가성비
+                        const like = clean(col[24]);   // 나에대한 호감도
+                        const notion = clean(col[17]); // 노션링크
 
                         let photoImgs = '';
                         if(photos !== '-') {
-                            photos.split(';').forEach(p => {
-                                photoImgs += `<img src="img/${name}/${p.trim()}" onerror="this.style.display='none'">`;
+                            photos.split(',').forEach(p => {
+                                let fileName = p.trim();
+                                if(fileName) photoImgs += `<img src="img/${name}/${fileName}" onerror="this.style.display='none'">`;
                             });
                         }
 
@@ -96,23 +110,22 @@
                             <button class="photo-btn" onclick="togglePhoto(this)">▼ 사진 보기 (몸매 확인)</button>
                             <div class="photo-area">${photoImgs || '사진 등록 필요'}</div>
                             
-                            <div class="section-title">⏱ 공략 현황</div>
+                            <div class="section-title">⏱ 공략 및 관계 현황</div>
                             <div class="data-table">
-                                <div class="data-row"><div class="label">접근/연락</div><div class="val-blue">${time}</div></div>
+                                <div class="data-row"><div class="label">연락/접근</div><div class="val-blue">${time}</div></div>
                                 <div class="data-row"><div class="label">가성비</div><div class="val-blue">${price}</div></div>
                                 <div class="data-row"><div class="label">스킨십</div><div class="val-red">${skin}</div></div>
-                                <div class="data-row"><div class="label">난이도</div><div class="val">${diff}</div></div>
+                                <div class="data-row"><div class="label">보유자료</div><div class="val">${items}</div></div>
                             </div>
 
-                            <div class="section-title">⚠️ 주의 및 전리품</div>
+                            <div class="section-title">⚠️ 실전 주의사항</div>
                             <div class="data-table">
-                                <div class="data-row"><div class="label">보유자료</div><div class="val">${items}</div></div>
                                 <div class="data-row"><div class="label">주의사항</div><div class="val-red">${warn}</div></div>
                             </div>
 
                             <div class="btn-group">
                                 <a href="tel:${phone}" class="btn btn-call">📞 전화하기</a>
-                                <a href="${col[17] || '#'}" class="btn btn-notion">📔 노션링크</a>
+                                <a href="${notion !== '-' ? notion : '#'}" class="btn btn-notion" target="_blank">📔 노션링크</a>
                             </div>
                         `;
                         container.appendChild(card);
