@@ -3,129 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔒 SMART 인물 전략 수첩</title>
+    <title>🔒 SMART 전략 수첩 (폴더 분류 Ver.)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
-        :root { --메인색: #e11d48; --포인트색: #2563eb; --배경색: #f1f5f9; }
-        body { font-family: 'Malgun Gothic', sans-serif; background-color: var(--배경색); margin: 0; padding: 10px; color: #1e293b; }
-        #auth-section { margin-top: 150px; text-align: center; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; margin: 0 auto; }
-        #auth-section input { padding: 12px; border-radius: 8px; border: 1px solid #ddd; width: 180px; }
-        #auth-section button { padding: 12px 20px; background: var(--메인색); color: white; border: none; border-radius: 8px; cursor: pointer; }
-        #mainContent { max-width: 600px; margin: 0 auto; display: none; }
-        .header { text-align: center; margin-bottom: 20px; color: var(--메인색); font-size: 24px; font-weight: bold; }
-        .검색창 { width: 100%; padding: 15px; border: 2px solid #cbd5e1; border-radius: 12px; font-size: 16px; margin-bottom: 20px; box-sizing: border-box; }
-        .카드 { background: white; border-radius: 20px; padding: 18px; margin-bottom: 25px; box-shadow: 0 10px 15px rgba(0,0,0,0.1); border-top: 6px solid var(--메인색); }
-        .상단영역 { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-        .프로필사진 { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); background: #e2e8f0; }
-        .기본정보 h2 { margin: 0; font-size: 22px; display: flex; align-items: center; gap: 8px; }
-        .별점 { color: #f59e0b; font-size: 16px; }
-        .소속텍스트 { color: #64748b; font-size: 14px; margin: 4px 0; font-weight: bold; }
-        .사진버튼 { width: 100%; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer; font-weight: bold; color: #475569; margin: 10px 0; }
-        .사진영역 { display: none; gap: 10px; overflow-x: auto; padding: 10px 0; }
-        .사진영역 img { width: 140px; height: 180px; object-fit: cover; border-radius: 12px; flex-shrink: 0; border: 1px solid #ddd; }
-        .섹션타이틀 { font-size: 15px; font-weight: 800; color: var(--포인트색); margin: 15px 0 10px; border-left: 4px solid var(--포인트색); padding-left: 8px; }
-        .정보그리드 { background: #f8fafc; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .정보항목 { display: grid; grid-template-columns: 100px 1fr; font-size: 14px; line-height: 1.5; }
+        :root { --메인색: #e11d48; --포인트색: #2563eb; --배경색: #f8fafc; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--배경색); margin: 0; padding: 15px; }
+        
+        /* 보안 섹션 */
+        #auth-section { margin: 100px auto; text-align: center; max-width: 350px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 60%; }
+        button { padding: 12px 20px; background: var(--메인색); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+
+        #mainContent { max-width: 700px; margin: 0 auto; display: none; }
+        
+        /* 폴더 필터 스타일 */
+        .filter-bar { margin-bottom: 20px; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; }
+        .folder-btn { padding: 8px 16px; background: white; border: 1px solid #ddd; border-radius: 20px; font-size: 0.85em; white-space: nowrap; cursor: pointer; transition: 0.3s; }
+        .folder-btn.active { background: var(--포인트색); color: white; border-color: var(--포인트색); }
+
+        /* 카드 스타일 */
+        .인물카드 { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .헤더 { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+        .이름 { font-size: 1.3em; font-weight: bold; }
+        
+        .이미지그룹 { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        .사진박스 { position: relative; }
+        .사진박스 img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; }
+        .폴더태그 { position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.6); color: white; font-size: 10px; padding: 2px 5px; border-radius: 4px; }
+
+        .정보그리드 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.85em; }
+        .정보항목 { background: #f1f5f9; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between; }
         .라벨 { color: #64748b; font-weight: bold; }
-        .값 { color: #1e293b; white-space: pre-wrap; } /* 줄바꿈 허용 */
-        .강조값 { color: var(--메인색); font-weight: bold; }
-        .버튼그룹 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .버튼 { padding: 14px; border-radius: 12px; color: white; font-weight: bold; text-align: center; text-decoration: none; font-size: 15px; }
+        .값 { color: #1e293b; }
+        
+        .메모 { background: #fff7ed; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 0.85em; border-left: 4px solid #fb923c; white-space: pre-wrap; }
     </style>
 </head>
 <body>
 
     <div id="auth-section">
-        <h2 style="color:var(--메인색)">🔒 SMART 인물 전략 수첩</h2>
-        <input type="password" id="pw-input" placeholder="비밀번호..." onkeypress="if(event.keyCode==13) 인증()">
-        <button onclick="인증()">확인</button>
+        <h2>🔒 보안 인증</h2>
+        <input type="password" id="pw" placeholder="비밀번호">
+        <button onclick="checkAuth()">접속</button>
     </div>
 
     <div id="mainContent">
-        <div class="header">🔒 SMART 인물 전략 수첩</div>
-        <input type="text" id="search" class="검색창" placeholder="이름이나 소속으로 검색..." onkeyup="검색()">
-        <div id="cardContainer">데이터를 불러오는 중...</div>
+        <header style="text-align:center;"><h1>SMART 전략 수첩</h1></header>
+        
+        <div class="filter-bar" id="folderFilters">
+            <button class="folder-btn active" onclick="filterFolder('전체')">전체보기</button>
+        </div>
+
+        <div id="peopleList"></div>
     </div>
 
-    <script>
-        let 전체데이터 = [];
+<script>
+    let allData = [];
+    let folders = new Set();
 
-        function 인증() {
-            if(document.getElementById('pw-input').value === '1234') {
-                document.getElementById('auth-section').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'block';
-                데이터불러오기();
-            } else { alert('비밀번호가 틀렸습니다.'); }
+    function checkAuth() {
+        if(document.getElementById('pw').value === "1234") {
+            document.getElementById('auth-section').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            loadData();
+        } else { alert("비밀번호 오류"); }
+    }
+
+    function loadData() {
+        Papa.parse("인명.csv", {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                processData(results.data);
+            }
+        });
+    }
+
+    function processData(data) {
+        allData = data.map(row => {
+            // 사진 파일에서 폴더 추출 (예: body/img.jpg -> body)
+            const photoList = row['사진파일'] ? row['사진파일'].split(',').map(p => {
+                const path = p.trim();
+                const folder = path.includes('/') ? path.split('/')[0] : '기본';
+                folders.add(folder);
+                return { path, folder };
+            }) : [];
+
+            return { ...row, processedPhotos: photoList };
+        });
+
+        renderFilters();
+        renderList(allData);
+    }
+
+    function renderFilters() {
+        const filterBox = document.getElementById('folderFilters');
+        folders.forEach(f => {
+            filterBox.innerHTML += `<button class="folder-btn" onclick="filterFolder('${f}')">${f}</button>`;
+        });
+    }
+
+    function filterFolder(folderName) {
+        // 버튼 활성화 스타일
+        document.querySelectorAll('.folder-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.innerText === folderName || (folderName === '전체' && btn.innerText === '전체보기'));
+        });
+
+        if(folderName === '전체') {
+            renderList(allData);
+        } else {
+            // 해당 폴더에 사진이 있는 사람만 필터링
+            const filtered = allData.filter(p => p.processedPhotos.some(photo => photo.folder === folderName));
+            renderList(filtered, folderName);
         }
+    }
 
-        async function 데이터불러오기() {
-            const res = await fetch('인명.csv');
-            const data = await res.text();
-            
-            // 줄바꿈이 포함된 CSV를 제대로 나누는 정규식
-            const rows = data.split(/\r?\n(?=(?:(?:[^"]*"){2})*[^"]*$)/).slice(1);
+    function renderList(list, targetFolder = '전체') {
+        const container = document.getElementById('peopleList');
+        container.innerHTML = list.map(p => {
+            // 특정 폴더 필터링 시 해당 폴더 사진만 먼저 보여줌
+            const displayPhotos = targetFolder === '전체' 
+                ? p.processedPhotos 
+                : p.processedPhotos.filter(img => img.folder === targetFolder);
 
-            전체데이터 = rows.map(row => {
-                const col = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
-                const c = (i) => col[i] ? col[i].replace(/^"|"$/g, '').trim() : '-';
-
-                return {
-                    이름: c(1), 소속: c(2), 연락처: c(3), 사진: c(4),
-                    사이즈: c(7), 스킨십: c(11), 정복: c(12), 자료: c(14),
-                    노션: c(17), 주의: c(19), 접근: c(22), 가성비: c(23),
-                    호감: c(24), 화제: c(25), 고민: c(27), 난이도: c(28)
-                };
-            });
-            화면표시(전체데이터);
-        }
-
-        function 화면표시(list) {
-            const container = document.getElementById('cardContainer');
-            container.innerHTML = list.map(p => {
-                let imgTags = '';
-                if(p.사진 !== '-') {
-                    p.사진.split(/[,;]/).forEach(f => {
-                        if(f.trim()) imgTags += `<img src="img/${p.이름}/${f.trim()}" onerror="this.style.display='none'">`;
-                    });
-                }
-                return `
-                <div class="카드">
-                    <div class="상단영역">
-                        <img class="프로필사진" src="img/${p.이름}/face.jpg" onerror="this.src='https://via.placeholder.com/100'">
-                        <div class="기본정보">
-                            <h2>${p.이름} <span class="별점">★ ${p.호감}</span></h2>
-                            <div class="소속텍스트">${p.소속} | <span style="color:var(--메인색)">${p.사이즈}</span></div>
-                        </div>
+            return `
+                <div class="인물카드">
+                    <div class="헤더">
+                        <span class="이름">${p['이름']}</span>
+                        <span style="color:#64748b; font-size:0.9em;">${p['소속']}</span>
                     </div>
+
+                    <div class="이미지그룹">
+                        ${displayPhotos.map(img => `
+                            <div class="사진박스">
+                                <span class="폴더태그">${img.folder}</span>
+                                <img src="${img.path}" onerror="this.src='https://via.placeholder.com/100?text=No+Image'">
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="정보그리드">
+                        <div class="정보항목"><span class="라벨">연락처</span><span class="값">${p['연락처']}</span></div>
+                        <div class="정보항목"><span class="라벨">생일</span><span class="값">${p['생년월일']}</span></div>
+                        <div class="정보항목"><span class="라벨">사이즈</span><span class="값" style="color:red; font-weight:bold;">${p['사이즈']}</span></div>
+                        <div class="정보항목"><span class="라벨">호감도</span><span class="값">${p['나에대한 호감도']}</span></div>
+                        <div class="정보항목"><span class="라벨">난이도</span><span class="값">${p['공략난이도']}</span></div>
+                        <div class="정보항목"><span class="라벨">진척도</span><span class="값">${p['진척도']}</span></div>
+                    </div>
+
+                    <div class="메모"><strong>⚠️ 주의사항:</strong> ${p['주의사항'] || '없음'}</div>
+                    <div class="메모" style="background:#f0f9ff; border-left-color:#0ea5e9;"><strong>📝 공략계획:</strong> ${p['공략계획']}</div>
                     
-                    <button class="사진버튼" onclick="let s=this.nextElementSibling.style; s.display=(s.display==='flex'?'none':'flex')">▼ 사진 보기 (몸매 확인)</button>
-                    <div class="사진영역">${imgTags || '사진 없음'}</div>
-
-                    <div class="섹션타이틀">⏱ 공략 현황 데이터</div>
-                    <div class="정보그리드">
-                        <div class="정보항목"><span class="라벨">스킨십/정복</span><span class="값 강조값">${p.스킨십} / ${p.정복}</span></div>
-                        <div class="정보항목"><span class="라벨">가성비/난이도</span><span class="값">${p.가성비} / ${p.난이도}</span></div>
-                        <div class="정보항목"><span class="라벨">접근가능시간</span><span class="값" style="color:var(--포인트색)">${p.접근}</span></div>
+                    <div style="margin-top:15px; font-size:0.8em; color:#94a3b8;">
+                        * 마지막 본 날짜: ${p['마지막 본날짜']} | 가성비: ${p['가성비']}
                     </div>
-
-                    <div class="섹션타이틀">⚠️ 상세 메모 및 주의사항</div>
-                    <div class="정보그리드">
-                        <div class="정보항목"><span class="라벨">보유자료</span><span class="값">${p.자료}</span></div>
-                        <div class="정보항목"><span class="라벨">주의사항</span><span class="값 강조값">${p.주의}</span></div>
-                        <div class="정보항목"><span class="라벨">최근고민</span><span class="값">${p.고민}</span></div>
-                    </div>
-
-                    <div class="버튼그룹">
-                        <a href="tel:${p.연락처}" class="버튼" style="background:var(--포인트색)">📞 전화</a>
-                        <a href="${p.노션 !== '-' ? p.노션 : '#'}" target="_blank" class="버튼" style="background:#0f172a">📔 노션링크</a>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        function 검색() {
-            const q = document.getElementById('search').value.toLowerCase();
-            화면표시(전체데이터.filter(p => p.이름.includes(q) || p.소속.includes(q)));
-        }
-    </script>
+                </div>
+            `;
+        }).join('');
+    }
+</script>
 </body>
 </html>
