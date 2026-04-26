@@ -3,47 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔒 SMART 인물 공략 수첩 (V3.0)</title>
+    <title>🔒 SMART 인물 전략 수첩 V4.0</title>
     <style>
-        :root { --primary-color: #e11d48; --bg-color: #f1f5f9; --accent-color: #2563eb; }
-        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); margin: 0; padding: 10px; color: #1e293b; }
+        :root { --primary: #e11d48; --accent: #2563eb; --strategy: #0891b2; --bg: #f1f5f9; }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; color: #1e293b; }
         #mainContent { max-width: 600px; margin: 0 auto; display: none; }
+        .header { text-align: center; margin-bottom: 20px; color: var(--primary); }
+        .search-box { width: 100%; padding: 15px; border: 2px solid #cbd5e1; border-radius: 12px; font-size: 16px; margin-bottom: 20px; outline: none; box-sizing: border-box; }
         
-        /* 헤더 및 검색 */
-        .header { text-align: center; margin-bottom: 20px; padding-top: 10px; }
-        .search-box { width: 100%; padding: 15px; border: 2px solid #cbd5e1; border-radius: 12px; font-size: 16px; margin-bottom: 20px; outline: none; box-sizing: border-box; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .card { background: white; border-radius: 20px; padding: 18px; margin-bottom: 25px; box-shadow: 0 10px 15px rgba(0,0,0,0.1); border-top: 6px solid var(--primary); position: relative; }
+        .difficulty-badge { position: absolute; top: 15px; right: 15px; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: bold; background: #f1f5f9; color: #475569; }
         
-        /* 카드 스타일 */
-        .card { background: white; border-radius: 20px; padding: 18px; margin-bottom: 25px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-top: 6px solid var(--primary-color); }
         .card-top { display: flex; align-items: center; margin-bottom: 18px; gap: 15px; }
-        .profile-img { width: 85px; height: 85px; border-radius: 50%; object-fit: cover; background: #eee; border: 3px solid #f8fafc; }
-        .name-info h3 { margin: 0; font-size: 22px; color: #0f172a; }
-        .name-info p { margin: 4px 0 0; font-size: 14px; color: #64748b; font-weight: 600; }
+        .profile-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; background: #eee; border: 2px solid #fff; }
+        .name-info h3 { margin: 0; font-size: 22px; }
+        .rating-star { color: #f59e0b; font-size: 14px; }
 
-        /* 섹션 구분 */
-        .section { margin-bottom: 15px; }
-        .section-title { font-size: 12px; font-weight: 900; color: var(--primary-color); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
-        .section-title::after { content: ""; flex: 1; height: 1px; background: #fda4af; }
+        .section-title { font-size: 12px; font-weight: 900; color: var(--strategy); margin: 15px 0 8px 5px; display: flex; align-items: center; gap: 5px; }
+        .section-title::after { content: ""; flex: 1; height: 1px; background: #cffafe; }
 
-        /* 그리드 데이터 */
         .info-grid { display: grid; grid-template-columns: 1fr; gap: 6px; background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .info-item { display: flex; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px; align-items: flex-start; }
+        .info-item { display: flex; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px; }
         .info-item:last-child { border-bottom: none; }
-        .label { font-size: 11px; font-weight: 800; color: #64748b; width: 95px; flex-shrink: 0; }
-        .value { font-size: 13.5px; color: #334155; white-space: pre-wrap; word-break: break-all; flex-grow: 1; }
+        .label { font-size: 11px; font-weight: 800; color: #64748b; width: 100px; flex-shrink: 0; }
+        .value { font-size: 13.5px; color: #334155; white-space: pre-wrap; flex-grow: 1; }
         
-        /* 강조 및 상태값 */
-        .status-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: bold; background: #ffe4e6; color: #e11d48; }
-        .important-val { color: var(--primary-color); font-weight: bold; }
-        .media-val { color: var(--accent-color); font-weight: 600; }
+        .imp-val { color: var(--primary); font-weight: bold; }
+        .highlight { color: var(--strategy); font-weight: bold; }
 
-        /* 하단 도구 */
-        .live-memo-container { margin-top: 15px; padding: 12px; background: #fffbeb; border-radius: 12px; border: 1px solid #fef3c7; }
-        .live-memo-area { width: 100%; height: 70px; border: none; background: transparent; font-size: 14px; resize: none; outline: none; margin-top: 5px; color: #92400e; }
+        .live-memo { margin-top: 15px; padding: 12px; background: #fffbeb; border-radius: 12px; border: 1px solid #fef3c7; }
+        .memo-area { width: 100%; height: 60px; border: none; background: transparent; font-size: 14px; resize: none; outline: none; margin-top: 5px; color: #92400e; }
+        
         .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .btn { text-align: center; padding: 12px; border-radius: 10px; font-weight: bold; text-decoration: none; font-size: 14px; }
-        .btn-call { background: var(--accent-color); color: white; }
-        .btn-notion { background: #0f172a; color: white; }
+        .btn { text-align: center; padding: 12px; border-radius: 10px; font-weight: bold; text-decoration: none; font-size: 14px; color: white; }
     </style>
 </head>
 <body>
@@ -81,19 +73,18 @@
             privateData = rows.map(cols => ({
                 id: cols[0], name: cols[1], role: cols[2], phone: cols[3], photo: cols[4],
                 birth: cols[5], address: cols[6], size: cols[7],
-                reason: cols[8],      // 관찰 동기
-                level: cols[9],       // 진척도 (1~4단계)
-                meetDate: cols[10], skinship: cols[11], sexDate: cols[12],
-                lastAction: cols[13], // 최근 수위/행위
-                media: cols[14],      // 보유 전리품(사진/영상)
-                special: cols[15],    // 특이취향/반응
-                cost: cols[16],       // 누적 지출
-                notion: cols[17], memo: cols[18], taboo: cols[19], tastes: cols[20]
+                reason: cols[8], level: cols[9], meetDate: cols[10], 
+                skinship: cols[11], sexDate: cols[12], lastAction: cols[13],
+                media: cols[14], special: cols[15], cost: cols[16],
+                notion: cols[17], memo: cols[18], taboo: cols[19], tastes: cols[20],
+                interval: cols[21], bestTime: cols[22], roi: cols[23], 
+                rating: cols[24], commonTopic: cols[25], enemy: cols[26],
+                currentWorry: cols[27], difficulty: cols[28]
             })).filter(p => p.name);
 
             render(privateData);
             document.getElementById('mainContent').style.display = 'block';
-        } catch(e) { alert("파일 로드 실패"); }
+        } catch(e) { alert("데이터 로드 실패"); }
     }
 
     function render(data) {
@@ -102,50 +93,44 @@
             const saved = localStorage.getItem('memo_' + p.id) || "";
             return `
             <div class="card">
+                <div class="difficulty-badge">난이도: ${p.difficulty || '미정'}</div>
                 <div class="card-top">
                     <img src="${p.photo || 'https://via.placeholder.com/100'}" class="profile-img">
                     <div class="name-info">
-                        <h3>${p.name} <span class="status-badge">${p.level || '탐색중'}</span></h3>
-                        <p>${p.role} | ${p.size || '미측정'}</p>
+                        <h3>${p.name} <span class="rating-star">★ ${p.rating || '0'}</span></h3>
+                        <p>${p.role} | ${p.size || '-'}</p>
                     </div>
                 </div>
 
-                <div class="section">
-                    <div class="section-title">📍 관찰 및 타겟팅</div>
-                    <div class="info-grid">
-                        <div class="info-item"><span class="label">관찰 동기</span><span class="value">${p.reason || '-'}</span></div>
-                        <div class="info-item"><span class="label">생년월일</span><span class="value">${p.birth || '-'}</span></div>
-                        <div class="info-item"><span class="label">거주지</span><span class="value">${p.address || '-'}</span></div>
-                    </div>
+                <div class="section-title">⏱️ 공략 타이밍 및 효율</div>
+                <div class="info-grid">
+                    <div class="info-item"><span class="label">연락 주기(공백기)</span><span class="value highlight">${p.interval || '-'}</span></div>
+                    <div class="info-item"><span class="label">접근 가능 시간</span><span class="value">${p.bestTime || '-'}</span></div>
+                    <div class="info-item"><span class="label">투자대비 성과</span><span class="value">${p.roi || '-'}</span></div>
                 </div>
 
-                <div class="section">
-                    <div class="section-title">📉 관계 진척 및 수위</div>
-                    <div class="info-grid">
-                        <div class="info-item"><span class="label">첫만남/스킨십</span><span class="value">${p.meetDate || '-'} / <span class="important-val">${p.skinship || '-'}</span></span></div>
-                        <div class="info-item"><span class="label">최종단계</span><span class="value important-val">${p.sexDate || '미달성'}</span></div>
-                        <div class="info-item"><span class="label">최근 행위</span><span class="value">${p.lastAction || '-'}</span></div>
-                        <div class="info-item"><span class="label">주의사항(Taboo)</span><span class="value" style="color:red; font-weight:bold;">${p.taboo || '-'}</span></div>
-                    </div>
+                <div class="section-title">💬 대화 전략 및 주변 상황</div>
+                <div class="info-grid">
+                    <div class="info-item"><span class="label">공통 화제</span><span class="value highlight">${p.commonTopic || '-'}</span></div>
+                    <div class="info-item"><span class="label">최근 고민</span><span class="value">${p.currentWorry || '-'}</span></div>
+                    <div class="info-item"><span class="label">경계 인물</span><span class="value" style="color:red;">${p.enemy || '-'}</span></div>
                 </div>
 
-                <div class="section">
-                    <div class="section-title">📸 전리품 및 특이사항</div>
-                    <div class="info-grid">
-                        <div class="info-item"><span class="label">보유 자료</span><span class="value media-val">${p.media || '없음'}</span></div>
-                        <div class="info-item"><span class="label">반응/취향</span><span class="value">${p.special || '-'}</span></div>
-                        <div class="info-item"><span class="label">누적 지출</span><span class="value">${p.cost ? Number(p.cost).toLocaleString() + '원' : '-'}</span></div>
-                    </div>
+                <div class="section-title">🔞 관계 및 전리품 기록</div>
+                <div class="info-grid">
+                    <div class="info-item"><span class="label">스킨십/정복</span><span class="value imp-val">${p.skinship || '-'} / ${p.sexDate || '미달성'}</span></div>
+                    <div class="info-item"><span class="label">보유 자료</span><span class="value" style="color:var(--accent); font-weight:bold;">${p.media || '없음'}</span></div>
+                    <div class="info-item"><span class="label">특이 취향</span><span class="value">${p.special || '-'}</span></div>
                 </div>
 
-                <div class="live-memo-container">
-                    <div class="section-title" style="color:#92400e; border:none;">📍 실시간 반응 피드백</div>
-                    <textarea class="live-memo-area" placeholder="오늘 만남의 반응을 기록..." oninput="localStorage.setItem('memo_${p.id}', this.value)">${saved}</textarea>
+                <div class="live-memo">
+                    <div class="label" style="color:#92400e;">📍 실시간 반응 피드백</div>
+                    <textarea class="memo-area" oninput="localStorage.setItem('memo_${p.id}', this.value)">${saved}</textarea>
                 </div>
 
                 <div class="btn-group">
-                    <a href="tel:${p.phone}" class="btn btn-call">📞 전화 걸기</a>
-                    ${p.notion ? `<a href="${p.notion}" target="_blank" class="btn btn-notion">📔 상세 노션</a>` : ''}
+                    <a href="tel:${p.phone}" class="btn" style="background:var(--accent)">📞 전화</a>
+                    <a href="${p.notion}" target="_blank" class="btn" style="background:#0f172a">📔 상세 노션</a>
                 </div>
             </div>`;
         }).join('');
@@ -153,18 +138,16 @@
 
     function search() {
         const q = document.getElementById('search').value.toLowerCase();
-        const filtered = privateData.filter(p => p.name.includes(q) || p.reason.includes(q) || p.special.includes(q));
-        render(filtered);
+        render(privateData.filter(p => p.name.includes(q) || p.commonTopic.includes(q) || p.currentWorry.includes(q)));
     }
 
     document.addEventListener("DOMContentLoaded", loadData);
 </script>
 
 <div id="mainContent">
-    <div class="header"><h2>🔒 SMART 인물 공략</h2></div>
-    <input type="text" id="search" class="search-box" placeholder="이름, 특징, 자료명 검색..." onkeyup="search()">
+    <div class="header"><h2>🔒 SMART 인물 전략 수첩</h2></div>
+    <input type="text" id="search" class="search-box" placeholder="이름, 대화주제, 고민 검색..." onkeyup="search()">
     <div id="listContainer"></div>
 </div>
-
 </body>
 </html>
