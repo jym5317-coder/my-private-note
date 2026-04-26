@@ -3,151 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔒 SMART 인물 전략 수첩 (한글판)</title>
+    <title>🔒 SMART 인물 전략 수첩</title>
     <style>
         :root { --메인색: #e11d48; --포인트색: #2563eb; --배경색: #f1f5f9; }
-        body { font-family: 'Pretendard', sans-serif; background-color: var(--배경색); margin: 0; padding: 10px; color: #1e293b; }
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: var(--배경색); margin: 0; padding: 10px; color: #1e293b; }
+        #auth-section { margin-top: 150px; text-align: center; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; margin-left: auto; margin-right: auto; }
+        #auth-section input { padding: 12px; border-radius: 8px; border: 1px solid #ddd; width: 180px; }
+        #auth-section button { padding: 12px 20px; background: var(--메인색); color: white; border: none; border-radius: 8px; cursor: pointer; }
+        
         #mainContent { max-width: 600px; margin: 0 auto; display: none; }
-        .header { text-align: center; margin-bottom: 20px; color: var(--메인색); }
-        .검색창 { width: 100%; padding: 15px; border: 2px solid #cbd5e1; border-radius: 12px; font-size: 16px; margin-bottom: 20px; outline: none; box-sizing: border-box; }
+        .header { text-align: center; margin-bottom: 20px; color: var(--메인색); font-size: 24px; font-weight: bold; }
+        .검색창 { width: 100%; padding: 15px; border: 2px solid #cbd5e1; border-radius: 12px; font-size: 16px; margin-bottom: 20px; box-sizing: border-box; }
         
-        .카드 { background: white; border-radius: 20px; padding: 18px; margin-bottom: 25px; box-shadow: 0 10px 15px rgba(0,0,0,0.1); border-top: 6px solid var(--메인색); position: relative; }
-        .난이도-배지 { position: absolute; top: 15px; right: 15px; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: bold; background: #f1f5f9; color: #475569; }
+        .카드 { background: white; border-radius: 20px; padding: 18px; margin-bottom: 25px; box-shadow: 0 10px 15px rgba(0,0,0,0.1); border-top: 6px solid var(--메인색); }
+        .상단영역 { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; position: relative; }
+        .프로필사진 { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); background: #e2e8f0; }
+        .기본정보 h2 { margin: 0; font-size: 22px; display: flex; align-items: center; gap: 8px; }
+        .별점 { color: #f59e0b; font-size: 16px; }
+        .소속텍스트 { color: #64748b; font-size: 14px; margin: 4px 0; font-weight: bold; }
         
-        .카드상단 { display: flex; align-items: center; margin-bottom: 18px; gap: 15px; }
-        .프로필사진 { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; background: #eee; border: 2px solid #fff; }
-        .이름정보 h3 { margin: 0; font-size: 22px; }
-        .호감도별 { color: #f59e0b; font-size: 14px; }
+        .사진버튼 { width: 100%; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer; font-weight: bold; color: #475569; margin: 10px 0; }
+        .사진영역 { display: none; gap: 10px; overflow-x: auto; padding: 10px 0; }
+        .사진영역 img { width: 140px; height: 180px; object-fit: cover; border-radius: 12px; flex-shrink: 0; }
 
-        .섹션제목 { font-size: 12px; font-weight: 900; color: var(--포인트색); margin: 15px 0 8px 5px; display: flex; align-items: center; gap: 5px; }
-        .섹션제목::after { content: ""; flex: 1; height: 1px; background: #bfdbfe; }
-
-        .정보그리드 { display: grid; grid-template-columns: 1fr; gap: 6px; background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .정보항목 { display: flex; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px; }
-        .정보항목:last-child { border-bottom: none; }
-        .라벨 { font-size: 11px; font-weight: 800; color: #64748b; width: 105px; flex-shrink: 0; }
-        .값 { font-size: 13.5px; color: #334155; white-space: pre-wrap; flex-grow: 1; }
-        
+        .섹션타이틀 { font-size: 15px; font-weight: 800; color: var(--포인트색); margin: 15px 0 10px; display: flex; align-items: center; gap: 6px; }
+        .정보그리드 { background: #f8fafc; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+        .정보항목 { display: grid; grid-template-columns: 100px 1fr; font-size: 14px; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; }
+        .라벨 { color: #64748b; font-weight: bold; }
+        .값 { color: #1e293b; }
         .강조값 { color: var(--메인색); font-weight: bold; }
         .파란값 { color: var(--포인트색); font-weight: bold; }
 
-        .실시간메모 { margin-top: 15px; padding: 12px; background: #fffbeb; border-radius: 12px; border: 1px solid #fef3c7; }
-        .메모창 { width: 100%; height: 60px; border: none; background: transparent; font-size: 14px; resize: none; outline: none; margin-top: 5px; color: #92400e; }
-        
         .버튼그룹 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .버튼 { text-align: center; padding: 12px; border-radius: 10px; font-weight: bold; text-decoration: none; font-size: 14px; color: white; }
+        .버튼 { padding: 14px; border-radius: 12px; color: white; font-weight: bold; text-align: center; text-decoration: none; font-size: 15px; }
     </style>
 </head>
 <body>
 
-<script>
-    const csv파일경로 = "인명.csv"; 
-    const 비밀번호 = "1234"; 
-    let 전체데이터 = [];
+    <div id="auth-section">
+        <h2>🔒 보안 인증</h2>
+        <input type="password" id="pw-input" placeholder="비밀번호..." onkeypress="if(event.keyCode==13) 인증()">
+        <button onclick="인증()">확인</button>
+    </div>
 
-    const 입력비번 = prompt("관리자 암호:");
-    if (입력비번 !== 비밀번호) { alert("권한 없음"); window.stop(); }
+    <div id="mainContent">
+        <div class="header">🔒 SMART 인물 전략 수첩</div>
+        <input type="text" id="search" class="검색창" placeholder="이름이나 소속으로 검색..." onkeyup="검색()">
+        <div id="cardContainer">데이터 로딩 중...</div>
+    </div>
 
-    function CSV파싱(text) {
-        const rows = [];
-        let cur = ""; let line = []; let inQ = false;
-        for (let i=0; i<text.length; i++) {
-            const c = text[i];
-            if (c === '"') inQ = !inQ;
-            else if (c === ',' && !inQ) { line.push(cur.trim()); cur = ""; }
-            else if ((c === '\n' || c === '\r') && !inQ) {
-                if (cur || line.length > 0) { line.push(cur.trim()); rows.push(line); }
-                cur = ""; line = [];
-            } else cur += c;
+    <script>
+        let 전체데이터 = [];
+
+        function 인증() {
+            if(document.getElementById('pw-input').value === '1234') {
+                document.getElementById('auth-section').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                데이터가져오기();
+            } else { alert('비밀번호가 틀렸습니다.'); }
         }
-        if (cur || line.length > 0) { line.push(cur.trim()); rows.push(line); }
-        return rows;
-    }
 
-    async function 데이터로드() {
-        try {
-            const res = await fetch(csv파일경로 + "?v=" + new Date().getTime());
+        async function 데이터가져오기() {
+            const res = await fetch('인명.csv');
             const text = await res.text();
-            const rows = CSV파싱(text).slice(1);
-            
-            전체데이터 = rows.map(cols => ({
-                아이디: cols[0], 이름: cols[1], 소속: cols[2], 연락처: cols[3], 사진파일: cols[4],
-                생년월일: cols[5], 주소: cols[6], 사이즈: cols[7],
-                관찰동기: cols[8], 진척도: cols[9], 첫만남: cols[10], 
-                첫스킨십: cols[11], 첫완전정복: cols[12], 최근수위: cols[13],
-                보유자료: cols[14], 특이반응: cols[15], 누적지출: cols[16],
-                노션링크: cols[17], 공략계획: cols[18], 주의사항: cols[19], 선호취향: cols[20],
-                공백기: cols[21], 접근시간: cols[22], 가성비: cols[23], 
-                호감도: cols[24], 공통화제: cols[25], 경계인물: cols[26],
-                최근고민: cols[27], 공략난이도: cols[28]
-            })).filter(p => p.이름);
+            const rows = text.split('\n').filter(r => r.trim()).slice(1);
 
+            전체데이터 = rows.map(row => {
+                const col = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
+                const c = (v) => v ? v.replace(/"/g, '').trim() : '-';
+                return {
+                    이름: c(col[1]), 소속: c(col[2]), 연락처: c(col[3]), 사진: c(col[4]),
+                    생일: c(col[5]), 사이즈: c(col[7]), 첫스킨십: c(col[11]), 보유자료: c(col[14]),
+                    노션: c(col[17]), 주의사항: c(col[19]), 접근시간: c(col[22]), 가성비: c(col[23]),
+                    호감도: c(col[24]), 난이도: c(col[28])
+                };
+            });
             화면표시(전체데이터);
-            document.getElementById('mainContent').style.display = 'block';
-        } catch(e) { alert("데이터 로드 실패: 엑셀 파일의 칸 개수를 확인해주세요."); }
-    }
+        }
 
-    function 화면표시(data) {
-        const container = document.getElementById('listContainer');
-        container.innerHTML = data.map(p => {
-            const 저장된메모 = localStorage.getItem('memo_' + p.아이디) || "";
-            return `
-            <div class="카드">
-                <div class="난이도-배지">난이도: ${p.공략난이도 || '미정'}</div>
-                <div class="카드상단">
-                    <img src="${p.사진파일 || 'https://via.placeholder.com/100'}" class="프로필사진">
-                    <div class="이름정보">
-                        <h3>${p.이름} <span class="호감도별">★ ${p.호감도 || '0'}</span></h3>
-                        <p>${p.소속} | ${p.사이즈 || '-'}</p>
+        function 화면표시(data) {
+            const container = document.getElementById('cardContainer');
+            container.innerHTML = data.map(p => {
+                let pImgs = '';
+                if(p.사진 !== '-') {
+                    p.사진.split(',').forEach(img => {
+                        pImgs += `<img src="img/${p.이름}/${img.trim()}" onerror="this.style.display='none'">`;
+                    });
+                }
+                return `
+                <div class="카드">
+                    <div class="상단영역">
+                        <img class="프로필사진" src="img/${p.이름}/face.jpg" onerror="this.src='https://via.placeholder.com/100'">
+                        <div class="기본정보">
+                            <h2>${p.이름} <span class="별점">★ ${p.호감도}</span></h2>
+                            <div class="소속텍스트">${p.소속} | <span style="color:var(--메인색)">${p.사이즈}</span></div>
+                        </div>
                     </div>
-                </div>
+                    
+                    <button class="사진버튼" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'flex' ? 'none' : 'flex'">▼ 사진 보기 (몸매 및 일상)</button>
+                    <div class="사진영역">${pImgs || '등록된 사진이 없습니다.'}</div>
 
-                <div class="섹션제목">⏱️ 공략 타이밍 및 효율</div>
-                <div class="정보그리드">
-                    <div class="정보항목"><span class="라벨">연락 주기(공백기)</span><span class="값 파란값">${p.공백기 || '-'}</span></div>
-                    <div class="정보항목"><span class="라벨">접근 가능 시간</span><span class="값">${p.접근시간 || '-'}</span></div>
-                    <div class="정보항목"><span class="라벨">가성비 성과</span><span class="값">${p.가성비 || '-'}</span></div>
-                </div>
+                    <div class="섹션타이틀">⏱ 공략 및 관계 현황</div>
+                    <div class="정보그리드">
+                        <div class="정보항목"><span class="라벨">연락/접근</span><span class="값 파란값">${p.접근시간}</span></div>
+                        <div class="정보항목"><span class="라벨">가성비</span><span class="값 파란값">${p.가성비}</span></div>
+                        <div class="정보항목"><span class="라벨">스킨십</span><span class="값 강조값">${p.첫스킨십}</span></div>
+                        <div class="정보항목"><span class="라벨">난이도</span><span class="값">${p.난이도}</span></div>
+                    </div>
 
-                <div class="섹션제목">💬 대화 전략 및 주변 상황</div>
-                <div class="정보그리드">
-                    <div class="정보항목"><span class="라벨">공통 화제</span><span class="값 파란값">${p.공통화제 || '-'}</span></div>
-                    <div class="정보항목"><span class="라벨">최근 고민</span><span class="값">${p.최근고민 || '-'}</span></div>
-                    <div class="정보항목"><span class="라벨">경계 인물</span><span class="값" style="color:red; font-weight:bold;">${p.경계인물 || '-'}</span></div>
-                </div>
+                    <div class="섹션타이틀">⚠️ 주의사항 및 자료</div>
+                    <div class="정보그리드">
+                        <div class="정보항목"><span class="라벨">보유자료</span><span class="값">${p.보유자료}</span></div>
+                        <div class="정보항목"><span class="라벨">주의사항</span><span class="값 강조값">${p.주의사항}</span></div>
+                    </div>
 
-                <div class="섹션제목">🔞 관계 및 전리품 기록</div>
-                <div class="정보그리드">
-                    <div class="정보항목"><span class="라벨">스킨십/정복</span><span class="값 강조값">${p.첫스킨십 || '-'} / ${p.첫완전정복 || '미달성'}</span></div>
-                    <div class="정보항목"><span class="라벨">보유 자료</span><span class="값 파란값">${p.보유자료 || '없음'}</span></div>
-                    <div class="정보항목"><span class="라벨">특이 취향</span><span class="값">${p.특이반응 || '-'}</span></div>
-                </div>
+                    <div class="버튼그룹">
+                        <a href="tel:${p.연락처}" class="버튼" style="background:var(--포인트색)">📞 전화</a>
+                        <a href="${p.노션 !== '-' ? p.노션 : '#'}" target="_blank" class="버튼" style="background:#0f172a">📔 노션링크</a>
+                    </div>
+                </div>`;
+            }).join('');
+        }
 
-                <div class="실시간메모">
-                    <div class="라벨" style="color:#92400e;">📍 실시간 반응 피드백</div>
-                    <textarea class="메모창" oninput="localStorage.setItem('memo_${p.아이디}', this.value)">${저장된메모}</textarea>
-                </div>
-
-                <div class="버튼그룹">
-                    <a href="tel:${p.연락처}" class="버튼" style="background:var(--포인트색)">📞 전화</a>
-                    <a href="${p.노션링크}" target="_blank" class="버튼" style="background:#0f172a">📔 상세 노션</a>
-                </div>
-            </div>`;
-        }).join('');
-    }
-
-    function 검색() {
-        const q = document.getElementById('search').value.toLowerCase();
-        화면표시(전체데이터.filter(p => p.이름.includes(q) || p.공통화제.includes(q) || p.최근고민.includes(q)));
-    }
-
-    document.addEventListener("DOMContentLoaded", 데이터로드);
-</script>
-
-<div id="mainContent">
-    <div class="header"><h2>🔒 SMART 인물 전략 수첩</h2></div>
-    <input type="text" id="search" class="검색창" placeholder="이름, 대화주제, 고민 검색..." onkeyup="검색()">
-    <div id="listContainer"></div>
-</div>
+        function 검색() {
+            const q = document.getElementById('search').value.toLowerCase();
+            화면표시(전체데이터.filter(p => p.이름.includes(q) || p.소속.includes(q)));
+        }
+    </script>
 </body>
 </html>
