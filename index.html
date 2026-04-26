@@ -10,22 +10,18 @@
         #auth-section { margin-top: 150px; text-align: center; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; margin-left: auto; margin-right: auto; }
         #auth-section input { padding: 12px; border-radius: 8px; border: 1px solid #ddd; width: 180px; }
         #auth-section button { padding: 12px 20px; background: var(--메인색); color: white; border: none; border-radius: 8px; cursor: pointer; }
-        
         #mainContent { max-width: 600px; margin: 0 auto; display: none; }
         .header { text-align: center; margin-bottom: 20px; color: var(--메인색); font-size: 24px; font-weight: bold; }
         .검색창 { width: 100%; padding: 15px; border: 2px solid #cbd5e1; border-radius: 12px; font-size: 16px; margin-bottom: 20px; box-sizing: border-box; }
-        
         .카드 { background: white; border-radius: 20px; padding: 18px; margin-bottom: 25px; box-shadow: 0 10px 15px rgba(0,0,0,0.1); border-top: 6px solid var(--메인색); }
         .상단영역 { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         .프로필사진 { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); background: #e2e8f0; }
         .기본정보 h2 { margin: 0; font-size: 22px; display: flex; align-items: center; gap: 8px; }
         .별점 { color: #f59e0b; font-size: 16px; }
         .소속텍스트 { color: #64748b; font-size: 14px; margin: 4px 0; font-weight: bold; }
-        
         .사진버튼 { width: 100%; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer; font-weight: bold; color: #475569; margin: 10px 0; }
         .사진영역 { display: none; gap: 10px; overflow-x: auto; padding: 10px 0; }
         .사진영역 img { width: 140px; height: 180px; object-fit: cover; border-radius: 12px; flex-shrink: 0; }
-
         .섹션타이틀 { font-size: 15px; font-weight: 800; color: var(--포인트색); margin: 15px 0 10px; display: flex; align-items: center; gap: 6px; }
         .정보그리드 { background: #f8fafc; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
         .정보항목 { display: grid; grid-template-columns: 105px 1fr; font-size: 14px; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; }
@@ -33,7 +29,6 @@
         .값 { color: #1e293b; }
         .강조값 { color: var(--메인색); font-weight: bold; }
         .파란값 { color: var(--포인트색); font-weight: bold; }
-
         .버튼그룹 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
         .버튼 { padding: 14px; border-radius: 12px; color: white; font-weight: bold; text-align: center; text-decoration: none; font-size: 15px; }
     </style>
@@ -67,40 +62,38 @@
             try {
                 const res = await fetch('인명.csv');
                 const text = await res.text();
-                // 엑셀의 줄바꿈 특성을 고려한 행 분리
+                // 쉼표로 구분하되 큰따옴표 안의 쉼표는 무시하는 정교한 파싱
                 const rows = text.split(/\r?\n/).filter(r => r.trim()).slice(1);
 
                 전체데이터 = rows.map(row => {
-                    // CSV 파싱: 큰따옴표 안의 쉼표 보호
                     const col = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
-                    const c = (idx) => {
-                        let val = col[idx] ? col[idx].replace(/^"|"$/g, '').trim() : '-';
-                        return val === '' ? '-' : val;
+                    const getVal = (idx) => {
+                        let v = col[idx] ? col[idx].replace(/^"|"$/g, '').trim() : '-';
+                        return v === '' ? '-' : v;
                     };
 
-                    // 사장님 엑셀 인덱스 정밀 매칭
+                    // 사장님 엑셀 헤더 순서에 1:1 매칭 (0부터 시작)
                     return {
-                        아이디: c(0), 이름: c(1), 소속: c(2), 연락처: c(3), 사진: c(4),
-                        사이즈: c(7), 첫스킨십: c(11), 첫정복: c(12), 보유자료: c(14),
-                        노션링크: c(17), 주의사항: c(19), 접근시간: c(22), 가성비: c(23),
-                        호감도: c(24), 공통화제: c(25), 경계인물: c(26), 최근고민: c(27), 난이도: c(28)
+                        이름: getVal(1), 소속: getVal(2), 연락처: getVal(3), 사진목록: getVal(4),
+                        사이즈: getVal(7), 첫스킨십: getVal(11), 첫정복: getVal(12),
+                        보유자료: getVal(14), 노션링크: getVal(17), 주의사항: getVal(19),
+                        접근시간: getVal(22), 가성비: getVal(23), 호감도: getVal(24),
+                        공통화제: getVal(25), 경계인물: getVal(26), 난이도: getVal(28)
                     };
                 });
                 화면표시(전체데이터);
-            } catch (e) {
-                document.getElementById('cardContainer').innerHTML = "데이터를 불러오지 못했습니다. CSV 파일을 확인해주세요.";
-            }
+            } catch (e) { console.error(e); }
         }
 
         function 화면표시(data) {
             const container = document.getElementById('cardContainer');
             container.innerHTML = data.map(p => {
-                let pImgs = '';
-                if(p.사진 !== '-') {
-                    // 엑셀에서 사진이 쉼표나 세미콜론으로 구분된 경우 대응
-                    const photoList = p.사진.includes(',') ? p.사진.split(',') : p.사진.split(';');
-                    photoList.forEach(img => {
-                        if(img.trim()) pImgs += `<img src="img/${p.이름}/${img.trim()}" onerror="this.style.display='none'">`;
+                let imgHTML = '';
+                if(p.사진목록 !== '-') {
+                    // 쉼표(,) 또는 세미콜론(;) 구분자 모두 대응
+                    const photos = p.사진목록.includes(',') ? p.사진목록.split(',') : p.사진목록.split(';');
+                    photos.forEach(img => {
+                        if(img.trim()) imgHTML += `<img src="img/${p.이름}/${img.trim()}" onerror="this.style.display='none'">`;
                     });
                 }
                 return `
@@ -114,16 +107,16 @@
                     </div>
                     
                     <button class="사진버튼" onclick="let ar = this.nextElementSibling; ar.style.display = ar.style.display === 'flex' ? 'none' : 'flex'">▼ 사진 보기 (몸매 확인)</button>
-                    <div class="사진영역">${pImgs || '등록된 사진이 없습니다.'}</div>
+                    <div class="사진영역">${imgHTML || '사진 없음'}</div>
 
-                    <div class="섹션타이틀">⏱ 공략 및 관계 현황</div>
+                    <div class="섹션타이틀">⏱ 관계 및 공략 데이터</div>
                     <div class="정보그리드">
                         <div class="정보항목"><span class="라벨">연락/접근</span><span class="값 파란값">${p.접근시간}</span></div>
                         <div class="정보항목"><span class="라벨">가성비/난이도</span><span class="값">${p.가성비} / ${p.난이도}</span></div>
                         <div class="정보항목"><span class="라벨">스킨십/정복</span><span class="값 강조값">${p.첫스킨십} / ${p.첫정복}</span></div>
                     </div>
 
-                    <div class="섹션타이틀">⚠️ 주의사항 및 대화 주제</div>
+                    <div class="섹션타이틀">⚠️ 실전 주의 및 정보</div>
                     <div class="정보그리드">
                         <div class="정보항목"><span class="라벨">공통화제</span><span class="값">${p.공통화제}</span></div>
                         <div class="정보항목"><span class="라벨">보유자료</span><span class="값">${p.보유자료}</span></div>
@@ -131,8 +124,8 @@
                     </div>
 
                     <div class="버튼그룹">
-                        <a href="tel:${p.연락처}" class="버튼" style="background:var(--포인트색)">📞 전화</a>
-                        <a href="${p.노션링크 !== '-' ? p.노션링크 : '#'}" target="_blank" class="버튼" style="background:#0f172a">📔 노션링크</a>
+                        <a href="tel:${p.연락처}" class="버튼" style="background:var(--포인트색)">📞 전화하기</a>
+                        <a href="${p.노션링크 !== '-' ? p.노션링크 : '#'}" target="_blank" class="버튼" style="background:#0f172a">📔 상세 노션</a>
                     </div>
                 </div>`;
             }).join('');
