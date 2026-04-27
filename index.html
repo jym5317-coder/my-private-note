@@ -3,53 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔒 SMART 인물 전략 수첩</title>
+    <title>🔒 SMART 전략 수첩 (정밀 복구 Ver.)</title>
     <style>
         :root { --메인: #e11d48; --서브: #2563eb; --배경: #f1f5f9; }
         body { font-family: 'Malgun Gothic', sans-serif; background: var(--배경); margin: 0; padding: 10px; color: #1e293b; }
         
-        /* 인증 섹션 */
+        /* 인증 화면 */
         #auth-section { margin: 100px auto; text-align: center; max-width: 350px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 70%; margin-bottom: 10px; }
         button { padding: 12px 20px; background: var(--메인); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
         #mainContent { max-width: 650px; margin: 0 auto; display: none; }
         
-        /* 상단 폴더 필터 */
+        /* 폴더 필터 바 */
         .filter-bar { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; position: sticky; top: 0; background: var(--배경); z-index: 100; }
-        .f-btn { padding: 6px 15px; background: white; border: 1px solid #ccc; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 13px; transition: 0.2s; }
-        .f-btn.active { background: var(--서브); color: white; border-color: var(--서브); box-shadow: 0 2px 5px rgba(37,99,235,0.3); }
+        .f-btn { padding: 6px 15px; background: white; border: 1px solid #ccc; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 13px; }
+        .f-btn.active { background: var(--서브); color: white; border-color: var(--서브); }
 
-        /* 인물 카드 */
-        .card { background: white; border-radius: 15px; padding: 18px; margin-bottom: 25px; box-shadow: 0 3px 12px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f8fafc; padding-bottom: 10px; margin-bottom: 15px; }
+        /* 카드 디자인 */
+        .card { background: white; border-radius: 15px; padding: 18px; margin-bottom: 25px; box-shadow: 0 3px 12px rgba(0,0,0,0.06); }
+        .card-header { display: flex; justify-content: space-between; border-bottom: 2px solid #f8fafc; padding-bottom: 10px; margin-bottom: 15px; }
         .name { font-size: 1.4em; font-weight: 800; color: #0f172a; }
-        .team { color: #64748b; font-size: 0.9em; font-weight: 500; }
 
-        /* 사진 스크롤 */
-        .photo-area { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 18px; padding-bottom: 5px; }
-        .photo-box { position: relative; flex: 0 0 120px; height: 120px; border-radius: 12px; overflow: hidden; border: 1px solid #f1f5f9; }
+        /* 사진 영역 */
+        .photo-area { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 15px; }
+        .photo-box { position: relative; flex: 0 0 110px; height: 110px; border-radius: 12px; overflow: hidden; border: 1px solid #eee; }
         .photo-box img { width: 100%; height: 100%; object-fit: cover; }
-        .folder-tag { position: absolute; top: 0; left: 0; background: rgba(0,0,0,0.6); color: white; font-size: 10px; padding: 2px 6px; border-bottom-right-radius: 8px; }
+        .folder-tag { position: absolute; top: 0; left: 0; background: rgba(0,0,0,0.6); color: white; font-size: 10px; padding: 2px 6px; }
 
-        /* 데이터 그리드 */
+        /* 정보 그리드 */
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .info-item { background: #f8fafc; padding: 9px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 13px; border: 1px solid #f1f5f9; }
-        .label { color: #64748b; font-weight: 600; }
-        .val { color: #1e293b; font-weight: 700; text-align: right; }
+        .info-item { background: #f8fafc; padding: 8px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 13px; }
+        .label { color: #64748b; font-weight: bold; }
+        .val { color: #1e293b; font-weight: bold; text-align: right; }
         .point { color: var(--메인); }
 
         /* 메모 박스 */
-        .memo-box { background: #fff7ed; border-left: 4px solid #fb923c; padding: 12px; font-size: 13px; margin-top: 12px; border-radius: 4px; white-space: pre-wrap; line-height: 1.6; color: #451a03; }
-        .danger { background: #fef2f2; border-left-color: #ef4444; color: #7f1d1d; }
+        .memo-box { background: #fff7ed; border-left: 4px solid #fb923c; padding: 12px; font-size: 13px; margin-top: 10px; border-radius: 4px; white-space: pre-wrap; line-height: 1.5; }
     </style>
 </head>
 <body>
 
     <div id="auth-section">
-        <h2>🔒 SMART 수첩</h2>
-        <input type="password" id="pw" placeholder="비밀번호 입력">
-        <button onclick="access()">보안 접속</button>
+        <h2>🔒 SMART 보안 접속</h2>
+        <input type="password" id="pw" placeholder="비밀번호">
+        <button onclick="access()">열기</button>
     </div>
 
     <div id="mainContent">
@@ -67,59 +65,56 @@
         if(document.getElementById('pw').value === "1234") {
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
-            loadCSV();
-        } else { alert("접근 권한이 없습니다."); }
+            loadData();
+        } else { alert("비밀번호 오류"); }
     }
 
-    // [중요] 탭 구분자 및 따옴표 안 줄바꿈을 완벽히 처리하는 파서
-    function parseTabCSV(text) {
+    // [핵심] 탭 구분자(\t)와 칸 내부 줄바꿈을 완벽하게 처리하는 함수
+    function parseTabFile(text) {
         const rows = [];
-        let currRow = [];
-        let currCol = "";
+        let row = [];
+        let col = "";
         let inQuotes = false;
 
         for (let i = 0; i < text.length; i++) {
-            const c = text[i];
-            const next = text[i+1];
+            let char = text[i];
+            let next = text[i+1];
 
-            if (inQuotes && c === '"' && next === '"') { currCol += '"'; i++; }
-            else if (c === '"') { inQuotes = !inQuotes; }
-            else if (c === '\t' && !inQuotes) { currRow.push(currCol.trim()); currCol = ""; }
-            else if ((c === '\n' || c === '\r') && !inQuotes) {
-                if (currCol !== "" || currRow.length > 0) {
-                    currRow.push(currCol.trim());
-                    rows.push(currRow);
-                    currCol = ""; currRow = [];
+            if (inQuotes && char === '"' && next === '"') { col += '"'; i++; }
+            else if (char === '"') { inQuotes = !inQuotes; }
+            else if (char === '\t' && !inQuotes) { row.push(col.trim()); col = ""; }
+            else if ((char === '\n' || char === '\r') && !inQuotes) {
+                if (col !== "" || row.length > 0) {
+                    row.push(col.trim());
+                    rows.push(row);
+                    col = ""; row = [];
                 }
-            } else { currCol += c; }
+            } else { col += char; }
         }
-        if (currCol || currRow.length > 0) { currRow.push(currCol.trim()); rows.push(currRow); }
+        if (col || row.length > 0) { row.push(col.trim()); rows.push(row); }
         return rows;
     }
 
-    async function loadCSV() {
+    async function loadData() {
         try {
-            const response = await fetch('인명.csv');
-            const text = await response.text();
-            const rows = parseTabCSV(text);
+            const resp = await fetch('인명.csv');
+            const text = await resp.text();
+            const rawRows = parseTabFile(text);
             
-            const header = rows[0]; // 아이디, 이름, 소속...
-            masterDB = rows.slice(1).map(r => {
+            const header = rawRows[0];
+            masterDB = rawRows.slice(1).map(r => {
                 let obj = {};
-                header.forEach((h, i) => {
-                    const key = h ? h.trim() : `col${i}`;
-                    obj[key] = r[i] || "";
-                });
+                header.forEach((h, i) => obj[h.trim()] = r[i] || "");
                 
-                // 사진 파일 분리 및 폴더 자동 추출
-                obj._photos = [];
+                // 사진 및 폴더 분석
+                obj._p = [];
                 if (obj['사진파일']) {
                     const paths = obj['사진파일'].split(',').map(s => s.trim().replace(/^"|"$/g, ''));
                     paths.forEach(p => {
                         if(p) {
-                            const folderName = p.includes('/') ? p.split('/')[0] : '기본';
-                            folders.add(folderName);
-                            obj._photos.push({ path: p, folder: folderName });
+                            const folder = p.includes('/') ? p.split('/')[0] : '기본';
+                            folders.add(folder);
+                            obj._p.push({ path: p, folder: folder });
                         }
                     });
                 }
@@ -128,76 +123,46 @@
 
             renderFilters();
             filter('전체');
-        } catch (e) {
-            console.error(e);
-            alert("파일 로드 오류! '인명.csv' 파일이 탭 구분 형식인지 확인하세요.");
-        }
+        } catch (e) { alert("데이터를 불러오지 못했습니다."); }
     }
 
     function renderFilters() {
         const bar = document.getElementById('filterBar');
-        folders.forEach(f => {
-            bar.innerHTML += `<button class="f-btn" onclick="filter('${f}')">${f}</button>`;
-        });
+        folders.forEach(f => bar.innerHTML += `<button class="f-btn" onclick="filter('${f}')">${f}</button>`);
     }
 
     function filter(fName) {
         document.querySelectorAll('.f-btn').forEach(b => b.classList.toggle('active', b.innerText === fName || (fName === '전체' && b.innerText === '전체보기')));
-        
-        const filtered = fName === '전체' 
-            ? masterDB 
-            : masterDB.filter(p => p._photos.some(img => img.folder === fName));
-            
+        const filtered = fName === '전체' ? masterDB : masterDB.filter(p => p._p.some(i => i.folder === fName));
         renderList(filtered, fName);
     }
 
-    function renderList(data, currentFolder) {
+    function renderList(data, fName) {
         const area = document.getElementById('listArea');
-        if (data.length === 0) {
-            area.innerHTML = "<p style='text-align:center; padding:50px; color:#999;'>해당 폴더에 데이터가 없습니다.</p>";
-            return;
-        }
-
         area.innerHTML = data.map(p => {
-            const targetPhotos = currentFolder === '전체' 
-                ? p._photos 
-                : p._photos.filter(i => i.folder === currentFolder);
-
+            const pics = fName === '전체' ? p._p : p._p.filter(i => i.folder === fName);
             return `
                 <div class="card">
                     <div class="card-header">
-                        <span class="name">${p['이름'] || '미상'}</span>
-                        <span class="team">${p['소속'] || ''}</span>
+                        <span class="name">${p['이름']}</span>
+                        <span style="color:#64748b; font-size:0.9em;">${p['소속']}</span>
                     </div>
 
-                    ${targetPhotos.length > 0 ? `
-                    <div class="photo-area">
-                        ${targetPhotos.map(i => `
-                            <div class="photo-box">
-                                <span class="folder-tag">${i.folder}</span>
-                                <img src="${i.path}" onerror="this.src='https://via.placeholder.com/120?text=No+Image'">
-                            </div>
-                        `).join('')}
-                    </div>` : ''}
+                    ${pics.length > 0 ? `<div class="photo-area">${pics.map(i => `<div class="photo-box"><span class="folder-tag">${i.folder}</span><img src="${i.path}" onerror="this.style.display='none'"></div>`).join('')}</div>` : ''}
 
                     <div class="info-grid">
                         <div class="info-item"><span class="label">연락처</span><span class="val">${p['연락처']}</span></div>
                         <div class="info-item"><span class="label">사이즈</span><span class="val point">${p['사이즈']}</span></div>
                         <div class="info-item"><span class="label">호감도</span><span class="val point">${p['나에대한 호감도']}</span></div>
-                        <div class="info-item"><span class="label">난이도</span><span class="val">${p['공략난이도']}</span></div>
                         <div class="info-item"><span class="label">진척도</span><span class="val">${p['진척도']}</span></div>
-                        <div class="info-item"><span class="label">가성비</span><span class="val">${p['가성비']}</span></div>
                         <div class="info-item"><span class="label">첫만남</span><span class="val">${p['첫만남']}</span></div>
-                        <div class="info-item"><span class="label">최근수위</span><span class="val">${p['최근수위']}</span></div>
+                        <div class="info-item"><span class="label">첫스킨십</span><span class="val">${p['첫스킨십']}</span></div>
                     </div>
 
-                    <div class="memo-box danger"><strong>⚠️ 주의사항</strong><br>${p['주의사항'] || '특이사항 없음'}</div>
-                    <div class="memo-box"><strong>📝 공략계획</strong><br>${p['공략계획'] || '기록된 계획 없음'}</div>
-                    <div class="memo-box" style="background:#f0fdf4; border-left-color:#22c55e;"><strong>🤝 공통화제</strong><br>${p['공통화제'] || '-'}</div>
-
-                    <div style="margin-top:15px; font-size:11px; color:#94a3b8; text-align:right;">
-                        ID: ${p['아이디']} | 생일: ${p['생년월일']} | 최종확인: ${p['마지막 본날짜']}
-                    </div>
+                    <div class="memo-box" style="background:#fef2f2; border-color:#ef4444;"><strong>⚠️ 주의사항:</strong> ${p['주의사항'] || '없음'}</div>
+                    <div class="memo-box"><strong>📝 공략계획:</strong> ${p['공략계획'] || '-'}</div>
+                    
+                    <div style="margin-top:12px; font-size:11px; color:#94a3b8; text-align:right;">ID: ${p['아이디']} | 확인: ${p['마지막 본날짜']}</div>
                 </div>
             `;
         }).join('');
