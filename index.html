@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔒 SMART 전략 수첩</title>
+    <title>🔒 SMART 인물 전략 수첩</title>
     <style>
         :root { --메인: #e11d48; --포인트: #2563eb; --배경: #f1f5f9; }
         body { font-family: 'Malgun Gothic', sans-serif; background: var(--배경); margin: 0; padding: 10px; color: #1e293b; }
@@ -15,7 +15,7 @@
 
         #mainContent { max-width: 650px; margin: 0 auto; display: none; }
         
-        /* 상단 폴더 필터 (자동 생성) */
+        /* 필터 바 */
         .filter-bar { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; position: sticky; top: 0; background: var(--배경); z-index: 100; }
         .f-btn { padding: 8px 16px; background: white; border: 1px solid #ccc; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 13px; font-weight: bold; }
         .f-btn.active { background: var(--포인트); color: white; border-color: var(--포인트); }
@@ -24,7 +24,6 @@
         .card { background: white; border-radius: 15px; padding: 18px; margin-bottom: 25px; box-shadow: 0 3px 12px rgba(0,0,0,0.06); }
         .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f8fafc; padding-bottom: 10px; margin-bottom: 15px; }
         .name { font-size: 1.4em; font-weight: 800; color: #0f172a; }
-        .team { color: #64748b; font-size: 0.9em; }
 
         /* 사진 영역 */
         .photo-area { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 18px; padding-bottom: 5px; }
@@ -32,12 +31,12 @@
         .photo-box img { width: 100%; height: 100%; object-fit: cover; }
         .folder-tag { position: absolute; top: 0; left: 0; background: rgba(0,0,0,0.6); color: white; font-size: 10px; padding: 2px 6px; border-bottom-right-radius: 8px; }
 
-        /* 데이터 그리드 */
+        /* 정보 그리드 */
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .info-item { background: #f8fafc; padding: 9px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 13px; border: 1px solid #f1f5f9; }
         .label { color: #64748b; font-weight: 600; }
         .val { color: #1e293b; font-weight: 700; text-align: right; white-space: pre-wrap; }
-        .point { color: var(--메인); }
+        .point { color: var(--메인); font-weight: 800; }
 
         /* 메모 섹션 */
         .memo-box { background: #fff7ed; border-left: 4px solid #fb923c; padding: 12px; font-size: 13px; margin-top: 10px; border-radius: 4px; white-space: pre-wrap; line-height: 1.6; }
@@ -68,11 +67,11 @@
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
             loadData();
-        } else { alert("비밀번호가 틀렸습니다."); }
+        } else { alert("비밀번호 오류"); }
     }
 
-    // [핵심] 탭(\t) 구분자와 칸 내부 줄바꿈을 완벽히 인식하는 특수 파서
-    function parseAdvancedCSV(text) {
+    // [특수 로직] 탭(\t) 구분자와 데이터 내부 줄바꿈을 완벽히 파싱
+    function parseTabCSV(text) {
         const rows = [];
         let currRow = [];
         let currCol = "";
@@ -101,14 +100,14 @@
         try {
             const res = await fetch('인명.csv');
             const csvText = await res.text();
-            const data = parseAdvancedCSV(csvText);
+            const data = parseTabCSV(csvText);
             
-            const header = data[0];
+            const header = data[0].map(h => h.trim());
             db = data.slice(1).map(row => {
                 let item = {};
-                header.forEach((h, i) => item[h.trim()] = row[i] || "");
+                header.forEach((h, i) => item[h] = row[i] || "");
                 
-                // 사진 파일 분리 및 폴더 감지 (예: body, day)
+                // 사진 처리 (body/, day/ 등 폴더 자동 분류)
                 item._pics = [];
                 if (item['사진파일']) {
                     const paths = item['사진파일'].split(',').map(s => s.trim().replace(/^"|"$/g, ''));
@@ -124,8 +123,8 @@
             });
 
             renderFilters();
-            renderList(db);
-        } catch (e) { alert("데이터 로드 중 오류가 발생했습니다."); }
+            filter('전체');
+        } catch (e) { alert("인명.csv 파일을 찾을 수 없거나 읽기 오류입니다."); }
     }
 
     function renderFilters() {
@@ -137,48 +136,40 @@
 
     function filter(folder) {
         document.querySelectorAll('.f-btn').forEach(b => b.classList.toggle('active', b.innerText === folder || (folder === '전체' && b.innerText === '전체보기')));
-        
-        if(folder === '전체') renderList(db);
-        else renderList(db.filter(p => p._pics.some(img => img.folder === folder)), folder);
+        const filtered = (folder === '전체') ? db : db.filter(p => p._pics.some(img => img.folder === folder));
+        renderList(filtered, folder);
     }
 
-    function renderList(targetData, targetFolder = '전체') {
+    function renderList(targetData, targetFolder) {
         const area = document.getElementById('listView');
         area.innerHTML = targetData.map(p => {
-            const pics = targetFolder === '전체' ? p._pics : p._pics.filter(i => i.folder === targetFolder);
-            
+            const pics = (targetFolder === '전체') ? p._pics : p._pics.filter(i => i.folder === targetFolder);
             return `
                 <div class="card">
                     <div class="card-header">
                         <span class="name">${p['이름']}</span>
-                        <span class="team">${p['소속']}</span>
+                        <span style="color:#64748b; font-size:0.85em;">${p['소속']}</span>
                     </div>
 
-                    ${pics.length > 0 ? `
-                    <div class="photo-area">
-                        ${pics.map(i => `
-                            <div class="photo-box">
-                                <span class="folder-tag">${i.folder}</span>
-                                <img src="${i.path}" onerror="this.src='https://via.placeholder.com/110?text=No+Img'">
-                            </div>
-                        `).join('')}
-                    </div>` : ''}
+                    ${pics.length > 0 ? `<div class="photo-area">${pics.map(i => `
+                        <div class="photo-box">
+                            <span class="folder-tag">${i.folder}</span>
+                            <img src="${i.path}" onerror="this.style.display='none'">
+                        </div>`).join('')}</div>` : ''}
 
                     <div class="info-grid">
                         <div class="info-item"><span class="label">연락처</span><span class="val">${p['연락처']}</span></div>
                         <div class="info-item"><span class="label">사이즈</span><span class="val point">${p['사이즈']}</span></div>
                         <div class="info-item"><span class="label">호감도</span><span class="val point">${p['나에대한 호감도']}</span></div>
+                        <div class="info-item"><span class="label">진척도</span><span class="val">${p['진척도']}</span></div>
                         <div class="info-item"><span class="label">첫스킨십</span><span class="val">${p['첫스킨십']}</span></div>
-                        <div class="info-item"><span class="label">첫만남</span><span class="val">${p['첫만남']}</span></div>
                         <div class="info-item"><span class="label">최근수위</span><span class="val">${p['최근수위']}</span></div>
                     </div>
 
-                    <div class="memo-box danger"><strong>⚠️ 주의사항</strong><br>${p['주의사항'] || '없음'}</div>
-                    <div class="memo-box"><strong>📝 공략계획</strong><br>${p['공략계획'] || '내용 없음'}</div>
+                    <div class="memo-box danger"><strong>⚠️ 주의사항:</strong> ${p['주의사항'] || '없음'}</div>
+                    <div class="memo-box"><strong>📝 공략계획:</strong> ${p['공략계획'] || '-'}</div>
                     
-                    <div style="margin-top:12px; font-size:11px; color:#94a3b8; text-align:right;">
-                        ID: ${p['아이디']} | 확인: ${p['마지막 본날짜']}
-                    </div>
+                    <div style="margin-top:12px; font-size:11px; color:#94a3b8; text-align:right;">ID: ${p['아이디']} | 확인: ${p['마지막 본날짜']}</div>
                 </div>
             `;
         }).join('');
