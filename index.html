@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔒 SMART 전략 수첩 (폴더 분류 Ver.)</title>
+    <title>🔒 SMART 전략 수첩 (이미지 최적화 Ver.)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
         :root { --메인색: #e11d48; --포인트색: #2563eb; --배경색: #f8fafc; }
@@ -11,44 +11,44 @@
         
         /* 보안 섹션 */
         #auth-section { margin: 100px auto; text-align: center; max-width: 350px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 60%; }
+        input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 60%; margin-bottom: 10px; }
         button { padding: 12px 20px; background: var(--메인색); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
         #mainContent { max-width: 700px; margin: 0 auto; display: none; }
         
-        /* 폴더 필터 스타일 */
-        .filter-bar { margin-bottom: 20px; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; }
-        .folder-btn { padding: 8px 16px; background: white; border: 1px solid #ddd; border-radius: 20px; font-size: 0.85em; white-space: nowrap; cursor: pointer; transition: 0.3s; }
+        /* 폴더 필터 바 */
+        .filter-bar { margin-bottom: 20px; display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; }
+        .folder-btn { padding: 8px 16px; background: white; border: 1px solid #ddd; border-radius: 20px; font-size: 0.85em; cursor: pointer; white-space: nowrap; }
         .folder-btn.active { background: var(--포인트색); color: white; border-color: var(--포인트색); }
 
         /* 카드 스타일 */
-        .인물카드 { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .헤더 { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
-        .이름 { font-size: 1.3em; font-weight: bold; }
+        .인물카드 { background: white; border-radius: 16px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .헤더 { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+        .이름 { font-size: 1.4em; font-weight: bold; }
         
-        .이미지그룹 { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
-        .사진박스 { position: relative; }
-        .사진박스 img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; }
-        .폴더태그 { position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.6); color: white; font-size: 10px; padding: 2px 5px; border-radius: 4px; }
+        /* 사진 영역 */
+        .사진리스트 { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+        .사진박스 { position: relative; width: 120px; height: 120px; border-radius: 8px; overflow: hidden; border: 1px solid #eee; }
+        .사진박스 img { width: 100%; height: 100%; object-fit: cover; }
+        .폴더태그 { position: absolute; top: 0; left: 0; background: rgba(0,0,0,0.5); color: white; font-size: 10px; padding: 2px 6px; }
 
-        .정보그리드 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.85em; }
-        .정보항목 { background: #f1f5f9; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between; }
+        .정보그리드 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .항목 { background: #f1f5f9; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between; font-size: 0.85em; }
         .라벨 { color: #64748b; font-weight: bold; }
-        .값 { color: #1e293b; }
         
-        .메모 { background: #fff7ed; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 0.85em; border-left: 4px solid #fb923c; white-space: pre-wrap; }
+        .메모 { background: #fff7ed; padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 0.85em; border-left: 4px solid #fb923c; white-space: pre-wrap; line-height: 1.5; }
     </style>
 </head>
 <body>
 
     <div id="auth-section">
-        <h2>🔒 보안 인증</h2>
-        <input type="password" id="pw" placeholder="비밀번호">
-        <button onclick="checkAuth()">접속</button>
+        <h2>🔒 보안 접속</h2>
+        <input type="password" id="pw" placeholder="비밀번호 입력">
+        <button onclick="checkAuth()">열기</button>
     </div>
 
     <div id="mainContent">
-        <header style="text-align:center;"><h1>SMART 전략 수첩</h1></header>
+        <header><h1 style="text-align:center;">전략 수첩 V2</h1></header>
         
         <div class="filter-bar" id="folderFilters">
             <button class="folder-btn active" onclick="filterFolder('전체')">전체보기</button>
@@ -58,18 +58,18 @@
     </div>
 
 <script>
-    let allData = [];
+    let rawData = [];
     let folders = new Set();
 
     function checkAuth() {
         if(document.getElementById('pw').value === "1234") {
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
-            loadData();
-        } else { alert("비밀번호 오류"); }
+            loadCSV();
+        } else { alert("비밀번호가 틀립니다."); }
     }
 
-    function loadData() {
+    function loadCSV() {
         Papa.parse("인명.csv", {
             download: true,
             header: true,
@@ -81,82 +81,83 @@
     }
 
     function processData(data) {
-        allData = data.map(row => {
-            // 사진 파일에서 폴더 추출 (예: body/img.jpg -> body)
-            const photoList = row['사진파일'] ? row['사진파일'].split(',').map(p => {
-                const path = p.trim();
-                const folder = path.includes('/') ? path.split('/')[0] : '기본';
-                folders.add(folder);
-                return { path, folder };
-            }) : [];
-
-            return { ...row, processedPhotos: photoList };
+        rawData = data.map(row => {
+            // 사진파일 필드에서 따옴표와 쉼표 문제를 해결하며 경로 추출
+            let photos = [];
+            if (row['사진파일']) {
+                // 쉼표로 구분된 경로들을 배열로 만듦
+                photos = row['사진파일'].split(',').map(p => {
+                    const path = p.trim().replace(/^"|"$/g, ''); // 따옴표 제거
+                    const folder = path.includes('/') ? path.split('/')[0] : '기본';
+                    if (folder) folders.add(folder);
+                    return { path, folder };
+                });
+            }
+            return { ...row, photos };
         });
 
         renderFilters();
-        renderList(allData);
+        renderList(rawData);
     }
 
     function renderFilters() {
         const filterBox = document.getElementById('folderFilters');
         folders.forEach(f => {
-            filterBox.innerHTML += `<button class="folder-btn" onclick="filterFolder('${f}')">${f}</button>`;
+            if(f !== '전체') {
+                filterBox.innerHTML += `<button class="folder-btn" onclick="filterFolder('${f}')">${f}</button>`;
+            }
         });
     }
 
-    function filterFolder(folderName) {
-        // 버튼 활성화 스타일
+    function filterFolder(name) {
         document.querySelectorAll('.folder-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.innerText === folderName || (folderName === '전체' && btn.innerText === '전체보기'));
+            btn.classList.toggle('active', btn.innerText === name || (name === '전체' && btn.innerText === '전체보기'));
         });
 
-        if(folderName === '전체') {
-            renderList(allData);
+        if (name === '전체') {
+            renderList(rawData);
         } else {
-            // 해당 폴더에 사진이 있는 사람만 필터링
-            const filtered = allData.filter(p => p.processedPhotos.some(photo => photo.folder === folderName));
-            renderList(filtered, folderName);
+            const filtered = rawData.filter(p => p.photos.some(img => img.folder === name));
+            renderList(filtered, name);
         }
     }
 
     function renderList(list, targetFolder = '전체') {
         const container = document.getElementById('peopleList');
         container.innerHTML = list.map(p => {
-            // 특정 폴더 필터링 시 해당 폴더 사진만 먼저 보여줌
+            // 필터링된 경우 해당 폴더 사진만, 전체인 경우 모든 사진 표시
             const displayPhotos = targetFolder === '전체' 
-                ? p.processedPhotos 
-                : p.processedPhotos.filter(img => img.folder === targetFolder);
+                ? p.photos 
+                : p.photos.filter(img => img.folder === targetFolder);
 
             return `
                 <div class="인물카드">
                     <div class="헤더">
-                        <span class="이름">${p['이름']}</span>
-                        <span style="color:#64748b; font-size:0.9em;">${p['소속']}</span>
+                        <span class="이름">${p['이름'] || '미입력'}</span>
+                        <span style="color:#64748b; font-size:0.9em;">${p['소속'] || ''}</span>
                     </div>
 
-                    <div class="이미지그룹">
+                    <div class="사진리스트">
                         ${displayPhotos.map(img => `
                             <div class="사진박스">
                                 <span class="폴더태그">${img.folder}</span>
-                                <img src="${img.path}" onerror="this.src='https://via.placeholder.com/100?text=No+Image'">
+                                <img src="${img.path}" onerror="this.src='https://via.placeholder.com/120?text=No+Image'">
                             </div>
                         `).join('')}
                     </div>
 
                     <div class="정보그리드">
-                        <div class="정보항목"><span class="라벨">연락처</span><span class="값">${p['연락처']}</span></div>
-                        <div class="정보항목"><span class="라벨">생일</span><span class="값">${p['생년월일']}</span></div>
-                        <div class="정보항목"><span class="라벨">사이즈</span><span class="값" style="color:red; font-weight:bold;">${p['사이즈']}</span></div>
-                        <div class="정보항목"><span class="라벨">호감도</span><span class="값">${p['나에대한 호감도']}</span></div>
-                        <div class="정보항목"><span class="라벨">난이도</span><span class="값">${p['공략난이도']}</span></div>
-                        <div class="정보항목"><span class="라벨">진척도</span><span class="값">${p['진척도']}</span></div>
+                        <div class="항목"><span class="라벨">연락처</span><span class="값">${p['연락처'] || '-'}</span></div>
+                        <div class="항목"><span class="라벨">사이즈</span><span class="값" style="color:red; font-weight:bold;">${p['사이즈'] || '-'}</span></div>
+                        <div class="항목"><span class="라벨">난이도</span><span class="값">${p['공략난이도'] || '-'}</span></div>
+                        <div class="항목"><span class="라벨">호감도</span><span class="값">${p['나에대한 호감도'] || '-'}</span></div>
                     </div>
 
-                    <div class="메모"><strong>⚠️ 주의사항:</strong> ${p['주의사항'] || '없음'}</div>
-                    <div class="메모" style="background:#f0f9ff; border-left-color:#0ea5e9;"><strong>📝 공략계획:</strong> ${p['공략계획']}</div>
+                    <div class="메모"><strong>⚠️ 주의사항:</strong>\n${p['주의사항'] || '없음'}</div>
+                    <div class="메모" style="background:#f0f9ff; border-left-color:#0ea5e9;"><strong>📝 공략계획:</strong>\n${p['공략계획'] || '-'}</div>
                     
-                    <div style="margin-top:15px; font-size:0.8em; color:#94a3b8;">
-                        * 마지막 본 날짜: ${p['마지막 본날짜']} | 가성비: ${p['가성비']}
+                    <div style="margin-top:15px; font-size:0.75em; color:#94a3b8; text-align:right;">
+                        ID: ${p['아이디']} | 마지막 확인: ${p['마지막 본날짜']}
                     </div>
                 </div>
             `;
