@@ -3,161 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔒 SMART 전략 수첩 (이미지 최적화 Ver.)</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <title>🔒 SMART 인물 전략 수첩</title>
     <style>
-        :root { --메인색: #e11d48; --포인트색: #2563eb; --배경색: #f8fafc; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--배경색); margin: 0; padding: 15px; }
+        :root { --메인색: #e11d48; --포인트색: #2563eb; --배경색: #f1f5f9; }
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: var(--배경색); margin: 0; padding: 10px; color: #1e293b; }
         
-        /* 보안 섹션 */
-        #auth-section { margin: 100px auto; text-align: center; max-width: 350px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 60%; margin-bottom: 10px; }
-        button { padding: 12px 20px; background: var(--메인색); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        /* 인증 화면 */
+        #auth-section { margin-top: 100px; text-align: center; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 350px; margin-left: auto; margin-right: auto; }
+        #auth-section input { padding: 12px; border-radius: 8px; border: 1px solid #ddd; width: 150px; margin-bottom: 10px; }
+        #auth-section button { padding: 12px 20px; background: var(--메인색); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
-        #mainContent { max-width: 700px; margin: 0 auto; display: none; }
+        /* 메인 화면 */
+        #mainContent { max-width: 600px; margin: 0 auto; display: none; }
         
-        /* 폴더 필터 바 */
-        .filter-bar { margin-bottom: 20px; display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; }
-        .folder-btn { padding: 8px 16px; background: white; border: 1px solid #ddd; border-radius: 20px; font-size: 0.85em; cursor: pointer; white-space: nowrap; }
-        .folder-btn.active { background: var(--포인트색); color: white; border-color: var(--포인트색); }
+        /* 폴더 필터 */
+        .filter-container { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; margin-bottom: 10px; }
+        .filter-btn { padding: 6px 14px; background: white; border: 1px solid #ccc; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 0.85em; }
+        .filter-btn.active { background: var(--메인색); color: white; border-color: var(--메인색); }
 
-        /* 카드 스타일 */
-        .인물카드 { background: white; border-radius: 16px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .헤더 { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
-        .이름 { font-size: 1.4em; font-weight: bold; }
-        
+        /* 카드 디자인 */
+        .인물카드 { background: white; border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .헤더 { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 10px; }
+        .이름 { font-size: 1.2em; font-weight: bold; color: #000; }
+        .소속 { font-size: 0.85em; color: #64748b; }
+
         /* 사진 영역 */
-        .사진리스트 { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
-        .사진박스 { position: relative; width: 120px; height: 120px; border-radius: 8px; overflow: hidden; border: 1px solid #eee; }
+        .사진리스트 { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; }
+        .사진박스 { position: relative; flex: 0 0 100px; height: 100px; border-radius: 6px; overflow: hidden; border: 1px solid #eee; }
         .사진박스 img { width: 100%; height: 100%; object-fit: cover; }
-        .폴더태그 { position: absolute; top: 0; left: 0; background: rgba(0,0,0,0.5); color: white; font-size: 10px; padding: 2px 6px; }
+        .폴더태그 { position: absolute; top: 0; left: 0; background: rgba(0,0,0,0.6); color: white; font-size: 9px; padding: 2px 4px; }
 
-        .정보그리드 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .항목 { background: #f1f5f9; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between; font-size: 0.85em; }
-        .라벨 { color: #64748b; font-weight: bold; }
-        
-        .메모 { background: #fff7ed; padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 0.85em; border-left: 4px solid #fb923c; white-space: pre-wrap; line-height: 1.5; }
+        /* 데이터 그리드 */
+        .그리드 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+        .항목 { background: #f8fafc; padding: 6px 8px; border-radius: 4px; display: flex; justify-content: space-between; font-size: 0.8em; }
+        .라벨 { color: #64748b; }
+        .값 { font-weight: bold; }
+        .강조 { color: var(--메인색); }
+
+        .메모박스 { background: #fff7ed; border-left: 4px solid #fb923c; padding: 10px; font-size: 0.85em; margin-top: 8px; white-space: pre-wrap; line-height: 1.4; }
     </style>
 </head>
 <body>
 
     <div id="auth-section">
-        <h2>🔒 보안 접속</h2>
-        <input type="password" id="pw" placeholder="비밀번호 입력">
-        <button onclick="checkAuth()">열기</button>
+        <h3>🔒 보안 인증</h3>
+        <input type="password" id="pw" placeholder="비밀번호">
+        <button onclick="checkAuth()">확인</button>
     </div>
 
     <div id="mainContent">
-        <header><h1 style="text-align:center;">전략 수첩 V2</h1></header>
-        
-        <div class="filter-bar" id="folderFilters">
-            <button class="folder-btn active" onclick="filterFolder('전체')">전체보기</button>
+        <div class="filter-container" id="folderBar">
+            <button class="filter-btn active" onclick="filterData('전체')">전체</button>
         </div>
-
-        <div id="peopleList"></div>
+        <div id="list"></div>
     </div>
 
 <script>
-    let rawData = [];
+    let masterData = [];
     let folders = new Set();
 
     function checkAuth() {
         if(document.getElementById('pw').value === "1234") {
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
-            loadCSV();
-        } else { alert("비밀번호가 틀립니다."); }
+            fetchCSV();
+        } else { alert("비밀번호 틀림"); }
     }
 
-    function loadCSV() {
-        Papa.parse("인명.csv", {
-            download: true,
-            header: true,
-            skipEmptyLines: true,
-            complete: function(results) {
-                processData(results.data);
-            }
-        });
+    // CSV의 쉼표, 줄바꿈, 따옴표를 정확히 분리하는 함수
+    function parseCSV(text) {
+        const result = [];
+        let row = [];
+        let col = "";
+        let inQuotes = false;
+
+        for (let i = 0; i < text.length; i++) {
+            let char = text[i];
+            let next = text[i+1];
+
+            if (inQuotes && char === '"' && next === '"') { col += '"'; i++; }
+            else if (char === '"') { inQuotes = !inQuotes; }
+            else if (char === ',' && !inQuotes) { row.push(col.trim()); col = ""; }
+            else if ((char === '\r' || char === '\n') && !inQuotes) {
+                if (col !== "" || row.length > 0) {
+                    row.push(col.trim());
+                    result.push(row);
+                    col = ""; row = [];
+                }
+            } else { col += char; }
+        }
+        return result;
     }
 
-    function processData(data) {
-        rawData = data.map(row => {
-            // 사진파일 필드에서 따옴표와 쉼표 문제를 해결하며 경로 추출
-            let photos = [];
-            if (row['사진파일']) {
-                // 쉼표로 구분된 경로들을 배열로 만듦
-                photos = row['사진파일'].split(',').map(p => {
-                    const path = p.trim().replace(/^"|"$/g, ''); // 따옴표 제거
-                    const folder = path.includes('/') ? path.split('/')[0] : '기본';
-                    if (folder) folders.add(folder);
-                    return { path, folder };
-                });
-            }
-            return { ...row, photos };
-        });
+    async function fetchCSV() {
+        try {
+            const resp = await fetch('인명.csv');
+            const text = await resp.text();
+            const rows = parseCSV(text);
+            const header = rows[0];
+            
+            masterData = rows.slice(1).map(r => {
+                let obj = {};
+                header.forEach((h, i) => obj[h] = r[i] || "");
+                
+                // 사진 폴더 분석
+                obj._photos = [];
+                if (obj['사진파일']) {
+                    obj['사진파일'].split(',').forEach(p => {
+                        const path = p.trim();
+                        if (path) {
+                            const folder = path.includes('/') ? path.split('/')[0] : '기본';
+                            folders.add(folder);
+                            obj._photos.push({ path, folder });
+                        }
+                    });
+                }
+                return obj;
+            });
 
-        renderFilters();
-        renderList(rawData);
-    }
-
-    function renderFilters() {
-        const filterBox = document.getElementById('folderFilters');
-        folders.forEach(f => {
-            if(f !== '전체') {
-                filterBox.innerHTML += `<button class="folder-btn" onclick="filterFolder('${f}')">${f}</button>`;
-            }
-        });
-    }
-
-    function filterFolder(name) {
-        document.querySelectorAll('.folder-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.innerText === name || (name === '전체' && btn.innerText === '전체보기'));
-        });
-
-        if (name === '전체') {
-            renderList(rawData);
-        } else {
-            const filtered = rawData.filter(p => p.photos.some(img => img.folder === name));
-            renderList(filtered, name);
+            renderFilters();
+            renderList(masterData);
+        } catch (e) {
+            alert("파일을 읽을 수 없습니다. (인명.csv 파일 확인)");
         }
     }
 
-    function renderList(list, targetFolder = '전체') {
-        const container = document.getElementById('peopleList');
-        container.innerHTML = list.map(p => {
-            // 필터링된 경우 해당 폴더 사진만, 전체인 경우 모든 사진 표시
-            const displayPhotos = targetFolder === '전체' 
-                ? p.photos 
-                : p.photos.filter(img => img.folder === targetFolder);
+    function renderFilters() {
+        const bar = document.getElementById('folderBar');
+        folders.forEach(f => {
+            bar.innerHTML += `<button class="filter-btn" onclick="filterData('${f}')">${f}</button>`;
+        });
+    }
 
+    function filterData(folder) {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.innerText === folder));
+        if (folder === '전체') renderList(masterData);
+        else renderList(masterData.filter(d => d._photos.some(p => p.folder === folder)), folder);
+    }
+
+    function renderList(data, targetFolder = '전체') {
+        const div = document.getElementById('list');
+        div.innerHTML = data.map(p => {
+            const showPhotos = targetFolder === '전체' ? p._photos : p._photos.filter(img => img.folder === targetFolder);
+            
             return `
                 <div class="인물카드">
                     <div class="헤더">
-                        <span class="이름">${p['이름'] || '미입력'}</span>
-                        <span style="color:#64748b; font-size:0.9em;">${p['소속'] || ''}</span>
+                        <span class="이름">${p['이름']}</span>
+                        <span class="소속">${p['소속']}</span>
                     </div>
 
                     <div class="사진리스트">
-                        ${displayPhotos.map(img => `
+                        ${showPhotos.map(img => `
                             <div class="사진박스">
                                 <span class="폴더태그">${img.folder}</span>
-                                <img src="${img.path}" onerror="this.src='https://via.placeholder.com/120?text=No+Image'">
+                                <img src="${img.path}" onerror="this.src='https://via.placeholder.com/100?text=No+Img'">
                             </div>
                         `).join('')}
                     </div>
 
-                    <div class="정보그리드">
-                        <div class="항목"><span class="라벨">연락처</span><span class="값">${p['연락처'] || '-'}</span></div>
-                        <div class="항목"><span class="라벨">사이즈</span><span class="값" style="color:red; font-weight:bold;">${p['사이즈'] || '-'}</span></div>
-                        <div class="항목"><span class="라벨">난이도</span><span class="값">${p['공략난이도'] || '-'}</span></div>
-                        <div class="항목"><span class="라벨">호감도</span><span class="값">${p['나에대한 호감도'] || '-'}</span></div>
+                    <div class="그리드">
+                        <div class="항목"><span class="라벨">연락처</span><span class="값">${p['연락처']}</span></div>
+                        <div class="항목"><span class="라벨">사이즈</span><span class="값 강조">${p['사이즈']}</span></div>
+                        <div class="항목"><span class="라벨">난이도</span><span class="값">${p['공략난이도']}</span></div>
+                        <div class="항목"><span class="라벨">호감도</span><span class="값 강조">${p['나에대한 호감도']}</span></div>
+                        <div class="항목"><span class="라벨">진척도</span><span class="값">${p['진척도']}</span></div>
+                        <div class="항목"><span class="라벨">가성비</span><span class="값">${p['가성비']}</span></div>
                     </div>
 
-                    <div class="메모"><strong>⚠️ 주의사항:</strong>\n${p['주의사항'] || '없음'}</div>
-                    <div class="메모" style="background:#f0f9ff; border-left-color:#0ea5e9;"><strong>📝 공략계획:</strong>\n${p['공략계획'] || '-'}</div>
+                    <div class="메모박스"><strong>⚠️ 주의사항:</strong>\n${p['주의사항']}</div>
+                    <div class="메모박스" style="background:#f0f9ff; border-color:#0ea5e9;"><strong>📝 공략계획:</strong>\n${p['공략계획']}</div>
                     
-                    <div style="margin-top:15px; font-size:0.75em; color:#94a3b8; text-align:right;">
-                        ID: ${p['아이디']} | 마지막 확인: ${p['마지막 본날짜']}
+                    <div style="font-size:0.7em; color:#94a3b8; margin-top:10px; text-align:right;">
+                        마지막 본 날짜: ${p['마지막 본날짜']}
                     </div>
                 </div>
             `;
