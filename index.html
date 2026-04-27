@@ -5,177 +5,176 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🔒 SMART 인물 전략 수첩</title>
     <style>
-        :root { --메인색: #e11d48; --포인트색: #2563eb; --배경색: #f1f5f9; }
-        body { font-family: 'Malgun Gothic', sans-serif; background-color: var(--배경색); margin: 0; padding: 10px; color: #1e293b; }
+        :root { --메인: #e11d48; --서브: #2563eb; --배경: #f8fafc; }
+        body { font-family: 'Malgun Gothic', sans-serif; background: var(--배경); margin: 0; padding: 10px; }
         
-        /* 인증 화면 */
-        #auth-section { margin-top: 100px; text-align: center; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 350px; margin-left: auto; margin-right: auto; }
-        #auth-section input { padding: 12px; border-radius: 8px; border: 1px solid #ddd; width: 150px; margin-bottom: 10px; }
-        #auth-section button { padding: 12px 20px; background: var(--메인색); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        /* 보안 인증 */
+        #auth-section { margin: 100px auto; text-align: center; max-width: 300px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 80%; margin-bottom: 10px; }
+        button { padding: 12px 20px; background: var(--메인); color: white; border: none; border-radius: 8px; width: 88%; cursor: pointer; font-weight: bold; }
 
-        /* 메인 화면 */
-        #mainContent { max-width: 600px; margin: 0 auto; display: none; }
+        #mainContent { max-width: 650px; margin: 0 auto; display: none; }
         
         /* 폴더 필터 */
-        .filter-container { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; margin-bottom: 10px; }
-        .filter-btn { padding: 6px 14px; background: white; border: 1px solid #ccc; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 0.85em; }
-        .filter-btn.active { background: var(--메인색); color: white; border-color: var(--메인색); }
+        .filter-bar { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; margin-bottom: 10px; sticky; top: 0; background: var(--배경); z-index: 10; }
+        .f-btn { padding: 6px 15px; background: white; border: 1px solid #ddd; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 13px; }
+        .f-btn.active { background: var(--서브); color: white; border-color: var(--서브); }
 
         /* 카드 디자인 */
-        .인물카드 { background: white; border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .헤더 { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 10px; }
-        .이름 { font-size: 1.2em; font-weight: bold; color: #000; }
-        .소속 { font-size: 0.85em; color: #64748b; }
+        .card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .card-header { display: flex; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 12px; }
+        .name { font-size: 1.25em; font-weight: bold; color: #1e293b; }
+        .team { color: #64748b; font-size: 0.9em; }
 
         /* 사진 영역 */
-        .사진리스트 { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; }
-        .사진박스 { position: relative; flex: 0 0 100px; height: 100px; border-radius: 6px; overflow: hidden; border: 1px solid #eee; }
-        .사진박스 img { width: 100%; height: 100%; object-fit: cover; }
-        .폴더태그 { position: absolute; top: 0; left: 0; background: rgba(0,0,0,0.6); color: white; font-size: 9px; padding: 2px 4px; }
+        .photo-scroller { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 5px; }
+        .photo-box { position: relative; flex: 0 0 110px; height: 110px; border-radius: 10px; overflow: hidden; border: 1px solid #eee; }
+        .photo-box img { width: 100%; height: 100%; object-fit: cover; }
+        .tag { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.5); color: white; font-size: 10px; text-align: center; padding: 2px 0; }
 
         /* 데이터 그리드 */
-        .그리드 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
-        .항목 { background: #f8fafc; padding: 6px 8px; border-radius: 4px; display: flex; justify-content: space-between; font-size: 0.8em; }
-        .라벨 { color: #64748b; }
-        .값 { font-weight: bold; }
-        .강조 { color: var(--메인색); }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .item { background: #f1f5f9; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between; font-size: 13px; }
+        .label { color: #64748b; font-weight: bold; }
+        .val { color: #0f172a; text-align: right; }
+        .highlight { color: var(--메인); font-weight: 800; }
 
-        .메모박스 { background: #fff7ed; border-left: 4px solid #fb923c; padding: 10px; font-size: 0.85em; margin-top: 8px; white-space: pre-wrap; line-height: 1.4; }
+        /* 텍스트 박스 */
+        .memo { background: #fff7ed; border-left: 4px solid #fb923c; padding: 12px; font-size: 13px; margin-top: 10px; border-radius: 4px; white-space: pre-wrap; line-height: 1.5; }
     </style>
 </head>
 <body>
 
     <div id="auth-section">
-        <h3>🔒 보안 인증</h3>
+        <h2>🔒 보안 수첩</h2>
         <input type="password" id="pw" placeholder="비밀번호">
-        <button onclick="checkAuth()">확인</button>
+        <button onclick="checkAuth()">접속하기</button>
     </div>
 
     <div id="mainContent">
-        <div class="filter-container" id="folderBar">
-            <button class="filter-btn active" onclick="filterData('전체')">전체</button>
+        <div class="filter-bar" id="filterBar">
+            <button class="f-btn active" onclick="filter('전체')">전체보기</button>
         </div>
-        <div id="list"></div>
+        <div id="displayArea"></div>
     </div>
 
 <script>
-    let masterData = [];
-    let folders = new Set();
+    let db = [];
+    let folderSet = new Set();
 
     function checkAuth() {
         if(document.getElementById('pw').value === "1234") {
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
-            fetchCSV();
-        } else { alert("비밀번호 틀림"); }
+            loadData();
+        } else { alert("권한이 없습니다."); }
     }
 
-    // CSV의 쉼표, 줄바꿈, 따옴표를 정확히 분리하는 함수
-    function parseCSV(text) {
-        const result = [];
-        let row = [];
-        let col = "";
-        let inQuotes = false;
+    // [핵심] 줄바꿈이 포함된 CSV를 정확히 파싱하는 로직
+    function parseSmartCSV(text) {
+        const rows = [];
+        let currRow = [];
+        let currCol = "";
+        let insideQuote = false;
 
         for (let i = 0; i < text.length; i++) {
-            let char = text[i];
-            let next = text[i+1];
+            const char = text[i];
+            const next = text[i+1];
 
-            if (inQuotes && char === '"' && next === '"') { col += '"'; i++; }
-            else if (char === '"') { inQuotes = !inQuotes; }
-            else if (char === ',' && !inQuotes) { row.push(col.trim()); col = ""; }
-            else if ((char === '\r' || char === '\n') && !inQuotes) {
-                if (col !== "" || row.length > 0) {
-                    row.push(col.trim());
-                    result.push(row);
-                    col = ""; row = [];
+            if (insideQuote && char === '"' && next === '"') { currCol += '"'; i++; }
+            else if (char === '"') { insideQuote = !insideQuote; }
+            else if (char === ',' && !insideQuote) { currRow.push(currCol); currCol = ""; }
+            else if ((char === '\n' || char === '\r') && !insideQuote) {
+                if (currCol !== "" || currRow.length > 0) {
+                    currRow.push(currCol);
+                    rows.push(currRow);
+                    currCol = ""; currRow = [];
                 }
-            } else { col += char; }
+            } else { currCol += char; }
         }
-        return result;
+        if (currCol || currRow.length > 0) { currRow.push(currCol); rows.push(currRow); }
+        return rows;
     }
 
-    async function fetchCSV() {
+    async function loadData() {
         try {
-            const resp = await fetch('인명.csv');
-            const text = await resp.text();
-            const rows = parseCSV(text);
-            const header = rows[0];
+            const res = await fetch('인명.csv');
+            const csvText = await res.text();
+            const data = parseSmartCSV(csvText);
             
-            masterData = rows.slice(1).map(r => {
-                let obj = {};
-                header.forEach((h, i) => obj[h] = r[i] || "");
+            const header = data[0];
+            db = data.slice(1).map(row => {
+                let item = {};
+                header.forEach((h, i) => item[h.trim()] = row[i] ? row[i].trim() : "");
                 
-                // 사진 폴더 분석
-                obj._photos = [];
-                if (obj['사진파일']) {
-                    obj['사진파일'].split(',').forEach(p => {
-                        const path = p.trim();
-                        if (path) {
-                            const folder = path.includes('/') ? path.split('/')[0] : '기본';
-                            folders.add(folder);
-                            obj._photos.push({ path, folder });
+                // 사진 처리
+                item._imgs = [];
+                if (item['사진파일']) {
+                    item['사진파일'].split(',').forEach(path => {
+                        const p = path.trim().replace(/^"|"$/g, '');
+                        if(p) {
+                            const folder = p.includes('/') ? p.split('/')[0] : '기본';
+                            folderSet.add(folder);
+                            item._imgs.push({ path: p, folder: folder });
                         }
                     });
                 }
-                return obj;
+                return item;
             });
 
             renderFilters();
-            renderList(masterData);
-        } catch (e) {
-            alert("파일을 읽을 수 없습니다. (인명.csv 파일 확인)");
-        }
+            renderList(db);
+        } catch (e) { alert("데이터 로드 실패: " + e); }
     }
 
     function renderFilters() {
-        const bar = document.getElementById('folderBar');
-        folders.forEach(f => {
-            bar.innerHTML += `<button class="filter-btn" onclick="filterData('${f}')">${f}</button>`;
+        const bar = document.getElementById('filterBar');
+        folderSet.forEach(f => {
+            bar.innerHTML += `<button class="f-btn" onclick="filter('${f}')">${f}</button>`;
         });
     }
 
-    function filterData(folder) {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.innerText === folder));
-        if (folder === '전체') renderList(masterData);
-        else renderList(masterData.filter(d => d._photos.some(p => p.folder === folder)), folder);
+    function filter(name) {
+        document.querySelectorAll('.f-btn').forEach(b => b.classList.toggle('active', b.innerText === name || (name === '전체' && b.innerText === '전체보기')));
+        if (name === '전체') renderList(db);
+        else renderList(db.filter(item => item._imgs.some(img => img.folder === name)), name);
     }
 
-    function renderList(data, targetFolder = '전체') {
-        const div = document.getElementById('list');
-        div.innerHTML = data.map(p => {
-            const showPhotos = targetFolder === '전체' ? p._photos : p._photos.filter(img => img.folder === targetFolder);
+    function renderList(targetData, targetFolder = '전체') {
+        const area = document.getElementById('displayArea');
+        area.innerHTML = targetData.map(p => {
+            const pics = targetFolder === '전체' ? p._imgs : p._imgs.filter(i => i.folder === targetFolder);
             
             return `
-                <div class="인물카드">
-                    <div class="헤더">
-                        <span class="이름">${p['이름']}</span>
-                        <span class="소속">${p['소속']}</span>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="name">${p['이름']}</span>
+                        <span class="team">${p['소속']}</span>
                     </div>
 
-                    <div class="사진리스트">
-                        ${showPhotos.map(img => `
-                            <div class="사진박스">
-                                <span class="폴더태그">${img.folder}</span>
-                                <img src="${img.path}" onerror="this.src='https://via.placeholder.com/100?text=No+Img'">
+                    <div class="photo-scroller">
+                        ${pics.map(i => `
+                            <div class="photo-box">
+                                <img src="${i.path}" onerror="this.src='https://via.placeholder.com/110?text=NO+IMAGE'">
+                                <div class="tag">${i.folder}</div>
                             </div>
                         `).join('')}
                     </div>
 
-                    <div class="그리드">
-                        <div class="항목"><span class="라벨">연락처</span><span class="값">${p['연락처']}</span></div>
-                        <div class="항목"><span class="라벨">사이즈</span><span class="값 강조">${p['사이즈']}</span></div>
-                        <div class="항목"><span class="라벨">난이도</span><span class="값">${p['공략난이도']}</span></div>
-                        <div class="항목"><span class="라벨">호감도</span><span class="값 강조">${p['나에대한 호감도']}</span></div>
-                        <div class="항목"><span class="라벨">진척도</span><span class="값">${p['진척도']}</span></div>
-                        <div class="항목"><span class="라벨">가성비</span><span class="값">${p['가성비']}</span></div>
+                    <div class="info-grid">
+                        <div class="item"><span class="label">연락처</span><span class="val">${p['연락처']}</span></div>
+                        <div class="item"><span class="label">사이즈</span><span class="val highlight">${p['사이즈']}</span></div>
+                        <div class="item"><span class="label">호감도</span><span class="val highlight">${p['나에대한 호감도']}</span></div>
+                        <div class="item"><span class="label">난이도</span><span class="val">${p['공략난이도']}</span></div>
+                        <div class="item"><span class="label">진척도</span><span class="val">${p['진척도']}</span></div>
+                        <div class="item"><span class="label">가성비</span><span class="val">${p['가성비']}</span></div>
                     </div>
 
-                    <div class="메모박스"><strong>⚠️ 주의사항:</strong>\n${p['주의사항']}</div>
-                    <div class="메모박스" style="background:#f0f9ff; border-color:#0ea5e9;"><strong>📝 공략계획:</strong>\n${p['공략계획']}</div>
+                    <div class="memo" style="background:#fee2e2; border-color:#ef4444;"><strong>⚠️ 주의사항</strong><br>${p['주의사항'] || '없음'}</div>
+                    <div class="memo"><strong>📝 공략계획</strong><br>${p['공략계획'] || '기록없음'}</div>
                     
-                    <div style="font-size:0.7em; color:#94a3b8; margin-top:10px; text-align:right;">
-                        마지막 본 날짜: ${p['마지막 본날짜']}
+                    <div style="margin-top:12px; font-size:11px; color:#94a3b8; text-align:right;">
+                        ID: ${p['아이디']} | 생일: ${p['생년월일']} | 최근: ${p['마지막 본날짜']}
                     </div>
                 </div>
             `;
