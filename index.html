@@ -8,21 +8,21 @@
         :root { --메인: #e11d48; --포인트: #2563eb; --배경: #f1f5f9; }
         body { font-family: 'Malgun Gothic', sans-serif; background: var(--배경); margin: 0; padding: 10px; color: #1e293b; }
         
-        /* 인증 섹션 */
         #auth-section { margin: 100px auto; text-align: center; max-width: 350px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 70%; margin-bottom: 10px; font-size: 16px; }
         button { padding: 12px 20px; background: var(--메인); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 80%; }
 
         #mainContent { max-width: 650px; margin: 0 auto; display: none; }
         
-        /* 상단 고정 헤더 (탭 + 검색창) */
-        .sticky-header { position: sticky; top: 0; background: var(--배경); z-index: 100; padding-bottom: 10px; }
-        .filter-bar { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
-        .filter-bar::-webkit-scrollbar { display: none; }
-        .f-btn { padding: 8px 16px; background: white; border: 1px solid #ccc; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 13px; font-weight: bold; }
-        .f-btn.active { background: var(--포인트); color: white; border-color: var(--포인트); }
-        
-        .search-box { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 15px; outline: none; }
+        /* 상단 고정 헤더 (검색창만 남김) */
+        .sticky-header { position: sticky; top: 0; background: var(--배경); z-index: 100; padding: 10px 0; }
+        .search-box { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 15px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+        /* 카드 내 사진 탭 스타일 */
+        .card-photo-tabs { display: flex; gap: 5px; margin-bottom: 8px; overflow-x: auto; scrollbar-width: none; }
+        .card-photo-tabs::-webkit-scrollbar { display: none; }
+        .p-btn { padding: 4px 12px; background: #e2e8f0; border: none; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: bold; color: #475569; transition: 0.2s; }
+        .p-btn.active { background: var(--포인트); color: white; }
 
         /* 카드 스타일 */
         .card { background: white; border-radius: 15px; padding: 18px; margin-bottom: 25px; box-shadow: 0 3px 12px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
@@ -31,10 +31,9 @@
         .sub-text { font-size: 0.9em; color: #64748b; }
 
         /* 사진 영역 */
-        .photo-list { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 5px; }
+        .photo-list { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 5px; min-height: 120px; }
         .photo-item { position: relative; flex: 0 0 120px; height: 120px; border-radius: 10px; overflow: hidden; background: #eee; border: 1px solid #ddd; }
         .photo-item img { width: 100%; height: 100%; object-fit: cover; }
-        .tag { position: absolute; top: 0; left: 0; background: rgba(0,0,0,0.7); color: white; font-size: 10px; padding: 2px 6px; border-bottom-right-radius: 8px; z-index: 1; }
 
         /* 데이터 그리드 */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
@@ -57,9 +56,6 @@
 
     <div id="mainContent">
         <div class="sticky-header">
-            <div class="filter-bar" id="filterBar">
-                <button class="f-btn active" onclick="setFilter('전체')">전체보기</button>
-            </div>
             <input type="text" id="searchInput" class="search-box" placeholder="이름 또는 소속 검색..." onkeyup="runSearch()">
         </div>
         <div id="list"></div>
@@ -67,8 +63,6 @@
 
 <script>
     let masterDB = [];
-    let photoFolders = new Set(); 
-    let currentFilter = '전체';
 
     window.onload = () => document.getElementById('pw').focus();
 
@@ -110,62 +104,73 @@
                 header.forEach((h, i) => obj[h] = r[i] || "");
                 
                 obj._imgs = [];
-                const personName = obj['이름']; // 해당 행의 사람 이름 추출
+                obj._folders = new Set(['전체']); // 각 카드별 폴더 목록
+                const personName = obj['이름'];
 
                 if (obj['사진파일'] && personName) {
                     obj['사진파일'].replace(/^"|"$/g, '').split(',').forEach(p => {
-                        const relPath = p.trim(); // "body/이미지.jpg"
+                        const relPath = p.trim();
                         if(relPath) {
                             const folder = relPath.includes('/') ? relPath.split('/')[0] : '기타';
-                            photoFolders.add(folder);
-                            // 경로 조합: img / 이름 / body / 이미지.jpg
-                            const fullPath = `img/${personName}/${relPath}`;
-                            obj._imgs.push({ fullPath: fullPath, folder: folder });
+                            obj._folders.add(folder);
+                            obj._imgs.push({ fullPath: `img/${personName}/${relPath}`, folder: folder });
                         }
                     });
                 }
+                // 카드의 초기 필터는 '전체'
+                obj._currentTab = '전체'; 
                 return obj;
             });
-
-            renderFilters();
             runSearch();
         } catch (e) { alert("인명.csv 로드 실패"); }
     }
 
-    function renderFilters() {
-        const bar = document.getElementById('filterBar');
-        Array.from(photoFolders).sort().forEach(folder => {
-            const btn = document.createElement('button');
-            btn.className = 'f-btn';
-            btn.innerText = folder;
-            btn.onclick = () => setFilter(folder);
-            bar.appendChild(btn);
-        });
+    // 카드 내 탭 클릭 시 해당 카드의 사진만 다시 그림
+    function setCardTab(idx, folderName) {
+        masterDB[idx]._currentTab = folderName;
+        renderCardPhotos(idx);
     }
 
-    function setFilter(folderName) {
-        currentFilter = folderName;
-        document.querySelectorAll('.f-btn').forEach(b => {
-            b.classList.toggle('active', b.innerText === folderName || (folderName === '전체' && b.innerText === '전체보기'));
-        });
-        runSearch();
+    // 특정 카드의 사진 영역만 업데이트
+    function renderCardPhotos(idx) {
+        const p = masterDB[idx];
+        const tabContainer = document.getElementById(`tabs-${idx}`);
+        const photoContainer = document.getElementById(`photos-${idx}`);
+        
+        // 탭 버튼 업데이트
+        tabContainer.innerHTML = Array.from(p._folders).map(f => `
+            <button class="p-btn ${p._currentTab === f ? 'active' : ''}" 
+                    onclick="setCardTab(${idx}, '${f}')">${f}</button>
+        `).join('');
+
+        // 사진 목록 업데이트
+        const displayImgs = p._currentTab === '전체' ? p._imgs : p._imgs.filter(img => img.folder === p._currentTab);
+        photoContainer.innerHTML = displayImgs.map(img => `
+            <div class="photo-item">
+                <img src="${img.fullPath}" onerror="this.src='https://via.placeholder.com/120?text=No+Img'">
+            </div>
+        `).join('');
     }
 
     function runSearch() {
         const term = document.getElementById('searchInput').value.toLowerCase();
-        const filtered = masterDB.filter(p => {
-            const hasMatchingPhoto = (currentFilter === '전체') || p._imgs.some(img => img.folder === currentFilter);
+        const filteredIndices = [];
+        masterDB.forEach((p, idx) => {
             const matchesSearch = (p['이름'] || '').toLowerCase().includes(term) || (p['소속'] || '').toLowerCase().includes(term);
-            return hasMatchingPhoto && matchesSearch;
+            if(matchesSearch) filteredIndices.push(idx);
         });
-        renderList(filtered);
+        renderList(filteredIndices);
     }
 
-    function renderList(data) {
+    function renderList(indices) {
         const container = document.getElementById('list');
-        container.innerHTML = data.length === 0 ? "<p style='text-align:center; padding:50px;'>결과가 없습니다.</p>" : 
-        data.map(p => {
-            const displayImgs = currentFilter === '전체' ? p._imgs : p._imgs.filter(img => img.folder === currentFilter);
+        if (indices.length === 0) {
+            container.innerHTML = "<p style='text-align:center; padding:50px;'>결과가 없습니다.</p>";
+            return;
+        }
+
+        container.innerHTML = indices.map(idx => {
+            const p = masterDB[idx];
             return `
                 <div class="card">
                     <div class="name-row">
@@ -173,15 +178,9 @@
                         <span class="sub-text">${p['소속']} | ${p['아이디']}</span>
                     </div>
 
-                    ${displayImgs.length > 0 ? `
-                    <div class="photo-list">
-                        ${displayImgs.map(img => `
-                            <div class="photo-item">
-                                <span class="tag">${img.folder}</span>
-                                <img src="${img.fullPath}" onerror="this.src='https://via.placeholder.com/120?text=로드실패'">
-                            </div>
-                        `).join('')}
-                    </div>` : ''}
+                    <div class="card-photo-tabs" id="tabs-${idx}"></div>
+                    
+                    <div class="photo-list" id="photos-${idx}"></div>
 
                     <div class="grid">
                         <div class="box"><span class="label">연락처</span><span class="val">${p['연락처']}</span></div>
@@ -204,6 +203,9 @@
                 </div>
             `;
         }).join('');
+
+        // 렌더링 후 각 카드의 사진과 탭 초기화
+        indices.forEach(idx => renderCardPhotos(idx));
     }
 </script>
 </body>
