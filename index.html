@@ -217,8 +217,14 @@
                         <div class="box"><span class="label">경계인물</span><span class="val">${p['경계인물'] || '-'}</span></div>
                         <div class="box"><span class="label">최근고민</span><span class="val">${p['최근고민'] || '-'}</span></div>
                         <div class="box"><span class="label">난이도</span><span class="val">${p['공략난이도'] || '-'}</span></div>
-                        <div class="box full"><span class="label">노션링크</span><span class="val">${p['노션링크'] || '-'}</span></div>
-                    </div>
+                       <div class="box full">
+        <span class="label">노션링크</span>
+        <span class="val">
+            ${p['노션링크'] && p['노션링크'].startsWith('http') 
+                ? `<a href="${p['노션링크']}" target="_blank" style="color:var(--포인트); text-decoration:none; font-weight:bold; background:#eff6ff; padding:3px 10px; border-radius:5px; border:1px solid #bfdbfe;">노션 상세정보 열기 ↗</a>` 
+                : (p['노션링크'] || '-')}
+        </span>
+    </div>
 
                     <div class="memo"><strong>📝 공략계획:</strong><br>${p['공략계획'] || '-'}</div>
                     <div class="memo blue-memo"><strong>🤝 공통화제:</strong><br>${p['공통화제'] || '-'}</div>
