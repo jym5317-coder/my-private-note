@@ -17,7 +17,8 @@
         
         /* 필터 및 검색바 */
         .sticky-header { position: sticky; top: 0; background: var(--배경); z-index: 100; padding-bottom: 10px; }
-        .filter-bar { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; }
+        .filter-bar { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
+        .filter-bar::-webkit-scrollbar { display: none; }
         .f-btn { padding: 8px 16px; background: white; border: 1px solid #ccc; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 13px; font-weight: bold; }
         .f-btn.active { background: var(--포인트); color: white; border-color: var(--포인트); }
         
@@ -68,19 +69,15 @@
 
 <script>
     let masterDB = [];
-    let folders = new Set();
+    let nameList = []; // 사람 이름 목록 저장
     let currentFilter = '전체';
 
-    // 페이지 로드 시 비밀번호 창에 바로 포커스 주기
     window.onload = function() {
         document.getElementById('pw').focus();
     };
 
-    // 비밀번호 창에서 엔터키 감지
     function handleAuthKey(e) {
-        if (e.key === 'Enter') {
-            unlock();
-        }
+        if (e.key === 'Enter') unlock();
     }
 
     function unlock() {
@@ -122,8 +119,7 @@
         try {
             const res = await fetch('인명.csv');
             const arrayBuffer = await res.arrayBuffer();
-            const decoder = new TextDecoder('utf-8');
-            const text = decoder.decode(arrayBuffer);
+            const text = new TextDecoder('utf-8').decode(arrayBuffer);
             
             const rows = parseCSV(text);
             const header = rows[0].map(h => h.replace(/["']/g, '').trim());
@@ -132,16 +128,16 @@
                 let obj = {};
                 header.forEach((h, i) => obj[h] = r[i] || "");
                 
+                // 데이터의 '이름' 항목을 추출하여 리스트에 추가
+                if (obj['이름'] && !nameList.includes(obj['이름'])) {
+                    nameList.push(obj['이름']);
+                }
+
                 obj._imgs = [];
                 if (obj['사진파일']) {
                     obj['사진파일'].split(',').forEach(p => {
                         const path = p.trim().replace(/^"|"$/g, '');
-                        if(path) {
-                            const pathParts = path.split('/');
-                            const folderName = pathParts.length > 1 ? pathParts[1] : '기본';
-                            folders.add(folderName);
-                            obj._imgs.push({ path: path, folder: folderName });
-                        }
+                        if(path) obj._imgs.push({ path: path });
                     });
                 }
                 return obj;
@@ -154,20 +150,20 @@
 
     function renderFilters() {
         const bar = document.getElementById('filterBar');
-        folders.forEach(f => {
+        nameList.forEach(name => {
             const btn = document.createElement('button');
             btn.className = 'f-btn';
-            btn.innerText = f;
-            btn.onclick = () => setFilter(f);
+            btn.innerText = name;
+            btn.onclick = () => setFilter(name);
             bar.appendChild(btn);
         });
     }
 
-    function setFilter(fName) {
-        currentFilter = fName;
+    function setFilter(name) {
+        currentFilter = name;
         document.querySelectorAll('.f-btn').forEach(b => {
-            const isAll = (fName === '전체' && b.innerText === '전체보기');
-            const isMatch = (b.innerText === fName);
+            const isAll = (name === '전체' && b.innerText === '전체보기');
+            const isMatch = (b.innerText === name);
             b.classList.toggle('active', isAll || isMatch);
         });
         runSearch();
@@ -176,61 +172,57 @@
     function runSearch() {
         const term = document.getElementById('searchInput').value.toLowerCase();
         const filtered = masterDB.filter(p => {
-            const matchesFolder = (currentFilter === '전체') || p._imgs.some(i => i.folder === currentFilter);
+            const matchesFilter = (currentFilter === '전체') || (p['이름'] === currentFilter);
             const matchesSearch = (p['이름'] || '').toLowerCase().includes(term) || 
                                  (p['소속'] || '').toLowerCase().includes(term);
-            return matchesFolder && matchesSearch;
+            return matchesFilter && matchesSearch;
         });
-        renderList(filtered, currentFilter);
+        renderList(filtered);
     }
 
-    function renderList(data, currentF) {
+    function renderList(data) {
         const container = document.getElementById('list');
         if (data.length === 0) {
             container.innerHTML = "<p style='text-align:center; padding:50px; color:#94a3b8;'>결과가 없습니다.</p>";
             return;
         }
 
-        container.innerHTML = data.map(p => {
-            const targetPics = currentF === '전체' ? p._imgs : p._imgs.filter(i => i.folder === currentF);
-            return `
-                <div class="card">
-                    <div class="name-row">
-                        <span class="name">${p['이름'] || '이름없음'}</span>
-                        <span class="sub-text">${p['소속']} | ${p['아이디']}</span>
-                    </div>
-
-                    ${targetPics.length > 0 ? `
-                    <div class="photo-list">
-                        ${targetPics.map(i => `
-                            <div class="photo-item">
-                                <span class="tag">${i.folder}</span>
-                                <img src="${i.path}" onerror="this.src='https://via.placeholder.com/120?text=No+Img'">
-                            </div>
-                        `).join('')}
-                    </div>` : ''}
-
-                    <div class="grid">
-                        <div class="box"><span class="label">연락처</span><span class="val">${p['연락처']}</span></div>
-                        <div class="box"><span class="label">사이즈</span><span class="val red">${p['사이즈']}</span></div>
-                        <div class="box"><span class="label">호감도</span><span class="val red">${p['나에대한 호감도']}</span></div>
-                        <div class="box"><span class="label">첫스킨십</span><span class="val">${p['첫스킨십']}</span></div>
-                        <div class="box"><span class="label">최근수위</span><span class="val">${p['최근수위']}</span></div>
-                        <div class="box"><span class="label">진척도</span><span class="val">${p['진척도']}</span></div>
-                        <div class="box"><span class="label">가성비</span><span class="val">${p['가성비']}</span></div>
-                        <div class="box"><span class="label">난이도</span><span class="val">${p['공략난이도']}</span></div>
-                    </div>
-
-                    <div class="memo" style="background:#fee2e2; border-color:#ef4444;"><strong>⚠️ 주의사항:</strong><br>${p['주의사항'] || '없음'}</div>
-                    <div class="memo"><strong>📝 공략계획:</strong><br>${p['공략계획'] || '-'}</div>
-                    <div class="memo blue-memo"><strong>🤝 공통화제:</strong><br>${p['공통화제'] || '-'}</div>
-
-                    <div style="margin-top:15px; font-size:11px; color:#94a3b8; text-align:right;">
-                        생일: ${p['생년월일']} | 최종확인: ${p['마지막 본날짜']}
-                    </div>
+        container.innerHTML = data.map(p => `
+            <div class="card">
+                <div class="name-row">
+                    <span class="name">${p['이름'] || '이름없음'}</span>
+                    <span class="sub-text">${p['소속']} | ${p['아이디']}</span>
                 </div>
-            `;
-        }).join('');
+
+                ${p._imgs.length > 0 ? `
+                <div class="photo-list">
+                    ${p._imgs.map(i => `
+                        <div class="photo-item">
+                            <img src="${i.path}" onerror="this.src='https://via.placeholder.com/120?text=No+Img'">
+                        </div>
+                    `).join('')}
+                </div>` : ''}
+
+                <div class="grid">
+                    <div class="box"><span class="label">연락처</span><span class="val">${p['연락처']}</span></div>
+                    <div class="box"><span class="label">사이즈</span><span class="val red">${p['사이즈']}</span></div>
+                    <div class="box"><span class="label">호감도</span><span class="val red">${p['나에대한 호감도']}</span></div>
+                    <div class="box"><span class="label">첫스킨십</span><span class="val">${p['첫스킨십']}</span></div>
+                    <div class="box"><span class="label">최근수위</span><span class="val">${p['최근수위']}</span></div>
+                    <div class="box"><span class="label">진척도</span><span class="val">${p['진척도']}</span></div>
+                    <div class="box"><span class="label">가성비</span><span class="val">${p['가성비']}</span></div>
+                    <div class="box"><span class="label">난이도</span><span class="val">${p['공략난이도']}</span></div>
+                </div>
+
+                <div class="memo" style="background:#fee2e2; border-color:#ef4444;"><strong>⚠️ 주의사항:</strong><br>${p['주의사항'] || '없음'}</div>
+                <div class="memo"><strong>📝 공략계획:</strong><br>${p['공략계획'] || '-'}</div>
+                <div class="memo blue-memo"><strong>🤝 공통화제:</strong><br>${p['공통화제'] || '-'}</div>
+
+                <div style="margin-top:15px; font-size:11px; color:#94a3b8; text-align:right;">
+                    생일: ${p['생년월일']} | 최종확인: ${p['마지막 본날짜']}
+                </div>
+            </div>
+        `).join('');
     }
 </script>
 </body>
