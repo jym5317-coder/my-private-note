@@ -185,12 +185,22 @@
     function runSearch() {
         const term = document.getElementById('searchInput').value.toLowerCase();
         const container = document.getElementById('list');
-        const filtered = masterDB.filter(p => (p['이름']||'').toLowerCase().includes(term) || (p['소속']||'').toLowerCase().includes(term));
+// 1. 기존 리스트를 완전히 비워서 섞임 방지
+    container.innerHTML = ""; 
+
+    const filtered = masterDB.filter(p => 
+        (p['이름'] || '').toLowerCase().includes(term) || 
+        (p['소속'] || '').toLowerCase().includes(term)
+    );
+    
+    // 2. 필터링된 데이터를 하나씩 독립된 카드로 생성
+    filtered.forEach(p => {
+        const realIdx = masterDB.indexOf(p);
         
-        container.innerHTML = filtered.map(p => {
-            const realIdx = masterDB.indexOf(p);
-            return `
-                <div class="card">
+        // 카드 틀 생성
+        const cardHtml = `
+            <div class="card" id="card-${realIdx}">
+                <div class="name-row">
                     <div class="name-row"><span class="name">${p['이름']}</span><span class="sub-text">${p['생년월일']}</span><span class="sub-text">${p['연락처']}</span><span class="sub-text">${p['소속']}</span></div>
                     
                     <div class="card-photo-tabs" id="tabs-${realIdx}"></div>
