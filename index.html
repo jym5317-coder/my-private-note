@@ -1,368 +1,44 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>인원관리 앱</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-</head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-  <div id="root"></div>
+<div id="mainContent">
+    <div class="filter-bar" id="filterBar">
+        <button class="f-btn active" onclick="filter('전체')">전체보기</button>
+    </div>
+    
+    <div style="padding: 10px 0;">
+        <input type="text" id="searchInput" placeholder="이름 또는 소속 검색..." 
+               style="width: 100%; box-sizing: border-box; margin-bottom: 0;"
+               onkeyup="searchData()">
+    </div>
 
-  <script>
-    // ===== 설정 =====
-    const PASSWORD = '1234'; // 비밀번호 변경 위치
+    <div id="list"></div>
+</div>
 
-    // ===== 전역 변수 =====
-    let csvData = [];
-    let currentPersonIndex = 0;
-    let photos = [];
-    let photoIndex = 0;
-    let isAuthenticated = false;
+<script>
+    // 기존 변수들...
+    let currentFilter = '전체';
 
-    // ===== 비밀번호 화면 =====
-    function showLoginScreen() {
-      document.getElementById('root').innerHTML = `
-        <div class="flex items-center justify-center min-h-screen p-4">
-          <div class="bg-white rounded-2xl shadow-2xl p-12 max-w-sm w-full">
-            <div class="text-center mb-8">
-              <div class="text-6xl mb-4">🔒</div>
-              <h1 class="text-2xl font-bold text-gray-800">보안 수첩 접속</h1>
-            </div>
-            
-            <div class="space-y-4">
-              <input 
-                type="password" 
-                id="passwordInput" 
-                placeholder="비밀번호"
-                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-center text-lg"
-                onkeypress="if(event.key==='Enter') unlock()"
-              />
-              
-              <button 
-                onclick="unlock()"
-                class="w-full px-4 py-3 bg-red-500 text-white font-bold text-lg rounded-lg hover:bg-red-600 transition"
-              >
-                열기
-              </button>
-              
-              <div id="errorMsg" class="text-red-600 text-center text-sm font-semibold" style="display: none;">
-                비밀번호가 틀렸습니다
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      // 포커스 자동
-      setTimeout(() => document.getElementById('passwordInput').focus(), 100);
-    }
+    // ... 기존 unlock, parseCSV, loadData 함수 동일 ...
 
-    function unlock() {
-      const input = document.getElementById('passwordInput').value;
-      if (input === PASSWORD) {
-        isAuthenticated = true;
-        init();
-      } else {
-        document.getElementById('errorMsg').style.display = 'block';
-        document.getElementById('passwordInput').value = '';
-        document.getElementById('passwordInput').focus();
-      }
-    }
-
-    // ===== 앱 초기화 =====
-    async function init() {
-      try {
-        const res = await fetch('인명.csv');
-        const text = await res.text();
+    // 검색 기능 함수
+    function searchData() {
+        const term = document.getElementById('searchInput').value.toLowerCase();
         
-        Papa.parse(text, {
-          header: true,
-          skipEmptyLines: true,
-          complete: (results) => {
-            console.log('CSV 파싱 완료:', results.data);
-            csvData = results.data.filter(row => row.아이디 && row.아이디.trim());
-            
-            if (csvData.length > 0) {
-              loadPersonPhotos(0);
-              render();
-            } else {
-              showError('데이터가 없습니다');
-            }
-          },
-          error: (error) => {
-            console.error('CSV 파싱 에러:', error);
-            showError(`CSV 파일을 읽을 수 없습니다: ${error.message}`);
-          }
+        // 현재 선택된 폴더 필터 + 검색어 필터 중복 적용
+        const filtered = masterDB.filter(p => {
+            const matchesFilter = currentFilter === '전체' || p._imgs.some(i => i.folder === currentFilter);
+            const matchesSearch = (p['이름'] || '').toLowerCase().includes(term) || 
+                                 (p['소속'] || '').toLowerCase().includes(term);
+            return matchesFilter && matchesSearch;
         });
-      } catch (e) {
-        console.error('파일 로드 에러:', e);
-        showError('인명.csv 파일을 찾을 수 없습니다');
-      }
+        
+        renderList(filtered, currentFilter);
     }
 
-    function showError(msg) {
-      document.getElementById('root').innerHTML = `
-        <div class="flex items-center justify-center min-h-screen">
-          <div class="text-center">
-            <div class="text-6xl mb-4">❌</div>
-            <p class="text-red-600 text-xl font-semibold">${msg}</p>
-          </div>
-        </div>
-      `;
+    // 기존 filter 함수 수정
+    function filter(fName) {
+        currentFilter = fName; // 현재 필터 상태 저장
+        document.querySelectorAll('.f-btn').forEach(b => 
+            b.classList.toggle('active', b.innerText === fName || (fName === '전체' && b.innerText === '전체보기'))
+        );
+        searchData(); // 검색어와 필터를 동시에 고려하여 렌더링
     }
-
-    function loadPersonPhotos(idx) {
-      currentPersonIndex = idx;
-      const person = csvData[idx];
-      const photoPath = person?.사진 || '';
-      
-      if (photoPath && photoPath.trim()) {
-        photos = photoPath
-          .split('|')
-          .map(p => p.trim())
-          .filter(Boolean)
-          .map(p => `img/${person.아이디}/${p}`);
-      } else {
-        photos = [];
-      }
-      
-      photoIndex = 0;
-    }
-
-    function render() {
-      const person = csvData[currentPersonIndex];
-      
-      let html = `
-        <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-          <div class="max-w-6xl mx-auto">
-            
-            <!-- 상단 탭 바 -->
-            <div class="mb-6">
-              <div class="flex gap-2 flex-wrap bg-white p-4 rounded-2xl shadow-lg overflow-x-auto">
-      `;
-      
-      csvData.forEach((person, idx) => {
-        const isActive = currentPersonIndex === idx;
-        html += `
-          <button 
-            onclick="selectPerson(${idx})"
-            class="px-6 py-3 rounded-full font-bold transition flex-shrink-0 whitespace-nowrap ${
-              isActive
-                ? 'bg-blue-500 text-white shadow-lg'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }"
-          >
-            ${person.아이디}
-          </button>
-        `;
-      });
-      
-      html += `
-              </div>
-            </div>
-
-            <!-- 메인 카드 -->
-            <div class="bg-white rounded-2xl shadow-2xl p-8">
-              
-              <!-- 제목 섹션 -->
-              <div class="mb-6 pb-6 border-b-2 border-gray-200">
-                <h2 class="text-4xl font-black text-gray-800">
-                  ${person.아이디}
-                </h2>
-                <p class="text-gray-500 text-sm mt-2">
-                  ${person.항목1 || ''} | ${person.항목2 || ''}
-                </p>
-              </div>
-
-              <!-- 사진 슬라이더 -->
-              <div class="mb-10">
-                <div class="bg-gray-100 p-6 rounded-xl">
-                  <!-- 사진 카드들 -->
-                  <div class="flex gap-4 overflow-x-auto pb-4 scroll-smooth">
-      `;
-      
-      for (let i = 0; i < 5; i++) {
-        const photoUrl = photos[photoIndex + i];
-        html += `
-          <div class="w-56 h-56 bg-gray-300 rounded-xl flex-shrink-0 overflow-hidden border-4 border-gray-400 relative">
-            ${photoUrl ? `
-              <img 
-                src="${photoUrl}" 
-                alt="사진 ${photoIndex + i + 1}" 
-                class="w-full h-full object-cover"
-                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-              />
-            ` : ''}
-            <div class="w-full h-full flex items-center justify-center text-gray-600 bg-gray-300 text-sm font-semibold" style="display: ${photoUrl ? 'none' : 'flex'}">
-              body
-            </div>
-            ${photoUrl ? `
-              <div class="absolute top-2 left-2 bg-gray-800 text-white text-xs font-bold px-3 py-1 rounded">
-                body
-              </div>
-            ` : ''}
-          </div>
-        `;
-      }
-      
-      html += `
-                  </div>
-
-                  <!-- 슬라이더 컨트롤 -->
-                  <div class="flex justify-between items-center mt-6">
-                    <button
-                      onclick="prevPhoto()"
-                      ${photoIndex === 0 ? 'disabled' : ''}
-                      class="text-2xl text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      ◀
-                    </button>
-                    
-                    <input 
-                      type="range" 
-                      min="0" 
-                      max="${Math.max(0, photos.length - 5)}"
-                      value="${photoIndex}"
-                      onchange="photoIndex = parseInt(this.value); render();"
-                      class="flex-1 mx-4 h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer"
-                    />
-                    
-                    <button
-                      onclick="nextPhoto()"
-                      ${photoIndex >= photos.length - 5 || photos.length === 0 ? 'disabled' : ''}
-                      class="text-2xl text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      ▶
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 데이터 섹션 -->
-              <div class="grid grid-cols-2 gap-6 mb-8">
-      `;
-      
-      // 항목1~8 표시
-      const dataItems = [
-        ['연락처', person.항목1],
-        ['사이즈', person.항목2],
-        ['호감도', person.항목3],
-        ['첫스킨십', person.항목4],
-        ['최근수위', person.최근수위],
-        ['진척도', person.진척도],
-        ['가성비', person.가성비],
-        ['난이도', person.난이도]
-      ];
-      
-      dataItems.forEach(([label, value]) => {
-        if (value && String(value).trim()) {
-          const isRed = ['호감도', '사이즈'].includes(label);
-          html += `
-            <div class="flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <span class="font-semibold text-gray-700">${label}</span>
-              <span class="font-bold ${isRed ? 'text-red-600' : 'text-gray-900'}">${value}</span>
-            </div>
-          `;
-        }
-      });
-      
-      html += `
-              </div>
-
-              <!-- 하단 3개 섹션 -->
-              <div class="space-y-4">
-      `;
-      
-      // 주의사항
-      if (person.주의사항 && String(person.주의사항).trim()) {
-        html += `
-          <div class="border-l-4 border-red-500 bg-red-50 p-4 rounded-lg">
-            <div class="flex items-start gap-3">
-              <span class="text-2xl">⚠️</span>
-              <div>
-                <h4 class="font-bold text-red-800">주의사항:</h4>
-                <p class="text-red-700 mt-1 whitespace-pre-wrap text-sm">${person.주의사항}</p>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-      
-      // 공략계획
-      if (person.공략계획 && String(person.공략계획).trim()) {
-        html += `
-          <div class="border-l-4 border-amber-500 bg-amber-50 p-4 rounded-lg">
-            <div class="flex items-start gap-3">
-              <span class="text-2xl">📋</span>
-              <div>
-                <h4 class="font-bold text-amber-800">공략계획:</h4>
-                <p class="text-amber-700 mt-1 whitespace-pre-wrap text-sm">${person.공략계획}</p>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-      
-      // 공통화제
-      if (person.공통화제 && String(person.공통화제).trim()) {
-        html += `
-          <div class="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-lg">
-            <div class="flex items-start gap-3">
-              <span class="text-2xl">❤️</span>
-              <div>
-                <h4 class="font-bold text-blue-800">공통화제:</h4>
-                <p class="text-blue-700 mt-1 whitespace-pre-wrap text-sm">${person.공통화제}</p>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-      
-      // 모두 비어있으면
-      if ((!person.주의사항 || !String(person.주의사항).trim()) &&
-          (!person.공략계획 || !String(person.공략계획).trim()) &&
-          (!person.공통화제 || !String(person.공통화제).trim())) {
-        html += `
-          <div class="text-center text-gray-400 py-6">
-            <p>추가 정보 없음</p>
-          </div>
-        `;
-      }
-      
-      html += `
-              </div>
-
-              <!-- 하단 정보 -->
-              <div class="mt-8 pt-6 border-t border-gray-200 text-right text-xs text-gray-500">
-                생일: ${person.항목9 || '-'} | 최종확인: ${person.항목10 || '-'}
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      document.getElementById('root').innerHTML = html;
-    }
-
-    function selectPerson(idx) {
-      loadPersonPhotos(idx);
-      render();
-    }
-
-    function prevPhoto() {
-      photoIndex = Math.max(0, photoIndex - 1);
-      render();
-    }
-
-    function nextPhoto() {
-      photoIndex = Math.min(Math.max(0, photos.length - 5), photoIndex + 1);
-      render();
-    }
-
-    // ===== 앱 시작 =====
-    window.addEventListener('load', showLoginScreen);
-  </script>
-</body>
-</html>
+</script>
