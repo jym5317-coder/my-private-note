@@ -1,97 +1,4 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔒 SMART 실전 전략 수첩</title>
-    <style>
-        :root { --메인: #e11d48; --포인트: #2563eb; --배경: #f1f5f9; }
-        body { font-family: 'Malgun Gothic', sans-serif; background: var(--배경); margin: 0; padding: 10px; color: #1e293b; }
-        
-        #auth-section { margin: 100px auto; text-align: center; max-width: 350px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 70%; margin-bottom: 10px; font-size: 16px; }
-        button { padding: 12px 20px; background: var(--메인); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 80%; }
-
-        #mainContent { max-width: 650px; margin: 0 auto; display: none; }
-        
-        /* 상단 고정 헤더 (검색창만 남김) */
-        .sticky-header { position: sticky; top: 0; background: var(--배경); z-index: 100; padding: 10px 0; }
-        .search-box { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 15px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-
-        /* 카드 내 사진 탭 스타일 */
-        .card-photo-tabs { display: flex; gap: 5px; margin-bottom: 8px; overflow-x: auto; scrollbar-width: none; }
-        .card-photo-tabs::-webkit-scrollbar { display: none; }
-        .p-btn { padding: 4px 12px; background: #e2e8f0; border: none; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: bold; color: #475569; transition: 0.2s; }
-        .p-btn.active { background: var(--포인트); color: white; }
-
-        /* 카드 스타일 */
-        .card { background: white; border-radius: 15px; padding: 18px; margin-bottom: 25px; box-shadow: 0 3px 12px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
-        .name-row { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 15px; }
-        .name { font-size: 1.4em; font-weight: 900; color: #000; }
-        .sub-text { font-size: 0.9em; color: #64748b; }
-
-        /* 사진 영역 */
-        .photo-list { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 5px; min-height: 120px; }
-        .photo-item { position: relative; flex: 0 0 120px; height: 120px; border-radius: 10px; overflow: hidden; background: #eee; border: 1px solid #ddd; }
-        .photo-item img { width: 100%; height: 100%; object-fit: cover; }
-
-        /* 데이터 그리드 */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .box { background: #f8fafc; padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 13px; border: 1px solid #f1f5f9; }
-        .label { color: #64748b; font-weight: bold; }
-        .val { color: #1e293b; font-weight: bold; text-align: right; }
-        .red { color: var(--메인); }
-
-        .memo { background: #fff7ed; border-left: 4px solid #fb923c; padding: 12px; font-size: 13px; margin-top: 10px; border-radius: 4px; white-space: pre-wrap; line-height: 1.6; }
-        .blue-memo { background: #f0f9ff; border-left-color: #0ea5e9; }
-    </style>
-</head>
-<body>
-
-    <div id="auth-section">
-        <h2>🔒 보안 수첩 접속</h2>
-        <input type="password" id="pw" placeholder="비밀번호" onkeypress="if(event.key==='Enter') unlock()">
-        <button onclick="unlock()">열기</button>
-    </div>
-
-    <div id="mainContent">
-        <div class="sticky-header">
-            <input type="text" id="searchInput" class="search-box" placeholder="이름 또는 소속 검색..." onkeyup="runSearch()">
-        </div>
-        <div id="list"></div>
-    </div>
-
-<script>
-    let masterDB = [];
-
-    window.onload = () => document.getElementById('pw').focus();
-
-    function unlock() {
-        if(document.getElementById('pw').value === "1234") {
-            document.getElementById('auth-section').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-            loadData();
-        } else { alert("비밀번호 틀림"); document.getElementById('pw').value=""; document.getElementById('pw').focus(); }
-    }
-
-    function parseCSV(text) {
-        const delimiter = text.includes('\t') ? '\t' : ',';
-        const rows = [];
-        let currRow = [], currCol = "", inQuotes = false;
-        for (let i = 0; i < text.length; i++) {
-            const c = text[i];
-            if (inQuotes && c === '"' && text[i+1] === '"') { currCol += '"'; i++; }
-            else if (c === '"') { inQuotes = !inQuotes; }
-            else if (c === delimiter && !inQuotes) { currRow.push(currCol.trim()); currCol = ""; }
-            else if ((c === '\n' || c === '\r') && !inQuotes) {
-                if (currCol !== "" || currRow.length > 0) { currRow.push(currCol.trim()); rows.push(currRow); currCol = ""; currRow = []; }
-            } else { currCol += c; }
-        }
-        if (currCol || currRow.length > 0) { currRow.push(currCol.trim()); rows.push(currRow); }
-        return rows;
-    }
-
-    async function loadData() {
+async function loadData() {
         try {
             const res = await fetch('인명.csv');
             const arrayBuffer = await res.arrayBuffer();
@@ -104,109 +11,26 @@
                 header.forEach((h, i) => obj[h] = r[i] || "");
                 
                 obj._imgs = [];
-                obj._folders = new Set(['전체']); // 각 카드별 폴더 목록
-                const personName = obj['이름'];
+                obj._folders = new Set(['전체']); 
+                const personName = obj['이름'] ? obj['이름'].trim() : "";
 
                 if (obj['사진파일'] && personName) {
-                    obj['사진파일'].replace(/^"|"$/g, '').split(',').forEach(p => {
-                        const relPath = p.trim();
+                    // [핵심수정] 따옴표 제거 및 쉼표 분할 로직 강화
+                    const rawPhotos = obj['사진파일'].replace(/^["']|["']$/g, ''); 
+                    rawPhotos.split(',').forEach(p => {
+                        const relPath = p.trim().replace(/^["']|["']$/g, ''); // 개별 경로의 따옴표 또 제거
                         if(relPath) {
                             const folder = relPath.includes('/') ? relPath.split('/')[0] : '기타';
                             obj._folders.add(folder);
-                            obj._imgs.push({ fullPath: `img/${personName}/${relPath}`, folder: folder });
+                            // 최종 경로 조립: img/이름/폴더/파일명
+                            const fullPath = `img/${personName}/${relPath}`;
+                            obj._imgs.push({ fullPath: fullPath, folder: folder });
                         }
                     });
                 }
-                // 카드의 초기 필터는 '전체'
                 obj._currentTab = '전체'; 
                 return obj;
             });
             runSearch();
         } catch (e) { alert("인명.csv 로드 실패"); }
     }
-
-    // 카드 내 탭 클릭 시 해당 카드의 사진만 다시 그림
-    function setCardTab(idx, folderName) {
-        masterDB[idx]._currentTab = folderName;
-        renderCardPhotos(idx);
-    }
-
-    // 특정 카드의 사진 영역만 업데이트
-    function renderCardPhotos(idx) {
-        const p = masterDB[idx];
-        const tabContainer = document.getElementById(`tabs-${idx}`);
-        const photoContainer = document.getElementById(`photos-${idx}`);
-        
-        // 탭 버튼 업데이트
-        tabContainer.innerHTML = Array.from(p._folders).map(f => `
-            <button class="p-btn ${p._currentTab === f ? 'active' : ''}" 
-                    onclick="setCardTab(${idx}, '${f}')">${f}</button>
-        `).join('');
-
-        // 사진 목록 업데이트
-        const displayImgs = p._currentTab === '전체' ? p._imgs : p._imgs.filter(img => img.folder === p._currentTab);
-        photoContainer.innerHTML = displayImgs.map(img => `
-            <div class="photo-item">
-                <img src="${img.fullPath}" onerror="this.src='https://via.placeholder.com/120?text=No+Img'">
-            </div>
-        `).join('');
-    }
-
-    function runSearch() {
-        const term = document.getElementById('searchInput').value.toLowerCase();
-        const filteredIndices = [];
-        masterDB.forEach((p, idx) => {
-            const matchesSearch = (p['이름'] || '').toLowerCase().includes(term) || (p['소속'] || '').toLowerCase().includes(term);
-            if(matchesSearch) filteredIndices.push(idx);
-        });
-        renderList(filteredIndices);
-    }
-
-    function renderList(indices) {
-        const container = document.getElementById('list');
-        if (indices.length === 0) {
-            container.innerHTML = "<p style='text-align:center; padding:50px;'>결과가 없습니다.</p>";
-            return;
-        }
-
-        container.innerHTML = indices.map(idx => {
-            const p = masterDB[idx];
-            return `
-                <div class="card">
-                    <div class="name-row">
-                        <span class="name">${p['이름'] || '이름없음'}</span>
-                        <span class="sub-text">${p['소속']} | ${p['아이디']}</span>
-                    </div>
-
-                    <div class="card-photo-tabs" id="tabs-${idx}"></div>
-                    
-                    <div class="photo-list" id="photos-${idx}"></div>
-
-                    <div class="grid">
-                        <div class="box"><span class="label">연락처</span><span class="val">${p['연락처']}</span></div>
-                        <div class="box"><span class="label">사이즈</span><span class="val red">${p['사이즈']}</span></div>
-                        <div class="box"><span class="label">호감도</span><span class="val red">${p['나에대한 호감도']}</span></div>
-                        <div class="box"><span class="label">첫스킨십</span><span class="val">${p['첫스킨십']}</span></div>
-                        <div class="box"><span class="label">최근수위</span><span class="val">${p['최근수위']}</span></div>
-                        <div class="box"><span class="label">진척도</span><span class="val">${p['진척도']}</span></div>
-                        <div class="box"><span class="label">가성비</span><span class="val">${p['가성비']}</span></div>
-                        <div class="box"><span class="label">난이도</span><span class="val">${p['공략난이도']}</span></div>
-                    </div>
-
-                    <div class="memo" style="background:#fee2e2; border-color:#ef4444;"><strong>⚠️ 주의사항:</strong><br>${p['주의사항'] || '없음'}</div>
-                    <div class="memo"><strong>📝 공략계획:</strong><br>${p['공략계획'] || '-'}</div>
-                    <div class="memo blue-memo"><strong>🤝 공통화제:</strong><br>${p['공통화제'] || '-'}</div>
-
-                    <div style="margin-top:15px; font-size:11px; color:#94a3b8; text-align:right;">
-                        생일: ${p['생년월일']} | 최종확인: ${p['마지막 본날짜']}
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        // 렌더링 후 각 카드의 사진과 탭 초기화
-        indices.forEach(idx => renderCardPhotos(idx));
-    }
-</script>
-</body>
-</html>
