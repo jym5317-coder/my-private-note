@@ -8,10 +8,10 @@
         :root { --메인: #e11d48; --포인트: #2563eb; --배경: #f1f5f9; }
         body { font-family: 'Malgun Gothic', sans-serif; background: var(--배경); margin: 0; padding: 10px; color: #1e293b; }
         
-        /* 보안 섹션 */
+        /* 보안 로그인 섹션 */
         #auth-section { margin: 100px auto; text-align: center; max-width: 350px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 70%; margin-bottom: 10px; font-size: 16px; }
-        button { padding: 12px 20px; background: var(--메인); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 80%; }
+        input[type="password"] { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 70%; margin-bottom: 10px; font-size: 16px; outline: none; }
+        .login-btn { padding: 12px 20px; background: var(--메인); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 80%; }
 
         #mainContent { max-width: 650px; margin: 0 auto; display: none; }
         
@@ -25,23 +25,23 @@
         .name { font-size: 1.4em; font-weight: 900; color: #000; }
         .sub-text { font-size: 0.85em; color: #64748b; }
 
-        /* [핵심] 탭 가로 스크롤: 무조건 한 줄 고정 및 옆으로 끌기 */
+        /* 탭 가로 스크롤 (한 줄 고정) */
         .card-photo-tabs { 
             display: flex !important; 
-            flex-wrap: nowrap !important;   /* 줄바꿈 절대 금지 */
+            flex-wrap: nowrap !important;
             gap: 6px; 
             margin: 12px 0; 
             padding: 2px 0 10px 0; 
-            overflow-x: auto !important;    /* 가로 스크롤 활성화 */
-            overflow-y: hidden !important;  /* 세로 넘침 방지 */
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
             width: 100%;
             -webkit-overflow-scrolling: touch;
         }
 
-        /* [핵심] 가변형 탭 버튼: 글자 길이에 맞춰 자동 조절 */
+        /* 탭 버튼 (글자 길이에 맞춤) */
         .p-btn { 
-            flex: 0 0 auto !important;      /* 찌그러짐 방지 */
-            min-width: fit-content;         /* 글자 길이에 맞춤 */
+            flex: 0 0 auto !important;
+            min-width: fit-content;
             padding: 5px 14px; 
             background: #ffffff; 
             border: 1px solid #cbd5e1; 
@@ -50,13 +50,12 @@
             font-size: 11px; 
             font-weight: bold; 
             color: #475569; 
-            white-space: nowrap !important; /* 버튼 내 글자 줄바꿈 금지 */
+            white-space: nowrap !important;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            transition: all 0.2s;
         }
         .p-btn.active { background: var(--포인트); color: white; border-color: var(--포인트); }
 
-        /* 사진 가로 스크롤 영역 */
+        /* 사진 가로 스크롤 */
         .photo-list { 
             display: flex !important; 
             flex-wrap: nowrap !important;
@@ -69,7 +68,7 @@
         .photo-item { flex: 0 0 120px; width: 120px; height: 120px; border-radius: 10px; overflow: hidden; background: #eee; border: 1px solid #ddd; }
         .photo-item img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* 데이터 그리드 확장 (항목 추가) */
+        /* 데이터 그리드 (가성비 포함) */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 15px; }
         .box { background: #f8fafc; padding: 8px 10px; border-radius: 6px; display: flex; justify-content: space-between; font-size: 12px; border: 1px solid #f1f5f9; align-items: center; }
         .label { color: #64748b; font-weight: bold; margin-right: 5px; white-space: nowrap; }
@@ -77,7 +76,7 @@
         .red { color: var(--메인); }
         .full { grid-column: span 2; }
 
-        /* 메모 및 주의사항 */
+        /* 메모 섹션 */
         .memo { background: #fff7ed; border-left: 4px solid #fb923c; padding: 10px; font-size: 12px; margin-top: 8px; border-radius: 4px; white-space: pre-wrap; line-height: 1.5; }
         .blue-memo { background: #f0f9ff; border-left-color: #0ea5e9; }
 
@@ -91,7 +90,7 @@
     <div id="auth-section">
         <h2>🔒 보안 수첩 접속</h2>
         <input type="password" id="pw" placeholder="비밀번호" onkeypress="if(event.key==='Enter') unlock()">
-        <button onclick="unlock()">열기</button>
+        <button class="login-btn" onclick="unlock()">열기</button>
     </div>
 
     <div id="mainContent">
@@ -104,12 +103,22 @@
 <script>
     let masterDB = [];
 
+    // [추가] 로드 시 바로 비밀번호 입력창 포커스
+    window.onload = () => {
+        const pwInput = document.getElementById('pw');
+        if(pwInput) pwInput.focus();
+    };
+
     function unlock() {
-        if(document.getElementById('pw').value === "1234") {
+        if(document.getElementById('pw').value === "1234") { // 비밀번호 설정
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
             loadData();
-        } else { alert("비밀번호 틀림"); }
+        } else { 
+            alert("비밀번호가 틀렸습니다."); 
+            document.getElementById('pw').value = "";
+            document.getElementById('pw').focus();
+        }
     }
 
     function parseCSV(text) {
@@ -159,7 +168,7 @@
                 return obj;
             });
             runSearch();
-        } catch (e) { alert("데이터 로드 실패"); }
+        } catch (e) { alert("인명.csv 파일을 찾을 수 없거나 불러오지 못했습니다."); }
     }
 
     function setCardTab(idx, folder) {
@@ -178,7 +187,7 @@
 
         const displayImgs = p._currentTab === '전체' ? p._imgs : p._imgs.filter(img => img.folder === p._currentTab);
         photoContainer.innerHTML = displayImgs.map(img => `
-            <div class="photo-item"><img src="${img.fullPath}" onerror="this.src='https://via.placeholder.com/120?text=실패'"></div>
+            <div class="photo-item"><img src="${img.fullPath}" onerror="this.src='https://via.placeholder.com/120?text=이미지없음'"></div>
         `).join('');
     }
 
@@ -191,33 +200,22 @@
             const realIdx = masterDB.indexOf(p);
             return `
                 <div class="card">
-                    <div class="name-row"><span class="name">${p['이름']}</span><span class="sub-text">${p['생년월일']}</span><span class="sub-text">${p['연락처']}</span><span class="sub-text">${p['소속']}</span></div>
+                    <div class="name-row"><span class="name">${p['이름']}</span><span class="sub-text">${p['소속']}</span></div>
                     
                     <div class="card-photo-tabs" id="tabs-${realIdx}"></div>
                     <div class="photo-list" id="photos-${realIdx}"></div>
                     
                     <div class="grid">
-                        <div class="box full"><span class="label">주소</span><span class="val">${p['주소'] || '-'}</span></div>
-                        <div class="box full"><span class="label">보유자료</span><span class="val red">${p['보유자료'] || '-'}</span></div>
+                        <div class="box"><span class="label">연락처</span><span class="val">${p['연락처'] || '-'}</span></div>
                         <div class="box"><span class="label">사이즈</span><span class="val red">${p['사이즈'] || '-'}</span></div>
-                        <div class="box"><span class="label">관찰동기</span><span class="val red">${p['관찰동기'] || '-'}</span></div>
-                        <div class="box"><span class="label">진척도</span><span class="val red">${p['진척도'] || '-'}</span></div>
-                        <div class="box"><span class="label">첫만남</span><span class="val red">${p['첫만남'] || '-'}</span></div>
-                        <div class="box"><span class="label">첫스킨십</span><span class="val red">${p['첫스킨십'] || '-'}</span></div>
-                        <div class="box"><span class="label">첫빠구리</span><span class="val red">${p['첫빠구리'] || '-'}</span></div>
-                        <div class="box"><span class="label">최근수위</span><span class="val red">${p['최근수위'] || '-'}</span></div>
-                        <div class="box"><span class="label">특이반응</span><span class="val red">${p['특이반응'] || '-'}</span></div>
                         <div class="box"><span class="label">호감도</span><span class="val red">${p['나에대한 호감도'] || '-'}</span></div>
-                        <div class="box"><span class="label">누적지출</span><span class="val">${p['누적지출'] || '-'}</span></div>
-                        <div class="box"><span class="label">주의사항</span><span class="val">${p['주의사항'] || '-'}</span></div>
-                        <div class="box"><span class="label">선호취향</span><span class="val">${p['선호취향'] || '-'}</span></div>
-                        <div class="box"><span class="label">마지막본날</span><span class="val">${p['마지막본날'] || '-'}</span></div>
-                        <div class="box"><span class="label">접근가능시간</span><span class="val">${p['접근가능시간'] || '-'}</span></div>
                         <div class="box"><span class="label">가성비</span><span class="val">${p['가성비'] || '-'}</span></div>
-                        <div class="box"><span class="label">경계인물</span><span class="val">${p['경계인물'] || '-'}</span></div>
-                        <div class="box"><span class="label">최근고민</span><span class="val">${p['최근고민'] || '-'}</span></div>
-                        <div class="box"><span class="label">난이도</span><span class="val">${p['공략난이도'] || '-'}</span></div>
-                        <div class="box full"><span class="label">노션링크</span><span class="val">${p['노션링크'] || '-'}</span></div>
+                        <div class="box"><span class="label">생일</span><span class="val">${p['생년월일'] || '-'}</span></div>
+                        <div class="box"><span class="label">최근수위</span><span class="val">${p['최근수위'] || '-'}</span></div>
+                        <div class="box"><span class="label">진척도</span><span class="val">${p['진척도'] || '-'}</span></div>
+                        <div class="box"><span class="label">공략난이도</span><span class="val">${p['공략난이도'] || '-'}</span></div>
+                        <div class="box full"><span class="label">주소</span><span class="val">${p['주소'] || '-'}</span></div>
+                        <div class="box full"><span class="label">특이사항</span><span class="val">${p['특이반응'] || '-'}</span></div>
                     </div>
 
                     <div class="memo"><strong>📝 공략계획:</strong><br>${p['공략계획'] || '-'}</div>
