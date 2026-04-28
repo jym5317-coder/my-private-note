@@ -8,45 +8,55 @@
         :root { --메인: #e11d48; --포인트: #2563eb; --배경: #f1f5f9; }
         body { font-family: 'Malgun Gothic', sans-serif; background: var(--배경); margin: 0; padding: 10px; color: #1e293b; }
         
+        /* 보안 섹션 */
         #auth-section { margin: 100px auto; text-align: center; max-width: 350px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 70%; margin-bottom: 10px; font-size: 16px; }
         button { padding: 12px 20px; background: var(--메인); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 80%; }
 
         #mainContent { max-width: 650px; margin: 0 auto; display: none; }
+        
+        /* 검색창 고정 */
         .sticky-header { position: sticky; top: 0; background: var(--배경); z-index: 1000; padding: 10px 0; }
-        .search-box { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 15px; outline: none; }
+        .search-box { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 15px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
-        /* 탭 영역: 한 줄 고정 및 가로 스크롤 */
+        /* 카드 스타일 */
+        .card { background: white; border-radius: 15px; padding: 18px; margin-bottom: 25px; box-shadow: 0 3px 12px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; overflow: hidden; }
+        .name-row { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 15px; }
+        .name { font-size: 1.4em; font-weight: 900; color: #000; }
+        .sub-text { font-size: 0.85em; color: #64748b; }
+
+        /* [핵심] 탭 가로 스크롤: 무조건 한 줄 고정 및 옆으로 끌기 */
         .card-photo-tabs { 
             display: flex !important; 
-            flex-wrap: nowrap !important;
+            flex-wrap: nowrap !important;   /* 줄바꿈 절대 금지 */
             gap: 6px; 
             margin: 12px 0; 
-            padding: 5px 0 10px 0; 
-            overflow-x: auto !important; 
-            overflow-y: hidden !important; 
+            padding: 2px 0 10px 0; 
+            overflow-x: auto !important;    /* 가로 스크롤 활성화 */
+            overflow-y: hidden !important;  /* 세로 넘침 방지 */
             width: 100%;
             -webkit-overflow-scrolling: touch;
         }
 
-        /* [수정] 탭 버튼: 글자 길이에 맞춰 너비 자동 조절 */
+        /* [핵심] 가변형 탭 버튼: 글자 길이에 맞춰 자동 조절 */
         .p-btn { 
-            flex: 0 0 auto !important; /* 찌그러짐 방지 */
-            min-width: fit-content;    /* 글자 크기에 맞춤 */
-            padding: 5px 12px; 
+            flex: 0 0 auto !important;      /* 찌그러짐 방지 */
+            min-width: fit-content;         /* 글자 길이에 맞춤 */
+            padding: 5px 14px; 
             background: #ffffff; 
             border: 1px solid #cbd5e1; 
             border-radius: 15px; 
             cursor: pointer; 
-            font-size: 11px;           /* 글자 살짝 작게 */
+            font-size: 11px; 
             font-weight: bold; 
             color: #475569; 
-            white-space: nowrap !important; 
+            white-space: nowrap !important; /* 버튼 내 글자 줄바꿈 금지 */
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            transition: all 0.2s;
         }
         .p-btn.active { background: var(--포인트); color: white; border-color: var(--포인트); }
 
-        /* 사진 영역 */
+        /* 사진 가로 스크롤 영역 */
         .photo-list { 
             display: flex !important; 
             flex-wrap: nowrap !important;
@@ -59,22 +69,19 @@
         .photo-item { flex: 0 0 120px; width: 120px; height: 120px; border-radius: 10px; overflow: hidden; background: #eee; border: 1px solid #ddd; }
         .photo-item img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* 카드 및 데이터 그리드 확장 */
-        .card { background: white; border-radius: 15px; padding: 18px; margin-bottom: 25px; box-shadow: 0 3px 12px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; overflow: hidden; }
-        .name-row { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 15px; }
-        .name { font-size: 1.4em; font-weight: 900; }
-        .sub-text { font-size: 0.85em; color: #64748b; }
-
-        /* [수정] 항목 표시 영역: 2단 그리드로 더 많은 항목 표시 */
+        /* 데이터 그리드 확장 (항목 추가) */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 15px; }
-        .box { background: #f8fafc; padding: 8px 10px; border-radius: 6px; display: flex; justify-content: space-between; font-size: 12px; border: 1px solid #f1f5f9; }
-        .label { color: #64748b; font-weight: bold; margin-right: 5px; }
+        .box { background: #f8fafc; padding: 8px 10px; border-radius: 6px; display: flex; justify-content: space-between; font-size: 12px; border: 1px solid #f1f5f9; align-items: center; }
+        .label { color: #64748b; font-weight: bold; margin-right: 5px; white-space: nowrap; }
         .val { color: #1e293b; font-weight: bold; text-align: right; word-break: break-all; }
         .red { color: var(--메인); }
-        .full { grid-column: span 2; } /* 주소 같이 긴 항목용 */
+        .full { grid-column: span 2; }
 
+        /* 메모 및 주의사항 */
         .memo { background: #fff7ed; border-left: 4px solid #fb923c; padding: 10px; font-size: 12px; margin-top: 8px; border-radius: 4px; white-space: pre-wrap; line-height: 1.5; }
-        
+        .blue-memo { background: #f0f9ff; border-left-color: #0ea5e9; }
+
+        /* 스크롤바 디자인 */
         .card-photo-tabs::-webkit-scrollbar, .photo-list::-webkit-scrollbar { height: 4px; }
         .card-photo-tabs::-webkit-scrollbar-thumb, .photo-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
@@ -132,12 +139,15 @@
             masterDB = rows.slice(1).map(r => {
                 let obj = {};
                 header.forEach((h, i) => obj[h] = r[i] || "");
+                
                 obj._imgs = [];
                 obj._folders = new Set(['전체']);
                 const name = obj['이름'] ? obj['이름'].trim() : "";
+
                 if (obj['사진파일'] && name) {
-                    obj['사진파일'].replace(/^"|"$/g, '').split(',').forEach(p => {
-                        const path = p.trim().replace(/^"|"$/g, '');
+                    const raw = obj['사진파일'].replace(/^["']|["']$/g, '');
+                    raw.split(',').forEach(p => {
+                        const path = p.trim().replace(/^["']|["']$/g, '');
                         if(path) {
                             const folder = path.includes('/') ? path.split('/')[0] : '기타';
                             obj._folders.add(folder);
@@ -168,7 +178,7 @@
 
         const displayImgs = p._currentTab === '전체' ? p._imgs : p._imgs.filter(img => img.folder === p._currentTab);
         photoContainer.innerHTML = displayImgs.map(img => `
-            <div class="photo-item"><img src="${img.fullPath}" onerror="this.src='https://via.placeholder.com/120?text=로드실패'"></div>
+            <div class="photo-item"><img src="${img.fullPath}" onerror="this.src='https://via.placeholder.com/120?text=실패'"></div>
         `).join('');
     }
 
@@ -182,6 +192,7 @@
             return `
                 <div class="card">
                     <div class="name-row"><span class="name">${p['이름']}</span><span class="sub-text">${p['소속']}</span></div>
+                    
                     <div class="card-photo-tabs" id="tabs-${realIdx}"></div>
                     <div class="photo-list" id="photos-${realIdx}"></div>
                     
@@ -189,15 +200,19 @@
                         <div class="box"><span class="label">연락처</span><span class="val">${p['연락처'] || '-'}</span></div>
                         <div class="box"><span class="label">사이즈</span><span class="val red">${p['사이즈'] || '-'}</span></div>
                         <div class="box"><span class="label">호감도</span><span class="val red">${p['나에대한 호감도'] || '-'}</span></div>
-                        <div class="box"><span class="label">가성비</span><span class="val">${p['가성비'] || '-'}</span></div>
                         <div class="box"><span class="label">생일</span><span class="val">${p['생년월일'] || '-'}</span></div>
                         <div class="box"><span class="label">최근수위</span><span class="val">${p['최근수위'] || '-'}</span></div>
+                        <div class="box"><span class="label">진척도</span><span class="val">${p['진척도'] || '-'}</span></div>
                         <div class="box full"><span class="label">주소</span><span class="val">${p['주소'] || '-'}</span></div>
-                        <div class="box full"><span class="label">특이사항</span><span class="val">${p['특이반응'] || '-'}</span></div>
+                        <div class="box full"><span class="label">특이반응</span><span class="val">${p['특이반응'] || '-'}</span></div>
                     </div>
 
                     <div class="memo"><strong>📝 공략계획:</strong><br>${p['공략계획'] || '-'}</div>
-                    <div class="memo" style="background:#f0f9ff; border-left-color:#0ea5e9;"><strong>🤝 공통화제:</strong><br>${p['공통화제'] || '-'}</div>
+                    <div class="memo blue-memo"><strong>🤝 공통화제:</strong><br>${p['공통화제'] || '-'}</div>
+                    
+                    <div style="text-align:right; font-size:10px; color:#94a3b8; margin-top:10px;">
+                        최종확인: ${p['마지막 본날짜'] || '-'}
+                    </div>
                 </div>`;
         }).join('');
         filtered.forEach(p => renderCardPhotos(masterDB.indexOf(p)));
