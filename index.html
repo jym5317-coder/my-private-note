@@ -1,42 +1,51 @@
-/* 카드 내부 사진 탭 스타일 개선 */
+/* 1. 탭 컨테이너: 높이를 고정하고 한 줄로 강제 정렬 */
 .card-photo-tabs { 
     display: flex; 
-    gap: 8px;               /* 버튼 사이 간격 */
-    margin: 10px 0; 
-    padding: 5px 2px;       /* 위아래 여백 */
-    overflow-x: auto;       /* 가로 스크롤 활성화 */
-    white-space: nowrap;    /* 줄바꿈 방지 */
-    -webkit-overflow-scrolling: touch; /* 모바일에서 부드러운 스크롤 */
+    gap: 8px; 
+    margin: 12px 0; 
+    padding: 2px 0 8px 0;   /* 아래쪽에 스크롤 공간 확보 */
+    overflow-x: auto;       /* 가로 스크롤 허용 */
+    overflow-y: hidden;     /* 세로로 삐져나오는 것 차단 (깨짐 방지 핵심) */
+    white-space: nowrap;    /* 내부 요소 줄바꿈 절대 금지 */
+    -webkit-overflow-scrolling: touch; 
+    align-items: center;    /* 버튼들 높이 중앙 정렬 */
 }
 
-/* 스크롤바 디자인 (너무 안 보이면 답답하니까 살짝 표시) */
-.card-photo-tabs::-webkit-scrollbar {
-    height: 4px;            /* 아주 얇은 스크롤바 */
-}
-.card-photo-tabs::-webkit-scrollbar-thumb {
-    background: #cbd5e1;    /* 연한 회색 바 */
-    border-radius: 10px;
-}
-.card-photo-tabs::-webkit-scrollbar-track {
-    background: transparent;
-}
-
+/* 2. 탭 버튼: 크기와 형태를 단단하게 고정 */
 .p-btn { 
-    padding: 6px 15px; 
+    flex: 0 0 auto;         /* [필수] 공간이 좁아도 절대 크기를 줄이지 않음 */
+    padding: 6px 14px; 
     background: #ffffff; 
     border: 1px solid #e2e8f0; 
-    border-radius: 20px;    /* 둥글게 */
+    border-radius: 20px; 
     cursor: pointer; 
     font-size: 12px; 
     font-weight: bold; 
     color: #475569; 
-    flex-shrink: 0;         /* [중요] 버튼이 찌그러지지 않게 방지 */
+    display: inline-block;  /* 블록 요소화해서 정렬 유지 */
+    line-height: 1;         /* 텍스트 높이 일정하게 */
     transition: all 0.2s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-.p-btn.active { 
-    background: var(--포인트); 
-    color: white; 
-    border-color: var(--포인트);
+/* 3. 사진 리스트: 영역을 확실히 확보해서 아래 그리드를 밀지 않게 함 */
+.photo-list { 
+    display: flex; 
+    gap: 12px; 
+    overflow-x: auto; 
+    overflow-y: hidden;     /* 세로 넘침 방지 */
+    margin-bottom: 15px; 
+    padding-bottom: 5px; 
+    min-height: 125px;      /* 사진 영역 높이 고정 */
+}
+
+/* 4. 스크롤바가 레이아웃을 가리지 않게 아주 얇게 설정 */
+.card-photo-tabs::-webkit-scrollbar,
+.photo-list::-webkit-scrollbar {
+    height: 4px;
+}
+.card-photo-tabs::-webkit-scrollbar-thumb,
+.photo-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
 }
