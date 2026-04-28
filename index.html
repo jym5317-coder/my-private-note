@@ -14,16 +14,14 @@
 
         #mainContent { max-width: 650px; margin: 0 auto; display: none; }
         
-        /* 상단 고정 헤더 */
         .sticky-header { position: sticky; top: 0; background: var(--배경); z-index: 100; padding-bottom: 10px; }
-        .filter-bar { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; -ms-overflow-style: none; }
+        .filter-bar { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
         .filter-bar::-webkit-scrollbar { display: none; }
-        .f-btn { padding: 8px 16px; background: white; border: 1px solid #ccc; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 13px; font-weight: bold; transition: 0.2s; }
+        .f-btn { padding: 8px 16px; background: white; border: 1px solid #ccc; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 13px; font-weight: bold; }
         .f-btn.active { background: var(--포인트); color: white; border-color: var(--포인트); }
         
         .search-box { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 15px; outline: none; }
 
-        /* 카드 및 데이터 그리드 */
         .card { background: white; border-radius: 15px; padding: 18px; margin-bottom: 25px; box-shadow: 0 3px 12px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
         .name-row { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 15px; }
         .name { font-size: 1.4em; font-weight: 900; color: #000; }
@@ -32,6 +30,7 @@
         .photo-list { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 5px; }
         .photo-item { position: relative; flex: 0 0 120px; height: 120px; border-radius: 10px; overflow: hidden; background: #eee; border: 1px solid #ddd; }
         .photo-item img { width: 100%; height: 100%; object-fit: cover; }
+        .tag { position: absolute; top: 0; left: 0; background: rgba(0,0,0,0.7); color: white; font-size: 10px; padding: 2px 6px; border-bottom-right-radius: 8px; z-index: 1; }
 
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
         .box { background: #f8fafc; padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 13px; border: 1px solid #f1f5f9; }
@@ -63,7 +62,7 @@
 
 <script>
     let masterDB = [];
-    let nameList = []; 
+    let photoFolders = new Set(); // 사진 폴더명 목록 (body, day 등)
     let currentFilter = '전체';
 
     window.onload = () => document.getElementById('pw').focus();
@@ -105,17 +104,15 @@
                 let obj = {};
                 header.forEach((h, i) => obj[h] = r[i] || "");
                 
-                // 이름 목록 추출
-                if (obj['이름'] && !nameList.includes(obj['이름'])) nameList.push(obj['이름']);
-
                 obj._imgs = [];
                 if (obj['사진파일']) {
-                    // 쉼표로 구분된 파일들 처리
                     obj['사진파일'].replace(/^"|"$/g, '').split(',').forEach(p => {
                         const path = p.trim();
                         if(path) {
-                            // 실제 구조인 img/폴더명/파일명.jpg 형태로 결합
-                            obj._imgs.push("img/" + path); 
+                            // 경로에서 폴더명 추출 (예: body/file.jpg -> body)
+                            const folder = path.includes('/') ? path.split('/')[0] : '기타';
+                            photoFolders.add(folder);
+                            obj._imgs.push({ fullPath: "img/" + path, folder: folder });
                         }
                     });
                 }
@@ -129,29 +126,34 @@
 
     function renderFilters() {
         const bar = document.getElementById('filterBar');
-        nameList.forEach(name => {
+        // 추출된 폴더명(body, day 등)으로 탭 생성
+        Array.from(photoFolders).sort().forEach(folder => {
             const btn = document.createElement('button');
             btn.className = 'f-btn';
-            btn.innerText = name;
-            btn.onclick = () => setFilter(name);
+            btn.innerText = folder;
+            btn.onclick = () => setFilter(folder);
             bar.appendChild(btn);
         });
     }
 
-    function setFilter(name) {
-        currentFilter = name;
+    function setFilter(folderName) {
+        currentFilter = folderName;
         document.querySelectorAll('.f-btn').forEach(b => {
-            b.classList.toggle('active', b.innerText === name || (name === '전체' && b.innerText === '전체보기'));
+            b.classList.toggle('active', b.innerText === folderName || (folderName === '전체' && b.innerText === '전체보기'));
         });
         runSearch();
     }
 
     function runSearch() {
         const term = document.getElementById('searchInput').value.toLowerCase();
+        
+        // 필터링 로직: 
+        // 1. 선택된 탭(폴더)에 해당하는 사진이 하나라도 있는 사람
+        // 2. 검색어 매칭
         const filtered = masterDB.filter(p => {
-            const matchesFilter = (currentFilter === '전체') || (p['이름'] === currentFilter);
+            const hasMatchingPhoto = (currentFilter === '전체') || p._imgs.some(img => img.folder === currentFilter);
             const matchesSearch = (p['이름'] || '').toLowerCase().includes(term) || (p['소속'] || '').toLowerCase().includes(term);
-            return matchesFilter && matchesSearch;
+            return hasMatchingPhoto && matchesSearch;
         });
         renderList(filtered);
     }
@@ -159,38 +161,48 @@
     function renderList(data) {
         const container = document.getElementById('list');
         container.innerHTML = data.length === 0 ? "<p style='text-align:center; padding:50px;'>결과가 없습니다.</p>" : 
-        data.map(p => `
-            <div class="card">
-                <div class="name-row">
-                    <span class="name">${p['이름'] || '이름없음'}</span>
-                    <span class="sub-text">${p['소속']} | ${p['아이디']}</span>
+        data.map(p => {
+            // 현재 탭에 맞는 사진만 걸러서 보여줌
+            const displayImgs = currentFilter === '전체' ? p._imgs : p._imgs.filter(img => img.folder === currentFilter);
+            
+            return `
+                <div class="card">
+                    <div class="name-row">
+                        <span class="name">${p['이름'] || '이름없음'}</span>
+                        <span class="sub-text">${p['소속']} | ${p['아이디']}</span>
+                    </div>
+
+                    ${displayImgs.length > 0 ? `
+                    <div class="photo-list">
+                        ${displayImgs.map(img => `
+                            <div class="photo-item">
+                                <span class="tag">${img.folder}</span>
+                                <img src="${img.fullPath}" onerror="this.src='https://via.placeholder.com/120?text=No+Img'">
+                            </div>
+                        `).join('')}
+                    </div>` : ''}
+
+                    <div class="grid">
+                        <div class="box"><span class="label">연락처</span><span class="val">${p['연락처']}</span></div>
+                        <div class="box"><span class="label">사이즈</span><span class="val red">${p['사이즈']}</span></div>
+                        <div class="box"><span class="label">호감도</span><span class="val red">${p['나에대한 호감도']}</span></div>
+                        <div class="box"><span class="label">첫스킨십</span><span class="val">${p['첫스킨십']}</span></div>
+                        <div class="box"><span class="label">최근수위</span><span class="val">${p['최근수위']}</span></div>
+                        <div class="box"><span class="label">진척도</span><span class="val">${p['진척도']}</span></div>
+                        <div class="box"><span class="label">가성비</span><span class="val">${p['가성비']}</span></div>
+                        <div class="box"><span class="label">난이도</span><span class="val">${p['공략난이도']}</span></div>
+                    </div>
+
+                    <div class="memo" style="background:#fee2e2; border-color:#ef4444;"><strong>⚠️ 주의사항:</strong><br>${p['주의사항'] || '없음'}</div>
+                    <div class="memo"><strong>📝 공략계획:</strong><br>${p['공략계획'] || '-'}</div>
+                    <div class="memo blue-memo"><strong>🤝 공통화제:</strong><br>${p['공통화제'] || '-'}</div>
+
+                    <div style="margin-top:15px; font-size:11px; color:#94a3b8; text-align:right;">
+                        생일: ${p['생년월일']} | 최종확인: ${p['마지막 본날짜']}
+                    </div>
                 </div>
-
-                ${p._imgs.length > 0 ? `
-                <div class="photo-list">
-                    ${p._imgs.map(path => `<div class="photo-item"><img src="${path}" onerror="this.src='https://via.placeholder.com/120?text=No+Img'"></div>`).join('')}
-                </div>` : ''}
-
-                <div class="grid">
-                    <div class="box"><span class="label">연락처</span><span class="val">${p['연락처']}</span></div>
-                    <div class="box"><span class="label">사이즈</span><span class="val red">${p['사이즈']}</span></div>
-                    <div class="box"><span class="label">호감도</span><span class="val red">${p['나에대한 호감도']}</span></div>
-                    <div class="box"><span class="label">첫스킨십</span><span class="val">${p['첫스킨십']}</span></div>
-                    <div class="box"><span class="label">최근수위</span><span class="val">${p['최근수위']}</span></div>
-                    <div class="box"><span class="label">진척도</span><span class="val">${p['진척도']}</span></div>
-                    <div class="box"><span class="label">가성비</span><span class="val">${p['가성비']}</span></div>
-                    <div class="box"><span class="label">난이도</span><span class="val">${p['공략난이도']}</span></div>
-                </div>
-
-                <div class="memo" style="background:#fee2e2; border-color:#ef4444;"><strong>⚠️ 주의사항:</strong><br>${p['주의사항'] || '없음'}</div>
-                <div class="memo"><strong>📝 공략계획:</strong><br>${p['공략계획'] || '-'}</div>
-                <div class="memo blue-memo"><strong>🤝 공통화제:</strong><br>${p['공통화제'] || '-'}</div>
-
-                <div style="margin-top:15px; font-size:11px; color:#94a3b8; text-align:right;">
-                    생일: ${p['생년월일']} | 최종확인: ${p['마지막 본날짜']}
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 </script>
 </body>
