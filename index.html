@@ -8,14 +8,12 @@
         :root { --메인: #e11d48; --포인트: #2563eb; --배경: #f1f5f9; }
         body { font-family: 'Malgun Gothic', sans-serif; background: var(--배경); margin: 0; padding: 10px; color: #1e293b; }
         
-        /* 인증 */
         #auth-section { margin: 100px auto; text-align: center; max-width: 350px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 70%; margin-bottom: 10px; font-size: 16px; }
         button { padding: 12px 20px; background: var(--메인); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 80%; }
 
         #mainContent { max-width: 650px; margin: 0 auto; display: none; }
         
-        /* 필터 및 검색바 */
         .sticky-header { position: sticky; top: 0; background: var(--배경); z-index: 100; padding-bottom: 10px; }
         .filter-bar { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; }
         .f-btn { padding: 8px 16px; background: white; border: 1px solid #ccc; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 13px; font-weight: bold; }
@@ -24,26 +22,22 @@
         .search-box { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 15px; outline: none; }
         .search-box:focus { border-color: var(--포인트); }
 
-        /* 카드 */
         .card { background: white; border-radius: 15px; padding: 18px; margin-bottom: 25px; box-shadow: 0 3px 12px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
         .name-row { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 15px; }
         .name { font-size: 1.4em; font-weight: 900; color: #000; }
         .sub-text { font-size: 0.9em; color: #64748b; }
 
-        /* 사진 */
         .photo-list { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 5px; }
         .photo-item { position: relative; flex: 0 0 120px; height: 120px; border-radius: 10px; overflow: hidden; background: #eee; border: 1px solid #ddd; }
-        .photo-item img { width: 100%; height: 100%; object-fit: cover; }
-        .tag { position: absolute; top: 0; left: 0; background: rgba(0,0,0,0.7); color: white; font-size: 10px; padding: 2px 6px; border-bottom-right-radius: 8px; }
+        .photo-item img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+        .tag { position: absolute; top: 0; left: 0; background: rgba(0,0,0,0.7); color: white; font-size: 10px; padding: 2px 6px; border-bottom-right-radius: 8px; z-index: 1; }
 
-        /* 데이터 그리드 */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
         .box { background: #f8fafc; padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 13px; border: 1px solid #f1f5f9; }
         .label { color: #64748b; font-weight: bold; }
         .val { color: #1e293b; font-weight: bold; text-align: right; }
         .red { color: var(--메인); }
 
-        /* 긴 텍스트 */
         .memo { background: #fff7ed; border-left: 4px solid #fb923c; padding: 12px; font-size: 13px; margin-top: 10px; border-radius: 4px; white-space: pre-wrap; line-height: 1.6; }
         .blue-memo { background: #f0f9ff; border-left-color: #0ea5e9; }
     </style>
@@ -69,7 +63,7 @@
 <script>
     let masterDB = [];
     let folders = new Set();
-    let currentFilter = '전체'; // 현재 선택된 폴더 저장용
+    let currentFilter = '전체';
 
     function unlock() {
         if(document.getElementById('pw').value === "1234") {
@@ -85,7 +79,6 @@
         let currRow = [];
         let currCol = "";
         let inQuotes = false;
-
         for (let i = 0; i < text.length; i++) {
             const c = text[i];
             if (inQuotes && c === '"' && text[i+1] === '"') { currCol += '"'; i++; }
@@ -122,9 +115,11 @@
                     obj['사진파일'].split(',').forEach(p => {
                         const path = p.trim().replace(/^"|"$/g, '');
                         if(path) {
-                            const f = path.includes('/') ? path.split('/')[0] : '기본';
-                            folders.add(f);
-                            obj._imgs.push({ path, folder: f });
+                            // img/이름/body/파일명.jpg 에서 '이름' 추출
+                            const pathParts = path.split('/');
+                            const folderName = pathParts.length > 1 ? pathParts[1] : '기본';
+                            folders.add(folderName);
+                            obj._imgs.push({ path: path, folder: folderName });
                         }
                     });
                 }
@@ -132,13 +127,12 @@
             });
 
             renderFilters();
-            runSearch(); // 초기 렌더링
+            runSearch();
         } catch (e) { alert("인명.csv 파일을 읽지 못했습니다."); }
     }
 
     function renderFilters() {
         const bar = document.getElementById('filterBar');
-        // '전체보기' 버튼은 유지하고 폴더 버튼들 추가
         folders.forEach(f => {
             const btn = document.createElement('button');
             btn.className = 'f-btn';
@@ -148,7 +142,6 @@
         });
     }
 
-    // 필터를 클릭했을 때 상태를 저장하고 검색 실행
     function setFilter(fName) {
         currentFilter = fName;
         document.querySelectorAll('.f-btn').forEach(b => {
@@ -159,32 +152,28 @@
         runSearch();
     }
 
-    // 검색어 + 필터를 합쳐서 결과를 보여주는 핵심 함수
     function runSearch() {
         const term = document.getElementById('searchInput').value.toLowerCase();
-        
         const filtered = masterDB.filter(p => {
-            // 1. 폴더 필터링
             const matchesFolder = (currentFilter === '전체') || p._imgs.some(i => i.folder === currentFilter);
-            // 2. 이름/소속 검색어 필터링
             const matchesSearch = (p['이름'] || '').toLowerCase().includes(term) || 
                                  (p['소속'] || '').toLowerCase().includes(term);
-            
             return matchesFolder && matchesSearch;
         });
-
         renderList(filtered, currentFilter);
     }
 
     function renderList(data, currentF) {
         const container = document.getElementById('list');
         if (data.length === 0) {
-            container.innerHTML = "<p style='text-align:center; padding:50px; color:#94a3b8;'>검색 결과가 없습니다.</p>";
+            container.innerHTML = "<p style='text-align:center; padding:50px; color:#94a3b8;'>결과가 없습니다.</p>";
             return;
         }
 
         container.innerHTML = data.map(p => {
+            // 필터링된 상태면 해당 폴더 사진만, 전체보기면 모든 사진 표시
             const targetPics = currentF === '전체' ? p._imgs : p._imgs.filter(i => i.folder === currentF);
+            
             return `
                 <div class="card">
                     <div class="name-row">
@@ -194,7 +183,12 @@
 
                     ${targetPics.length > 0 ? `
                     <div class="photo-list">
-                        ${targetPics.map(i => `<div class="photo-item"><span class="tag">${i.folder}</span><img src="${i.path}" onerror="this.src='https://via.placeholder.com/120?text=No+Img'"></div>`).join('')}
+                        ${targetPics.map(i => `
+                            <div class="photo-item">
+                                <span class="tag">${i.folder}</span>
+                                <img src="${i.path}" onerror="this.src='https://via.placeholder.com/120?text=No+Img'">
+                            </div>
+                        `).join('')}
                     </div>` : ''}
 
                     <div class="grid">
