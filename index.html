@@ -1,20 +1,21 @@
-/* 1. 탭 컨테이너: 높이를 고정하고 한 줄로 강제 정렬 */
+/* 1. 탭 컨테이너: 높이를 딱 고정해서 아래를 절대 밀지 못하게 함 */
 .card-photo-tabs { 
-    display: flex; 
+    display: flex !important; 
     gap: 8px; 
-    margin: 12px 0; 
-    padding: 2px 0 8px 0;   /* 아래쪽에 스크롤 공간 확보 */
-    overflow-x: auto;       /* 가로 스크롤 허용 */
-    overflow-y: hidden;     /* 세로로 삐져나오는 것 차단 (깨짐 방지 핵심) */
-    white-space: nowrap;    /* 내부 요소 줄바꿈 절대 금지 */
-    -webkit-overflow-scrolling: touch; 
-    align-items: center;    /* 버튼들 높이 중앙 정렬 */
+    margin: 10px 0; 
+    padding: 5px 0 10px 0;  /* 아래쪽 여백을 줘서 스크롤바 공간 확보 */
+    overflow-x: auto !important; /* 가로 스크롤 강제 */
+    overflow-y: hidden !important; /* 세로로 커지는 것 절대 차단 */
+    white-space: nowrap !important; /* 내부 버튼들이 다음 줄로 넘어가는 것 방지 */
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+    align-items: center;
 }
 
-/* 2. 탭 버튼: 크기와 형태를 단단하게 고정 */
+/* 2. 탭 버튼: 글자가 길어도 한 줄로 고정하고 크기를 보호함 */
 .p-btn { 
-    flex: 0 0 auto;         /* [필수] 공간이 좁아도 절대 크기를 줄이지 않음 */
-    padding: 6px 14px; 
+    flex: 0 0 auto !important; /* 공간이 부족해도 절대 줄어들거나 찌그러지지 않음 */
+    padding: 6px 15px; 
     background: #ffffff; 
     border: 1px solid #e2e8f0; 
     border-radius: 20px; 
@@ -22,24 +23,25 @@
     font-size: 12px; 
     font-weight: bold; 
     color: #475569; 
-    display: inline-block;  /* 블록 요소화해서 정렬 유지 */
-    line-height: 1;         /* 텍스트 높이 일정하게 */
-    transition: all 0.2s;
+    display: inline-block !important; 
+    line-height: 1; 
+    white-space: nowrap !important; /* 버튼 안의 글자 줄바꿈 금지 */
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-/* 3. 사진 리스트: 영역을 확실히 확보해서 아래 그리드를 밀지 않게 함 */
+/* 3. 사진 리스트: 영역이 겹치지 않게 명확히 분리 */
 .photo-list { 
-    display: flex; 
+    display: flex !important; 
     gap: 12px; 
-    overflow-x: auto; 
-    overflow-y: hidden;     /* 세로 넘침 방지 */
+    overflow-x: auto !important; 
+    overflow-y: hidden !important; 
     margin-bottom: 15px; 
-    padding-bottom: 5px; 
-    min-height: 125px;      /* 사진 영역 높이 고정 */
+    padding-bottom: 10px;
+    min-height: 130px; /* 사진 영역 높이 확보 */
+    width: 100%;
 }
 
-/* 4. 스크롤바가 레이아웃을 가리지 않게 아주 얇게 설정 */
+/* 스크롤바가 안 보여서 답답하지 않게 아주 얇게 표시 */
 .card-photo-tabs::-webkit-scrollbar,
 .photo-list::-webkit-scrollbar {
     height: 4px;
