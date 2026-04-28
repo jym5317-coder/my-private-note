@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>인원관리 앱</title>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
@@ -13,190 +11,150 @@
   <div id="root"></div>
 
   <script>
-    const { useState, useEffect } = React;
+    // ===== 앱 시작 =====
+    let csvData = [];
+    let currentPersonIndex = 0;
+    let photos = [];
+    let photoIndex = 0;
 
-    function App() {
-      // State 정의
-      const [csvData, setCsvData] = useState([]);
-      const [currentPersonIndex, setCurrentPersonIndex] = useState(0);
-      const [photos, setPhotos] = useState([]);
-      const [photoIndex, setPhotoIndex] = useState(0);
-      const [loading, setLoading] = useState(true);
-      const [error, setError] = useState(null);
-
-      // CSV 파일 로드 (한 번만)
-      useEffect(() => {
-        const csvUrl = 'https://raw.githubusercontent.com/jym5317-coder/my-private-note/main/인명.csv';
+    async function init() {
+      try {
+        // 로컬 CSV 파일 로드 (GitHub에 업로드된 파일)
+        const res = await fetch('인명.csv');
+        const text = await res.text();
         
-        Papa.parse(csvUrl, {
+        // Papa Parse로 CSV 파싱
+        Papa.parse(text, {
           header: true,
-          download: true,
           skipEmptyLines: true,
           complete: (results) => {
             console.log('CSV 파싱 완료:', results.data);
-            // 아이디가 있는 행만 필터링
-            const validData = results.data.filter(row => row.아이디 && row.아이디.trim());
-            setCsvData(validData);
-            setLoading(false);
+            csvData = results.data.filter(row => row.아이디 && row.아이디.trim());
+            
+            if (csvData.length > 0) {
+              loadPersonPhotos(0);
+              render();
+            } else {
+              document.getElementById('root').innerHTML = '<div class="flex items-center justify-center h-screen"><p class="text-red-600">데이터가 없습니다</p></div>';
+            }
           },
           error: (error) => {
             console.error('CSV 파싱 에러:', error);
-            setError(`CSV 파싱 실패: ${error.message}`);
-            setLoading(false);
+            document.getElementById('root').innerHTML = `<div class="flex items-center justify-center h-screen"><p class="text-red-600">CSV 파일을 읽을 수 없습니다: ${error.message}</p></div>`;
           }
         });
-      }, []);
-
-      // 탭 변경 시 사진 배열 업데이트
-      useEffect(() => {
-        if (csvData.length === 0) return;
-        
-        const currentPerson = csvData[currentPersonIndex];
-        const photoPath = currentPerson?.사진 || '';
-        
-        if (photoPath && photoPath.trim()) {
-          // | 로 분리된 경로를 GitHub Raw URL로 변환
-          const pathArray = photoPath
-            .split('|')
-            .map(path => path.trim())
-            .filter(Boolean)
-            .map(path => {
-              return `https://raw.githubusercontent.com/jym5317-coder/my-private-note/main/img/${currentPerson.아이디}/${path}`;
-            });
-          setPhotos(pathArray);
-        } else {
-          setPhotos([]);
-        }
-        
-        setPhotoIndex(0);
-      }, [currentPersonIndex, csvData]);
-
-      // 로딩 중
-      if (loading) {
-        return (
-          <div className="flex items-center justify-center h-screen">
-            <div className="text-center">
-              <p className="text-lg font-semibold mb-2">로딩 중...</p>
-              <p className="text-gray-600">CSV 파일을 불러오고 있습니다.</p>
-            </div>
-          </div>
-        );
+      } catch (e) {
+        console.error('파일 로드 에러:', e);
+        document.getElementById('root').innerHTML = `<div class="flex items-center justify-center h-screen"><p class="text-red-600">인명.csv 파일을 찾을 수 없습니다</p></div>`;
       }
+    }
 
-      // 에러 발생
-      if (error) {
-        return (
-          <div className="flex items-center justify-center h-screen">
-            <div className="text-center text-red-600">
-              <p className="text-lg font-semibold mb-2">오류 발생</p>
-              <p>{error}</p>
-            </div>
-          </div>
-        );
+    function loadPersonPhotos(idx) {
+      currentPersonIndex = idx;
+      const person = csvData[idx];
+      const photoPath = person?.사진 || '';
+      
+      if (photoPath && photoPath.trim()) {
+        // | 로 분리된 경로를 처리
+        photos = photoPath
+          .split('|')
+          .map(p => p.trim())
+          .filter(Boolean)
+          .map(p => `img/${person.아이디}/${p}`); // 상대 경로
+      } else {
+        photos = [];
       }
+      
+      photoIndex = 0;
+    }
 
-      // 데이터 없음
-      if (csvData.length === 0) {
-        return (
-          <div className="flex items-center justify-center h-screen">
-            <div className="text-center">
-              <p className="text-lg font-semibold mb-2">데이터가 없습니다</p>
-              <p className="text-gray-600">CSV 파일을 확인하세요.</p>
-            </div>
-          </div>
-        );
-      }
-
-      const currentPerson = csvData[currentPersonIndex];
-
-      return (
-        <div className="min-h-screen bg-gray-50 p-4">
-          <div className="max-w-6xl mx-auto">
-            {/* ===== 상단 탭 바 ===== */}
-            <div className="mb-6">
-              <div className="flex gap-2 flex-wrap bg-white p-4 rounded-lg shadow">
-                {csvData.map((person, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setCurrentPersonIndex(idx);
-                    }}
-                    className={`px-4 py-2 rounded-full font-semibold transition ${
-                      currentPersonIndex === idx
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                    }`}
-                  >
-                    {person.아이디}
-                  </button>
-                ))}
+    function render() {
+      const person = csvData[currentPersonIndex];
+      
+      let html = `
+        <div class="min-h-screen bg-gray-50 p-4">
+          <div class="max-w-6xl mx-auto">
+            <!-- 상단 탭 바 -->
+            <div class="mb-6">
+              <div class="flex gap-2 flex-wrap bg-white p-4 rounded-lg shadow overflow-x-auto">
+      `;
+      
+      // 탭 렌더링
+      csvData.forEach((person, idx) => {
+        const isActive = currentPersonIndex === idx;
+        html += `
+          <button 
+            onclick="selectPerson(${idx})"
+            class="px-4 py-2 rounded-full font-semibold transition flex-shrink-0 ${
+              isActive
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+            }"
+          >
+            ${person.아이디}
+          </button>
+        `;
+      });
+      
+      html += `
               </div>
             </div>
 
-            {/* ===== 메인 카드 ===== */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              {/* 제목 섹션 */}
-              <div className="mb-6 pb-4 border-b">
-                <h2 className="text-2xl font-bold">
-                  {currentPerson.아이디}
-                  {currentPerson.항목1 && currentPerson.항목1 !== currentPerson.아이디 && (
-                    <span className="text-gray-600"> | {currentPerson.항목1}</span>
-                  )}
+            <!-- 메인 카드 -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+              <!-- 제목 -->
+              <div class="mb-6 pb-4 border-b">
+                <h2 class="text-2xl font-bold">
+                  ${person.아이디}
+                  ${person.항목1 && person.항목1 !== person.아이디 ? `<span class="text-gray-600"> | ${person.항목1}</span>` : ''}
                 </h2>
               </div>
 
-              {/* ===== 사진 슬라이더 ===== */}
-              <div className="mb-8">
-                <div className="bg-gray-100 p-4 rounded-lg">
-                  <div className="flex gap-3 overflow-x-auto pb-4">
-                    {/* 5개 카드 표시 */}
-                    {[0, 1, 2, 3, 4].map(offset => {
-                      const photoUrl = photos[photoIndex + offset];
-                      return (
-                        <div
-                          key={offset}
-                          className="w-48 h-48 bg-gray-300 rounded-lg flex-shrink-0 overflow-hidden border-2 border-gray-400"
-                        >
-                          {photoUrl ? (
-                            <img
-                              src={photoUrl}
-                              alt={`사진 ${photoIndex + offset + 1}`}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextElementSibling.style.display = 'flex';
-                              }}
-                            />
-                          ) : null}
-                          <div
-                            className="w-full h-full flex items-center justify-center text-gray-600 bg-gray-300"
-                            style={{
-                              display: photoUrl ? 'none' : 'flex'
-                            }}
-                          >
-                            <span className="text-center text-sm">사진 없음</span>
-                          </div>
-                        </div>
-                      );
-                    })}
+              <!-- 사진 슬라이더 -->
+              <div class="mb-8">
+                <div class="bg-gray-100 p-4 rounded-lg">
+                  <div class="flex gap-3 overflow-x-auto pb-4">
+      `;
+      
+      // 5개 사진 카드
+      for (let i = 0; i < 5; i++) {
+        const photoUrl = photos[photoIndex + i];
+        html += `
+          <div class="w-48 h-48 bg-gray-300 rounded-lg flex-shrink-0 overflow-hidden border-2 border-gray-400">
+            ${photoUrl ? `
+              <img 
+                src="${photoUrl}" 
+                alt="사진 ${photoIndex + i + 1}" 
+                class="w-full h-full object-cover"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+              />
+            ` : ''}
+            <div class="w-full h-full flex items-center justify-center text-gray-600 bg-gray-300" style="display: ${photoUrl ? 'none' : 'flex'}">
+              <span class="text-center text-sm">사진 없음</span>
+            </div>
+          </div>
+        `;
+      }
+      
+      html += `
                   </div>
 
-                  {/* 네비게이션 화살표 */}
-                  <div className="flex justify-between items-center mt-4">
+                  <!-- 네비게이션 -->
+                  <div class="flex justify-between items-center mt-4">
                     <button
-                      onClick={() => setPhotoIndex(Math.max(0, photoIndex - 1))}
-                      disabled={photoIndex === 0}
-                      className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                      onclick="prevPhoto()"
+                      ${photoIndex === 0 ? 'disabled' : ''}
+                      class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
                     >
                       ← 이전
                     </button>
-                    <span className="text-gray-600 text-sm">
-                      {photos.length > 0 ? `${Math.min(photoIndex + 5, photos.length)} / ${photos.length}` : '사진 없음'}
+                    <span class="text-gray-600 text-sm">
+                      ${photos.length > 0 ? `${Math.min(photoIndex + 5, photos.length)} / ${photos.length}` : '사진 없음'}
                     </span>
                     <button
-                      onClick={() => setPhotoIndex(Math.min(Math.max(0, photos.length - 5), photoIndex + 1))}
-                      disabled={photoIndex >= photos.length - 5 || photos.length === 0}
-                      className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                      onclick="nextPhoto()"
+                      ${photoIndex >= photos.length - 5 || photos.length === 0 ? 'disabled' : ''}
+                      class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
                     >
                       다음 →
                     </button>
@@ -204,93 +162,123 @@
                 </div>
               </div>
 
-              {/* ===== 데이터 표시 (항목1~항목8) ===== */}
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold mb-4 text-gray-800">기본 정보</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map(num => {
-                    const key = `항목${num}`;
-                    const value = currentPerson[key];
-                    
-                    // 빈 값이면 렌더링하지 않음
-                    if (!value || !String(value).trim()) {
-                      return null;
-                    }
-
-                    return (
-                      <div key={num} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <span className="font-semibold text-gray-700">{key}:</span>
-                        <p className="text-gray-900 mt-1">{value}</p>
-                      </div>
-                    );
-                  })}
+              <!-- 데이터 표시 (항목1~항목8) -->
+              <div class="mb-8">
+                <h3 class="text-lg font-semibold mb-4 text-gray-800">기본 정보</h3>
+                <div class="grid grid-cols-2 gap-4">
+      `;
+      
+      // 항목1~8 표시
+      for (let i = 1; i <= 8; i++) {
+        const key = `항목${i}`;
+        const value = person[key];
+        
+        if (value && String(value).trim()) {
+          html += `
+            <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <span class="font-semibold text-gray-700">${key}:</span>
+              <p class="text-gray-900 mt-1">${value}</p>
+            </div>
+          `;
+        }
+      }
+      
+      html += `
                 </div>
               </div>
 
-              {/* ===== 하단 3개 섹션 ===== */}
-              <div className="space-y-4">
-                {/* 주의사항 */}
-                {currentPerson.주의사항 && String(currentPerson.주의사항).trim() && (
-                  <div className="border-l-4 border-red-500 bg-red-50 p-4 rounded">
-                    <div className="flex items-start gap-3">
-                      <span className="text-xl">⚠️</span>
-                      <div>
-                        <h4 className="font-semibold text-red-800">주의사항</h4>
-                        <p className="text-red-700 mt-1 whitespace-pre-wrap">{currentPerson.주의사항}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 공략계획 */}
-                {currentPerson.공략계획 && String(currentPerson.공략계획).trim() && (
-                  <div className="border-l-4 border-amber-500 bg-amber-50 p-4 rounded">
-                    <div className="flex items-start gap-3">
-                      <span className="text-xl">📋</span>
-                      <div>
-                        <h4 className="font-semibold text-amber-800">공략계획</h4>
-                        <p className="text-amber-700 mt-1 whitespace-pre-wrap">{currentPerson.공략계획}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 공통화제 */}
-                {currentPerson.공통화제 && String(currentPerson.공통화제).trim() && (
-                  <div className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded">
-                    <div className="flex items-start gap-3">
-                      <span className="text-xl">❤️</span>
-                      <div>
-                        <h4 className="font-semibold text-blue-800">공통화제</h4>
-                        <p className="text-blue-700 mt-1 whitespace-pre-wrap">{currentPerson.공통화제}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 3개 섹션 모두 비어있으면 */}
-                {(!currentPerson.주의사항 || !String(currentPerson.주의사항).trim()) &&
-                  (!currentPerson.공략계획 || !String(currentPerson.공략계획).trim()) &&
-                  (!currentPerson.공통화제 || !String(currentPerson.공통화제).trim()) && (
-                  <div className="text-center text-gray-500 py-8">
-                    <p>추가 정보 없음</p>
-                  </div>
-                )}
+              <!-- 하단 3개 섹션 -->
+              <div class="space-y-4">
+      `;
+      
+      // 주의사항
+      if (person.주의사항 && String(person.주의사항).trim()) {
+        html += `
+          <div class="border-l-4 border-red-500 bg-red-50 p-4 rounded">
+            <div class="flex items-start gap-3">
+              <span class="text-xl">⚠️</span>
+              <div>
+                <h4 class="font-semibold text-red-800">주의사항</h4>
+                <p class="text-red-700 mt-1 whitespace-pre-wrap">${person.주의사항}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      // 공략계획
+      if (person.공략계획 && String(person.공략계획).trim()) {
+        html += `
+          <div class="border-l-4 border-amber-500 bg-amber-50 p-4 rounded">
+            <div class="flex items-start gap-3">
+              <span class="text-xl">📋</span>
+              <div>
+                <h4 class="font-semibold text-amber-800">공략계획</h4>
+                <p class="text-amber-700 mt-1 whitespace-pre-wrap">${person.공략계획}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      // 공통화제
+      if (person.공통화제 && String(person.공통화제).trim()) {
+        html += `
+          <div class="border-l-4 border-blue-500 bg-blue-50 p-4 rounded">
+            <div class="flex items-start gap-3">
+              <span class="text-xl">❤️</span>
+              <div>
+                <h4 class="font-semibold text-blue-800">공통화제</h4>
+                <p class="text-blue-700 mt-1 whitespace-pre-wrap">${person.공통화제}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      // 3개 모두 비어있으면
+      if ((!person.주의사항 || !String(person.주의사항).trim()) &&
+          (!person.공략계획 || !String(person.공략계획).trim()) &&
+          (!person.공통화제 || !String(person.공통화제).trim())) {
+        html += `
+          <div class="text-center text-gray-500 py-8">
+            <p>추가 정보 없음</p>
+          </div>
+        `;
+      }
+      
+      html += `
               </div>
             </div>
 
-            {/* 디버그 정보 (개발 시에만) */}
-            <div className="mt-8 p-4 bg-gray-100 rounded text-xs text-gray-600">
-              <p>로드된 인명: {csvData.length}명 | 현재: {currentPerson.아이디} | 사진: {photos.length}개</p>
+            <!-- 디버그 정보 -->
+            <div class="mt-8 p-4 bg-gray-100 rounded text-xs text-gray-600">
+              <p>로드된 인명: ${csvData.length}명 | 현재: ${person.아이디} | 사진: ${photos.length}개</p>
             </div>
           </div>
         </div>
-      );
+      `;
+      
+      document.getElementById('root').innerHTML = html;
     }
 
-    // React 렌더링
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
+    function selectPerson(idx) {
+      loadPersonPhotos(idx);
+      render();
+    }
+
+    function prevPhoto() {
+      photoIndex = Math.max(0, photoIndex - 1);
+      render();
+    }
+
+    function nextPhoto() {
+      photoIndex = Math.min(Math.max(0, photos.length - 5), photoIndex + 1);
+      render();
+    }
+
+    // 앱 시작
+    window.addEventListener('load', init);
   </script>
 </body>
 </html>
