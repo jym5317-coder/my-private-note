@@ -191,20 +191,33 @@
             const realIdx = masterDB.indexOf(p);
             return `
                 <div class="card">
-                    <div class="name-row"><span class="name">${p['이름']}</span><span class="sub-text">${p['연락처']}</span><span class="sub-text">${p['소속']}</span></div>
+                    <div class="name-row"><span class="name">${p['이름']}</span><span class="sub-text">${p['생년월일']}</span><span class="sub-text">${p['연락처']}</span><span class="sub-text">${p['소속']}</span></div>
                     
                     <div class="card-photo-tabs" id="tabs-${realIdx}"></div>
                     <div class="photo-list" id="photos-${realIdx}"></div>
                     
                     <div class="grid">
-                        <div class="box"><span class="label">연락처</span><span class="val">${p['연락처'] || '-'}</span></div>
-                        <div class="box"><span class="label">사이즈</span><span class="val red">${p['사이즈'] || '-'}</span></div>
-                        <div class="box"><span class="label">호감도</span><span class="val red">${p['나에대한 호감도'] || '-'}</span></div>
-                        <div class="box"><span class="label">생일</span><span class="val">${p['생년월일'] || '-'}</span></div>
-                        <div class="box"><span class="label">최근수위</span><span class="val">${p['최근수위'] || '-'}</span></div>
-                        <div class="box"><span class="label">진척도</span><span class="val">${p['진척도'] || '-'}</span></div>
                         <div class="box full"><span class="label">주소</span><span class="val">${p['주소'] || '-'}</span></div>
-                        <div class="box full"><span class="label">특이반응</span><span class="val">${p['특이반응'] || '-'}</span></div>
+                        <div class="box full"><span class="label">보유자료</span><span class="val red">${p['보유자료'] || '-'}</span></div>
+                        <div class="box"><span class="label">사이즈</span><span class="val red">${p['사이즈'] || '-'}</span></div>
+                        <div class="box"><span class="label">관찰동기</span><span class="val red">${p['관찰동기'] || '-'}</span></div>
+                        <div class="box"><span class="label">진척도</span><span class="val red">${p['진척도'] || '-'}</span></div>
+                        <div class="box"><span class="label">첫만남</span><span class="val red">${p['첫만남'] || '-'}</span></div>
+                        <div class="box"><span class="label">첫스킨십</span><span class="val red">${p['첫스킨십'] || '-'}</span></div>
+                        <div class="box"><span class="label">첫빠구리</span><span class="val red">${p['첫빠구리'] || '-'}</span></div>
+                        <div class="box"><span class="label">최근수위</span><span class="val red">${p['최근수위'] || '-'}</span></div>
+                        <div class="box"><span class="label">특이반응</span><span class="val red">${p['특이반응'] || '-'}</span></div>
+                        <div class="box"><span class="label">호감도</span><span class="val red">${p['나에대한 호감도'] || '-'}</span></div>
+                        <div class="box"><span class="label">누적지출</span><span class="val">${p['누적지출'] || '-'}</span></div>
+                        <div class="box"><span class="label">주의사항</span><span class="val">${p['주의사항'] || '-'}</span></div>
+                        <div class="box"><span class="label">선호취향</span><span class="val">${p['선호취향'] || '-'}</span></div>
+                        <div class="box"><span class="label">마지막본날</span><span class="val">${p['마지막본날'] || '-'}</span></div>
+                        <div class="box"><span class="label">접근가능시간</span><span class="val">${p['접근가능시간'] || '-'}</span></div>
+                        <div class="box"><span class="label">가성비</span><span class="val">${p['가성비'] || '-'}</span></div>
+                        <div class="box"><span class="label">경계인물</span><span class="val">${p['경계인물'] || '-'}</span></div>
+                        <div class="box"><span class="label">최근고민</span><span class="val">${p['최근고민'] || '-'}</span></div>
+                        <div class="box"><span class="label">난이도</span><span class="val">${p['공략난이도'] || '-'}</span></div>
+                        <div class="box full"><span class="label">노션링크</span><span class="val">${p['노션링크'] || '-'}</span></div>
                     </div>
 
                     <div class="memo"><strong>📝 공략계획:</strong><br>${p['공략계획'] || '-'}</div>
