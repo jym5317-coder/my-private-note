@@ -129,39 +129,47 @@
     }
 
     async function loadData() {
-        try {
-            const res = await fetch('인명.csv');
-            const ab = await res.arrayBuffer();
-            const text = new TextDecoder('utf-8').decode(ab);
-            const rows = parseCSV(text);
-            const header = rows[0].map(h => h.replace(/["']/g, '').trim());
-            
-            masterDB = rows.slice(1).map(r => {
-                let obj = {};
-                header.forEach((h, i) => obj[h] = r[i] || "");
-                
-                obj._imgs = [];
-                obj._folders = new Set(['전체']);
-                const name = obj['이름'] ? obj['이름'].trim() : "";
-
-                if (obj['사진파일'] && name) {
-                    const raw = obj['사진파일'].replace(/^["']|["']$/g, '');
-                    raw.split(',').forEach(p => {
-                        const path = p.trim().replace(/^["']|["']$/g, '');
-                        if(path) {
-                            const folder = path.includes('/') ? path.split('/')[0] : '기타';
-                            obj._folders.add(folder);
-                            obj._imgs.push({ fullPath: `img/${name}/${path}`, folder: folder });
-                        }
-                    });
-                }
-                obj._currentTab = '전체'; 
-                return obj;
+    try {
+        const res = await fetch('인명.csv');
+        const ab = await res.arrayBuffer();
+        const text = new TextDecoder('utf-8').decode(ab);
+        const rows = parseCSV(text);
+        
+        // [핵심 수정] 헤더의 앞뒤 공백을 완전히 제거하여 저장
+        const header = rows[0].map(h => h.replace(/["']/g, '').trim());
+        
+        masterDB = rows.slice(1).map(r => {
+            let obj = {};
+            header.forEach((h, i) => {
+                // 데이터 값도 양끝 공백 제거
+                obj[h] = (r[i] || "").trim();
             });
-            runSearch();
-        } catch (e) { alert("데이터 로드 실패"); }
-    }
+            
+            // 사진 처리 로직 유지
+            obj._imgs = [];
+            obj._folders = new Set(['전체']);
+            const name = obj['이름'] || "";
+            const photoField = obj['사진파일'] || "";
 
+            if (photoField && name) {
+                photoField.replace(/^["']|["']$/g, '').split(',').forEach(p => {
+                    const path = p.trim().replace(/^["']|["']$/g, '');
+                    if(path) {
+                        const folder = path.includes('/') ? path.split('/')[0] : '기타';
+                        obj._folders.add(folder);
+                        obj._imgs.push({ fullPath: `img/${name}/${path}`, folder: folder });
+                    }
+                });
+            }
+            obj._currentTab = '전체'; 
+            return obj;
+        });
+        runSearch();
+    } catch (e) { 
+        console.error(e);
+        alert("데이터 로드 실패: CSV 파일 형식을 확인하세요."); 
+    }
+}
     function setCardTab(idx, folder) {
         masterDB[idx]._currentTab = folder;
         renderCardPhotos(idx);
