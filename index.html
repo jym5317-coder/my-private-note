@@ -1,53 +1,71 @@
 import sys
 import os
 import pandas as pd
+import configparser
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                              QLineEdit, QScrollArea, QLabel, QFrame, QPushButton, QTabWidget, 
-                             QGridLayout)
+                             QGridLayout, QInputDialog, QMessageBox)
 from PyQt6.QtGui import QPixmap, QFont
 from PyQt6.QtCore import Qt
 
-# 사진이 들어있는 메인 폴더 경로 (필요에 따라 수정)
-PHOTO_BASE_PATH = "./photos"
+# 설정 파일 관리 (비밀번호 저장용)
+CONFIG_FILE = 'config.ini'
+PHOTO_BASE_PATH = "./photos" # 사진 폴더 경로
+
+class LoginDialog(QInputDialog):
+    def __init__(self):
+        super().__init__()
+        self.config = configparser.ConfigParser()
+        self.load_config()
+
+    def load_config(self):
+        if not os.path.exists(CONFIG_FILE):
+            self.config['SETTINGS'] = {'password': '0000'}
+            with open(CONFIG_FILE, 'w') as f:
+                self.config.write(f)
+        else:
+            self.config.read(CONFIG_FILE)
+
+    def verify_password(self):
+        pwd, ok = QInputDialog.getText(None, "보안 접속", "비밀번호 4자리를 입력하세요:", QLineEdit.EchoMode.Password)
+        if ok:
+            if pwd == self.config['SETTINGS']['password']:
+                return True
+            else:
+                QMessageBox.critical(None, "오류", "비밀번호가 일치하지 않습니다.")
+                return False
+        return False
 
 class PersonCard(QFrame):
     def __init__(self, data):
         super().__init__()
         self.data = data
         self.setFrameShape(QFrame.Shape.StyledPanel)
-        self.setLineWidth(2)
-        self.setStyleSheet("background-color: #ffffff; border-radius: 10px; margin-bottom: 20px;")
+        self.setStyleSheet("background-color: #ffffff; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px;")
         self.init_ui()
 
     def init_ui(self):
-        main_layout = QVBoxLayout(self)
-
-        # --- 상단 정보 (이름, 연락처, 생년월일, 소속) ---
-        top_layout = QHBoxLayout()
-        name_label = QLabel(str(self.data.get('이름', '')))
-        name_label.setFont(QFont("Arial", 16, QFont.Weight.Bold))
+        layout = QVBoxLayout(self)
         
-        phone_label = QLabel(str(self.data.get('연락처', '')))
-        birth_label = QLabel(str(self.data.get('생년월일', '')))
-        group_label = QLabel(str(self.data.get('소속', '')))
+        # 상단 헤더 (이름, 연락처, 생년월일, 소속)
+        header = QHBoxLayout()
+        name_lbl = QLabel(str(self.data.get('이름', '')))
+        name_lbl.setFont(QFont("Malgun Gothic", 15, QFont.Weight.Bold))
         
-        top_layout.addWidget(name_label)
-        top_layout.addWidget(phone_label)
-        top_layout.addStretch()
-        top_layout.addWidget(birth_label)
-        top_layout.addStretch()
-        top_layout.addWidget(group_label)
-        main_layout.addLayout(top_layout)
+        header.addWidget(name_lbl)
+        header.addWidget(QLabel(str(self.data.get('연락처', ''))))
+        header.addStretch()
+        header.addWidget(QLabel(str(self.data.get('생년월일', ''))))
+        header.addWidget(QLabel(f"[{str(self.data.get('소속', ''))}]"))
+        layout.addLayout(header)
 
-        # --- 사진 탭 시스템 ---
+        # 사진 탭
         self.tabs = QTabWidget()
         self.load_photos(str(self.data.get('이름', '')))
-        main_layout.addWidget(self.tabs)
+        layout.addWidget(self.tabs)
 
-        # --- 상세 정보 섹션 ---
-        info_layout = QGridLayout()
-        
-        # 섹션 정의 및 데이터 매핑
+        # 상세 항목 배치
+        grid = QGridLayout()
         sections = {
             "1. 기본정보": ["주소", "보유자료", "사이즈", "관찰동기", "첫만남", "첫스킨십", "첫빠구리"],
             "2. 관계 상태/진행도": ["진척도", "나에대한 호감도", "최근수위", "최근고민"],
@@ -58,118 +76,127 @@ class PersonCard(QFrame):
         }
 
         row = 0
-        for title, fields in sections.items():
-            title_lbl = QLabel(title)
-            title_lbl.setFont(QFont("Arial", 10, QFont.Weight.Bold))
-            info_layout.addWidget(title_lbl, row, 0, 1, 2)
+        for section_title, fields in sections.items():
+            title_lbl = QLabel(section_title)
+            title_lbl.setStyleSheet("font-weight: bold; color: #2c3e50; margin-top: 5px;")
+            grid.addWidget(title_lbl, row, 0, 1, 2)
             row += 1
             for field in fields:
                 val = str(self.data.get(field, ''))
-                lbl = QLabel(f"• {field}: {val}")
-                info_layout.addWidget(lbl, row, 0, 1, 2)
+                grid.addWidget(QLabel(f"• {field}: {val}"), row, 0, 1, 2)
                 row += 1
 
-        # 7. 시스템 정보 (노션링크 버튼)
-        notion_btn = QPushButton("노션링크")
+        # 7. 시스템 정보
         notion_url = str(self.data.get('노션링크', ''))
-        notion_btn.clicked.connect(lambda: os.system(f"start {notion_url}"))
-        info_layout.addWidget(QLabel("7. 시스템정보"), row, 0)
-        info_layout.addWidget(notion_btn, row, 1)
-        
-        main_layout.addLayout(info_layout)
+        btn_notion = QPushButton("노션링크")
+        btn_notion.clicked.connect(lambda: os.system(f"start {notion_url}"))
+        grid.addWidget(QLabel("7. 시스템정보"), row, 0)
+        grid.addWidget(btn_notion, row, 1)
+        layout.addLayout(grid)
 
-        # 최하단 마지막 본 날
-        last_date = QLabel(f"마지막 본 날: {str(self.data.get('마지막 본날짜', ''))}")
-        last_date.setStyleSheet("font-size: 9px; color: gray;")
-        main_layout.addWidget(last_date, alignment=Qt.AlignmentFlag.AlignRight)
+        # 마지막 본 날
+        footer = QLabel(f"마지막 본 날: {str(self.data.get('마지막 본날짜', ''))}")
+        footer.setStyleSheet("font-size: 10px; color: #7f8c8d;")
+        layout.addWidget(footer, alignment=Qt.AlignmentFlag.AlignRight)
 
-    def load_photos(self, person_name):
-        person_path = os.path.join(PHOTO_BASE_PATH, person_name)
-        
-        # 전체 탭 생성
-        all_tab = QScrollArea()
+    def load_photos(self, name):
+        p_path = os.path.join(PHOTO_BASE_PATH, name)
+        all_scroll = QScrollArea()
         all_widget = QWidget()
-        all_layout = QHBoxLayout(all_widget)
+        all_lay = QHBoxLayout(all_widget)
         
-        if os.path.exists(person_path):
-            subfolders = [f for f in os.listdir(person_path) if os.path.isdir(os.path.join(person_path, f))]
-            
-            for folder in subfolders:
-                folder_path = os.path.join(person_path, folder)
-                sub_tab = QScrollArea()
-                sub_widget = QWidget()
-                sub_layout = QHBoxLayout(sub_widget)
-                
-                for img_file in os.listdir(folder_path):
-                    if img_file.lower().endswith(('.png', '.jpg', '.jpeg')):
-                        img_path = os.path.join(folder_path, img_file)
-                        # 개별 탭용
-                        sub_layout.addWidget(self.create_img_label(img_path))
-                        # 전체 탭용
-                        all_layout.addWidget(self.create_img_label(img_path))
-                
-                sub_tab.setWidget(sub_widget)
-                sub_tab.setWidgetResizable(True)
-                self.tabs.addTab(sub_tab, folder)
+        if os.path.exists(p_path):
+            for folder in os.listdir(p_path):
+                f_path = os.path.join(p_path, folder)
+                if os.path.isdir(f_path):
+                    sub_scroll = QScrollArea()
+                    sub_widget = QWidget()
+                    sub_lay = QHBoxLayout(sub_widget)
+                    for img in os.listdir(f_path):
+                        if img.lower().endswith(('.jpg', '.png', '.jpeg')):
+                            path = os.path.join(f_path, img)
+                            sub_lay.addWidget(self.make_img(path))
+                            all_lay.addWidget(self.make_img(path))
+                    sub_scroll.setWidget(sub_widget)
+                    self.tabs.addTab(sub_scroll, folder)
+        
+        all_scroll.setWidget(all_widget)
+        self.tabs.insertTab(0, all_scroll, "전체")
 
-        all_tab.setWidget(all_widget)
-        all_tab.setWidgetResizable(True)
-        self.tabs.insertTab(0, all_tab, "전체")
+    def make_img(self, path):
+        l = QLabel()
+        l.setPixmap(QPixmap(path).scaled(180, 180, Qt.AspectRatioMode.KeepAspectRatio))
+        return l
 
-    def create_img_label(self, path):
-        lbl = QLabel()
-        pixmap = QPixmap(path).scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio)
-        lbl.setPixmap(pixmap)
-        lbl.setStyleSheet("border: 1px solid #ccc; padding: 5px;")
-        return lbl
-
-class MainWindow(QMainWindow):
+class MainApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("인원 관리 시스템")
-        self.setGeometry(100, 100, 900, 800)
+        self.setWindowTitle("인원 관리 보안 시스템")
+        self.setGeometry(100, 100, 1000, 900)
         
-        self.central_widget = QWidget()
-        self.setCentralWidget(self.central_widget)
-        self.layout = QVBoxLayout(self.central_widget)
+        main_layout = QVBoxLayout()
+        
+        # 최상단 메뉴 (검색 및 비번변경)
+        top_bar = QHBoxLayout()
+        self.search_bar = QLineEdit()
+        self.search_bar.setPlaceholderText("이름 또는 소속 검색...")
+        self.search_bar.textChanged.connect(self.filter_data)
+        
+        self.btn_change_pwd = QPushButton("비밀번호 변경")
+        self.btn_change_pwd.clicked.connect(self.change_password)
+        
+        top_bar.addWidget(self.search_bar)
+        top_bar.addWidget(self.btn_change_pwd)
+        main_layout.addLayout(top_bar)
 
-        # 검색창
-        self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("이름 또는 소속으로 검색하세요...")
-        self.search_input.textChanged.connect(self.filter_cards)
-        self.layout.addWidget(self.search_input)
-
-        # 스크롤 영역
+        # 카드 리스트 영역
         self.scroll = QScrollArea()
         self.container = QWidget()
-        self.card_layout = QVBoxLayout(self.container)
+        self.card_list = QVBoxLayout(self.container)
         self.scroll.setWidget(self.container)
         self.scroll.setWidgetResizable(True)
-        self.layout.addWidget(self.scroll)
+        main_layout.addWidget(self.scroll)
 
+        central = QWidget()
+        central.setLayout(main_layout)
+        self.setCentralWidget(central)
+        
         self.cards = []
-        self.load_data()
+        self.refresh_data()
 
-    def load_data(self):
-        try:
-            # CSV 로드 (탭 구분자나 쉼표 확인 필요, 여기선 제공된 파일 구조에 맞춤)
+    def refresh_data(self):
+        if os.path.exists('인명.csv'):
             df = pd.read_csv('인명.csv', sep='\t')
             for _, row in df.iterrows():
                 card = PersonCard(row.to_dict())
-                self.card_layout.addWidget(card)
+                self.card_list.addWidget(card)
                 self.cards.append(card)
-        except Exception as e:
-            print(f"데이터 로드 오류: {e}")
 
-    def filter_cards(self):
-        text = self.search_input.text().lower()
-        for card in self.cards:
-            name = str(card.data.get('이름', '')).lower()
-            group = str(card.data.get('소속', '')).lower()
-            card.setVisible(text in name or text in group)
+    def filter_data(self):
+        t = self.search_bar.text().lower()
+        for c in self.cards:
+            match = t in str(c.data.get('이름','')).lower() or t in str(c.data.get('소속','')).lower()
+            c.setVisible(match)
+
+    def change_password(self):
+        new_pwd, ok = QInputDialog.getText(self, "비밀번호 변경", "새로운 4자리 비밀번호를 입력하세요:")
+        if ok and len(new_pwd) == 4 and new_pwd.isdigit():
+            config = configparser.ConfigParser()
+            config['SETTINGS'] = {'password': new_pwd}
+            with open(CONFIG_FILE, 'w') as f:
+                config.write(f)
+            QMessageBox.information(self, "완료", "비밀번호가 변경되었습니다.")
+        else:
+            QMessageBox.warning(self, "오류", "숫자 4자리를 입력해주세요.")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec())
+    
+    # 보안 체크
+    login = LoginDialog()
+    if login.verify_password():
+        ex = MainApp()
+        ex.show()
+        sys.exit(app.exec())
+    else:
+        sys.exit()
