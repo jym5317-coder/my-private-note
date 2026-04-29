@@ -185,6 +185,7 @@
 function runSearch() {
     const term = document.getElementById('searchInput').value.toLowerCase();
     const container = document.getElementById('list');
+    container.innerHTML = "";
     
     // 1. 기존 리스트를 완전히 비워서 섞임 방지
     container.innerHTML = ""; 
