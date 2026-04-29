@@ -53,6 +53,13 @@
         ::-webkit-scrollbar { height: 5px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
+.relationship-memo {
+    background-color: #fff1f2 !important; /* 연한 핑크 배경 */
+    border-left: 4px solid #e11d48 !important; /* 진한 빨강 포인트 */
+    min-height: 60px;
+    align-items: flex-start !important;
+    padding: 12px !important;
+}
 </head>
 <body>
 
@@ -183,9 +190,6 @@
                     ${getV('관계설명')}
                 </span>
             </div>
-        </div>
-    </div>
-</div>
                     <div class="section-title">🔥 3. 성향 / 취향</div>
                     <div class="grid">
                         <div class="box full"><span class="label">선호취향</span><span class="val">${getV('선호취향')}</span></div>
