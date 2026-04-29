@@ -194,9 +194,15 @@ function runSearch() {
         (p['소속'] || '').toLowerCase().includes(term)
     );
     
-    // 2. 필터링된 데이터를 하나씩 독립된 카드로 생성
-    filtered.forEach(p => {
+filtered.forEach(p => {
         const realIdx = masterDB.indexOf(p);
+        
+        // [핵심] 데이터의 모든 키값에서 공백을 제거하고 가져오는 함수
+        const getV = (key) => {
+            // 엑셀 헤더에 공백이 섞여있을 경우를 대비해 유연하게 매칭
+            const actualKey = Object.keys(p).find(k => k.trim() === key);
+            return (actualKey ? p[actualKey] : "").trim() || "-";
+        };
         
         // 카드 틀 생성
         const cardHtml = `
