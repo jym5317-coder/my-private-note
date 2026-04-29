@@ -74,41 +74,54 @@
         } else { alert("비밀번호 틀림"); document.getElementById('pw').value=""; document.getElementById('pw').focus(); }
     }
 
-    async function loadData() {
-        try {
-            const res = await fetch('인명.csv');
-            const ab = await res.arrayBuffer();
-            const text = new TextDecoder('utf-8').decode(ab);
-            const rows = text.split(/\r?\n/).map(row => row.split(','));
-            const header = rows[0].map(h => h.trim());
-            
-            masterDB = rows.slice(1).map(r => {
-                let obj = {};
-                header.forEach((h, i) => obj[h] = (r[i] || "").trim());
-                
-                // [사진 자동 로드 핵심 로직]
-                obj._imgs = [];
-                const subFolders = ['body', 'face', 'extra', 'etc'];
-                obj._folders = new Set(['전체', ...subFolders]);
-                
-                const name = obj['이름'];
-                if (name) {
-                    subFolders.forEach(folder => {
-                        for (let i = 1; i <= 30; i++) { // 각 폴더당 최대 30장 탐색
-                            obj._imgs.push({ 
-                                path: `img/${name}/${folder}/${i}.jpg`, 
-                                folder: folder 
-                            });
-                        }
-                    });
-                }
-                obj._currentTab = '전체';
-                return obj;
-            });
-            runSearch();
-        } catch (e) { alert("CSV 로드 실패"); }
-    }
+async function loadData() {
+    try {
+        const res = await fetch('인명.csv');
+        const ab = await res.arrayBuffer();
+        let text = new TextDecoder('utf-8').decode(ab);
+        
+        // [수정] 파일 맨 앞의 보이지 않는 문자(BOM) 강제 제거
+        text = text.replace(/^\uFEFF/, "");
 
+        const rows = text.split(/\r?\n/).filter(row => row.trim() !== "").map(row => {
+            // 쉼표로 나누되, 따옴표 안의 쉼표는 무시하는 정규식
+            return row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || row.split(',');
+        });
+
+        if (rows.length < 2) return;
+
+        // [핵심] 헤더의 모든 공백과 따옴표를 완전히 제거
+        const header = rows[0].map(h => h.replace(/["'\s]/g, '').trim());
+        console.log("인식된 헤더:", header); // 브라우저 콘솔에서 확인 가능
+
+        masterDB = rows.slice(1).map(r => {
+            let obj = {};
+            header.forEach((h, i) => {
+                let val = r[i] ? r[i].replace(/^["']|["']$/g, '').trim() : "";
+                obj[h] = val;
+            });
+            
+            // 사진 자동 로딩 설정
+            obj._imgs = [];
+            const subFolders = ['body', 'face', 'extra', 'etc'];
+            obj._folders = new Set(['전체', ...subFolders]);
+            const name = obj['이름'];
+            if (name) {
+                subFolders.forEach(folder => {
+                    for (let i = 1; i <= 30; i++) {
+                        obj._imgs.push({ path: `img/${name}/${folder}/${i}.jpg`, folder: folder });
+                    }
+                });
+            }
+            obj._currentTab = '전체';
+            return obj;
+        });
+        runSearch();
+    } catch (e) {
+        console.error("에러 발생:", e);
+        alert("인명.csv 파일을 읽는 중 오류가 발생했습니다.");
+    }
+}
     function setCardTab(idx, folder) {
         masterDB[idx]._currentTab = folder;
         renderCardPhotos(idx);
