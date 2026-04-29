@@ -1,202 +1,221 @@
-import sys
-import os
-import pandas as pd
-import configparser
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
-                             QLineEdit, QScrollArea, QLabel, QFrame, QPushButton, QTabWidget, 
-                             QGridLayout, QInputDialog, QMessageBox)
-from PyQt6.QtGui import QPixmap, QFont
-from PyQt6.QtCore import Qt
-
-# 설정 파일 관리 (비밀번호 저장용)
-CONFIG_FILE = 'config.ini'
-PHOTO_BASE_PATH = "./photos" # 사진 폴더 경로
-
-class LoginDialog(QInputDialog):
-    def __init__(self):
-        super().__init__()
-        self.config = configparser.ConfigParser()
-        self.load_config()
-
-    def load_config(self):
-        if not os.path.exists(CONFIG_FILE):
-            self.config['SETTINGS'] = {'password': '0000'}
-            with open(CONFIG_FILE, 'w') as f:
-                self.config.write(f)
-        else:
-            self.config.read(CONFIG_FILE)
-
-    def verify_password(self):
-        pwd, ok = QInputDialog.getText(None, "보안 접속", "비밀번호 4자리를 입력하세요:", QLineEdit.EchoMode.Password)
-        if ok:
-            if pwd == self.config['SETTINGS']['password']:
-                return True
-            else:
-                QMessageBox.critical(None, "오류", "비밀번호가 일치하지 않습니다.")
-                return False
-        return False
-
-class PersonCard(QFrame):
-    def __init__(self, data):
-        super().__init__()
-        self.data = data
-        self.setFrameShape(QFrame.Shape.StyledPanel)
-        self.setStyleSheet("background-color: #ffffff; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px;")
-        self.init_ui()
-
-    def init_ui(self):
-        layout = QVBoxLayout(self)
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔒 SMART 실전 전략 수첩</title>
+    <style>
+        :root { --메인: #e11d48; --포인트: #2563eb; --배경: #f1f5f9; --테두리: #e2e8f0; }
+        body { font-family: 'Malgun Gothic', sans-serif; background: var(--배경); margin: 0; padding: 10px; color: #1e293b; line-height: 1.4; }
         
-        # 상단 헤더 (이름, 연락처, 생년월일, 소속)
-        header = QHBoxLayout()
-        name_lbl = QLabel(str(self.data.get('이름', '')))
-        name_lbl.setFont(QFont("Malgun Gothic", 15, QFont.Weight.Bold))
+        /* 로그인 */
+        #auth-section { margin: 100px auto; text-align: center; max-width: 350px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        input[type="password"] { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 70%; margin-bottom: 10px; font-size: 16px; outline: none; }
+        .login-btn { padding: 12px 20px; background: var(--메인); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 80%; }
+
+        #mainContent { max-width: 700px; margin: 0 auto; display: none; }
+        .sticky-header { position: sticky; top: 0; background: var(--배경); z-index: 1000; padding: 10px 0; }
+        .search-box { width: 100%; padding: 14px; border: 2px solid var(--테두리); border-radius: 12px; box-sizing: border-box; font-size: 16px; outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+        /* 카드 레이아웃 */
+        .card { background: white; border-radius: 18px; padding: 20px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid var(--테두리); }
         
-        header.addWidget(name_lbl)
-        header.addWidget(QLabel(str(self.data.get('연락처', ''))))
-        header.addStretch()
-        header.addWidget(QLabel(str(self.data.get('생년월일', ''))))
-        header.addWidget(QLabel(f"[{str(self.data.get('소속', ''))}]"))
-        layout.addLayout(header)
+        /* 상단 프로필 영역 */
+        .profile-row { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px; }
+        .name-part { display: flex; align-items: baseline; gap: 10px; }
+        .name { font-size: 1.8em; font-weight: 900; color: #000; }
+        .contact { font-size: 1.1em; color: #475569; font-weight: bold; }
+        .birth { font-size: 1em; color: #64748b; flex-grow: 1; text-align: center; }
+        .belong { font-size: 1.1em; font-weight: bold; color: var(--포인트); }
 
-        # 사진 탭
-        self.tabs = QTabWidget()
-        self.load_photos(str(self.data.get('이름', '')))
-        layout.addWidget(self.tabs)
-
-        # 상세 항목 배치
-        grid = QGridLayout()
-        sections = {
-            "1. 기본정보": ["주소", "보유자료", "사이즈", "관찰동기", "첫만남", "첫스킨십", "첫빠구리"],
-            "2. 관계 상태/진행도": ["진척도", "나에대한 호감도", "최근수위", "최근고민"],
-            "3. 성향/취향": ["선호취향", "특이사항", "특이반응"],
-            "4. 리스크/주의사항": ["주의사항", "경계인물"],
-            "5. 접근성/운영정보": ["접근가능시간", "누적지출", "가성비"],
-            "6. 난이도/전략": ["공략난이도", "공략계획"]
-        }
-
-        row = 0
-        for section_title, fields in sections.items():
-            title_lbl = QLabel(section_title)
-            title_lbl.setStyleSheet("font-weight: bold; color: #2c3e50; margin-top: 5px;")
-            grid.addWidget(title_lbl, row, 0, 1, 2)
-            row += 1
-            for field in fields:
-                val = str(self.data.get(field, ''))
-                grid.addWidget(QLabel(f"• {field}: {val}"), row, 0, 1, 2)
-                row += 1
-
-        # 7. 시스템 정보
-        notion_url = str(self.data.get('노션링크', ''))
-        btn_notion = QPushButton("노션링크")
-        btn_notion.clicked.connect(lambda: os.system(f"start {notion_url}"))
-        grid.addWidget(QLabel("7. 시스템정보"), row, 0)
-        grid.addWidget(btn_notion, row, 1)
-        layout.addLayout(grid)
-
-        # 마지막 본 날
-        footer = QLabel(f"마지막 본 날: {str(self.data.get('마지막 본날짜', ''))}")
-        footer.setStyleSheet("font-size: 10px; color: #7f8c8d;")
-        layout.addWidget(footer, alignment=Qt.AlignmentFlag.AlignRight)
-
-    def load_photos(self, name):
-        p_path = os.path.join(PHOTO_BASE_PATH, name)
-        all_scroll = QScrollArea()
-        all_widget = QWidget()
-        all_lay = QHBoxLayout(all_widget)
+        /* 사진 및 탭 */
+        .card-photo-tabs { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; padding: 5px 0; }
+        .p-btn { flex: 0 0 auto; padding: 6px 15px; background: #fff; border: 1px solid #cbd5e1; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s; }
+        .p-btn.active { background: var(--포인트); color: white; border-color: var(--포인트); }
         
-        if os.path.exists(p_path):
-            for folder in os.listdir(p_path):
-                f_path = os.path.join(p_path, folder)
-                if os.path.isdir(f_path):
-                    sub_scroll = QScrollArea()
-                    sub_widget = QWidget()
-                    sub_lay = QHBoxLayout(sub_widget)
-                    for img in os.listdir(f_path):
-                        if img.lower().endswith(('.jpg', '.png', '.jpeg')):
-                            path = os.path.join(f_path, img)
-                            sub_lay.addWidget(self.make_img(path))
-                            all_lay.addWidget(self.make_img(path))
-                    sub_scroll.setWidget(sub_widget)
-                    self.tabs.addTab(sub_scroll, folder)
+        .photo-list { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 12px; min-height: 140px; }
+        .photo-item { flex: 0 0 140px; width: 140px; height: 140px; border-radius: 12px; overflow: hidden; background: #f1f5f9; border: 1px solid #eee; }
+        .photo-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* 섹션별 구성 */
+        .section-title { font-size: 14px; font-weight: 800; color: #334155; background: #f8fafc; padding: 6px 12px; margin: 18px 0 8px 0; border-radius: 6px; border-left: 4px solid #94a3b8; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .box { background: #ffffff; padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 13px; border: 1px solid #f1f5f9; align-items: center; box-shadow: inset 0 0 5px rgba(0,0,0,0.02); }
+        .label { color: #64748b; font-weight: bold; font-size: 12px; }
+        .val { color: #1e293b; font-weight: bold; text-align: right; }
+        .red { color: var(--메인); }
+        .full { grid-column: span 2; }
+
+        /* 기타 정보 */
+        .notion-btn { text-decoration: none; background: #000; color: white; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .footer-info { text-align: right; font-size: 11px; color: #94a3b8; margin-top: 15px; }
+
+        ::-webkit-scrollbar { height: 5px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-section">
+        <h2>🔒 보안 수첩 접속</h2>
+        <input type="password" id="pw" placeholder="비밀번호" onkeypress="if(event.key==='Enter') unlock()">
+        <button class="login-btn" onclick="unlock()">열기</button>
+    </div>
+
+    <div id="mainContent">
+        <div class="sticky-header">
+            <input type="text" id="searchInput" class="search-box" placeholder="이름 또는 소속으로 검색..." onkeyup="runSearch()">
+        </div>
+        <div id="list"></div>
+    </div>
+
+<script>
+    let masterDB = [];
+    const subFolders = ['body', 'face', 'extra', 'etc']; // 사진을 찾을 하위 폴더들
+
+    window.onload = () => { document.getElementById('pw').focus(); };
+
+    function unlock() {
+        if(document.getElementById('pw').value === "1234") {
+            document.getElementById('auth-section').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            loadData();
+        } else { alert("비밀번호가 틀렸습니다."); document.getElementById('pw').value=""; }
+    }
+
+    async function loadData() {
+        try {
+            const res = await fetch('인명.csv');
+            const ab = await res.arrayBuffer();
+            let text = new TextDecoder('utf-8').decode(ab).replace(/^\uFEFF/, "");
+            
+            const rows = text.split(/\r?\n/).filter(row => row.trim() !== "").map(row => row.split(',').map(cell => cell.trim()));
+            const header = rows[0];
+            
+            masterDB = rows.slice(1).map(r => {
+                let obj = {};
+                header.forEach((h, i) => obj[h] = r[i] || "");
+                
+                // 사진 자동 로직: 이름 폴더 아래 하위 폴더별로 1~30번까지 생성
+                obj._imgs = [];
+                const name = obj['이름'];
+                if (name) {
+                    subFolders.forEach(folder => {
+                        for (let i = 1; i <= 30; i++) {
+                            obj._imgs.push({ path: `img/${name}/${folder}/${i}.jpg`, folder: folder });
+                        }
+                    });
+                }
+                obj._currentTab = '전체';
+                return obj;
+            });
+            runSearch();
+        } catch (e) { alert("인명.csv 파일을 불러오지 못했습니다."); }
+    }
+
+    function setCardTab(idx, folder) {
+        masterDB[idx]._currentTab = folder;
+        renderCardPhotos(idx);
+    }
+
+    function renderCardPhotos(idx) {
+        const p = masterDB[idx];
+        const tabContainer = document.getElementById(`tabs-${idx}`);
+        const photoContainer = document.getElementById(`photos-${idx}`);
         
-        all_scroll.setWidget(all_widget)
-        self.tabs.insertTab(0, all_scroll, "전체")
+        tabContainer.innerHTML = `<button class="p-btn ${p._currentTab === '전체' ? 'active' : ''}" onclick="setCardTab(${idx}, '전체')">전체</button>` +
+            subFolders.map(f => `<button class="p-btn ${p._currentTab === f ? 'active' : ''}" onclick="setCardTab(${idx}, '${f}')">${f}</button>`).join('');
 
-    def make_img(self, path):
-        l = QLabel()
-        l.setPixmap(QPixmap(path).scaled(180, 180, Qt.AspectRatioMode.KeepAspectRatio))
-        return l
-
-class MainApp(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("인원 관리 보안 시스템")
-        self.setGeometry(100, 100, 1000, 900)
+        const displayImgs = p._currentTab === '전체' ? p._imgs : p._imgs.filter(img => img.folder === p._currentTab);
         
-        main_layout = QVBoxLayout()
+        photoContainer.innerHTML = displayImgs.map(img => `
+            <div class="photo-item" id="p-${idx}-${img.path.replace(/\//g,'-')}">
+                <img src="${img.path}" onerror="this.parentElement.style.display='none'">
+            </div>
+        `).join('');
+    }
+
+    function runSearch() {
+        const term = document.getElementById('searchInput').value.toLowerCase();
+        const container = document.getElementById('list');
+        container.innerHTML = ""; 
+
+        const filtered = masterDB.filter(p => (p['이름']||'').includes(term) || (p['소속']||'').includes(term));
         
-        # 최상단 메뉴 (검색 및 비번변경)
-        top_bar = QHBoxLayout()
-        self.search_bar = QLineEdit()
-        self.search_bar.setPlaceholderText("이름 또는 소속 검색...")
-        self.search_bar.textChanged.connect(self.filter_data)
-        
-        self.btn_change_pwd = QPushButton("비밀번호 변경")
-        self.btn_change_pwd.clicked.connect(self.change_password)
-        
-        top_bar.addWidget(self.search_bar)
-        top_bar.addWidget(self.btn_change_pwd)
-        main_layout.addLayout(top_bar)
+        filtered.forEach(p => {
+            const idx = masterDB.indexOf(p);
+            const getV = (key) => p[key] || "-";
 
-        # 카드 리스트 영역
-        self.scroll = QScrollArea()
-        self.container = QWidget()
-        self.card_list = QVBoxLayout(self.container)
-        self.scroll.setWidget(self.container)
-        self.scroll.setWidgetResizable(True)
-        main_layout.addWidget(self.scroll)
+            const cardHtml = `
+                <div class="card">
+                    <div class="profile-row">
+                        <div class="name-part"><span class="name">${getV('이름')}</span><span class="contact">${getV('연락처')}</span></div>
+                        <div class="birth">${getV('생년월일')}</div>
+                        <div class="belong">${getV('소속')}</div>
+                    </div>
 
-        central = QWidget()
-        central.setLayout(main_layout)
-        self.setCentralWidget(central)
-        
-        self.cards = []
-        self.refresh_data()
+                    <div class="card-photo-tabs" id="tabs-${idx}"></div>
+                    <div class="photo-list" id="photos-${idx}"></div>
 
-    def refresh_data(self):
-        if os.path.exists('인명.csv'):
-            df = pd.read_csv('인명.csv', sep='\t')
-            for _, row in df.iterrows():
-                card = PersonCard(row.to_dict())
-                self.card_list.addWidget(card)
-                self.cards.append(card)
+                    <div class="section-title">📍 1. 기본 정보</div>
+                    <div class="grid">
+                        <div class="box full"><span class="label">주소</span><span class="val">${getV('주소')}</span></div>
+                        <div class="box full"><span class="label">보유자료</span><span class="val">${getV('보유자료')}</span></div>
+                        <div class="box"><span class="label">사이즈</span><span class="val red">${getV('사이즈')}</span></div>
+                        <div class="box"><span class="label">관찰동기</span><span class="val">${getV('관찰동기')}</span></div>
+                        <div class="box"><span class="label">첫만남</span><span class="val">${getV('첫만남')}</span></div>
+                        <div class="box"><span class="label">첫스킨십</span><span class="val">${getV('첫스킨십')}</span></div>
+                        <div class="box full"><span class="label">첫빠구리</span><span class="val">${getV('첫빠구리')}</span></div>
+                    </div>
 
-    def filter_data(self):
-        t = self.search_bar.text().lower()
-        for c in self.cards:
-            match = t in str(c.data.get('이름','')).lower() or t in str(c.data.get('소속','')).lower()
-            c.setVisible(match)
+                    <div class="section-title">📈 2. 관계 상태 / 진행도</div>
+                    <div class="grid">
+                        <div class="box"><span class="label">진척도</span><span class="val red">${getV('진척도')}</span></div>
+                        <div class="box"><span class="label">호감도</span><span class="val red">${getV('호감도')}</span></div>
+                        <div class="box"><span class="label">최근수위</span><span class="val">${getV('최근수위')}</span></div>
+                        <div class="box"><span class="label">최근고민</span><span class="val">${getV('최근고민')}</span></div>
+                    </div>
 
-    def change_password(self):
-        new_pwd, ok = QInputDialog.getText(self, "비밀번호 변경", "새로운 4자리 비밀번호를 입력하세요:")
-        if ok and len(new_pwd) == 4 and new_pwd.isdigit():
-            config = configparser.ConfigParser()
-            config['SETTINGS'] = {'password': new_pwd}
-            with open(CONFIG_FILE, 'w') as f:
-                config.write(f)
-            QMessageBox.information(self, "완료", "비밀번호가 변경되었습니다.")
-        else:
-            QMessageBox.warning(self, "오류", "숫자 4자리를 입력해주세요.")
+                    <div class="section-title">🔥 3. 성향 / 취향</div>
+                    <div class="grid">
+                        <div class="box full"><span class="label">선호취향</span><span class="val">${getV('선호취향')}</span></div>
+                        <div class="box full"><span class="label">특이사항</span><span class="val">${getV('특이사항')}</span></div>
+                        <div class="box full"><span class="label">특이반응</span><span class="val">${getV('특이반응')}</span></div>
+                    </div>
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    
-    # 보안 체크
-    login = LoginDialog()
-    if login.verify_password():
-        ex = MainApp()
-        ex.show()
-        sys.exit(app.exec())
-    else:
-        sys.exit()
+                    <div class="section-title">⚠️ 4. 리스크 / 주의사항</div>
+                    <div class="grid">
+                        <div class="box full"><span class="label">주의사항</span><span class="val red">${getV('주의사항')}</span></div>
+                        <div class="box full"><span class="label">경계인물</span><span class="val">${getV('경계인물')}</span></div>
+                    </div>
+
+                    <div class="section-title">💰 5. 접근성 / 운영 정보</div>
+                    <div class="grid">
+                        <div class="box"><span class="label">접근가능</span><span class="val">${getV('접근가능')}</span></div>
+                        <div class="box"><span class="label">누적지출</span><span class="val">${getV('누적지출')}</span></div>
+                        <div class="box full"><span class="label">가성비</span><span class="val">${getV('가성비')}</span></div>
+                    </div>
+
+                    <div class="section-title">🎯 6. 난이도 / 전략</div>
+                    <div class="grid">
+                        <div class="box"><span class="label">난이도</span><span class="val">${getV('난이도')}</span></div>
+                        <div class="box full blue-memo"><strong>공략계획:</strong><br>${getV('공략계획')}</div>
+                    </div>
+
+                    <div class="section-title">⚙️ 7. 시스템 정보</div>
+                    <div class="grid">
+                        <div class="box full">
+                            <span class="label">상세정보</span>
+                            <span class="val">${getV('노션링크') !== '-' ? `<a href="${getV('노션링크')}" target="_blank" class="notion-btn">노션링크</a>` : '-'}</span>
+                        </div>
+                    </div>
+                    <div class="footer-info">마지막 본날: ${getV('마지막본날')}</div>
+                </div>`;
+            
+            container.insertAdjacentHTML('beforeend', cardHtml);
+            renderCardPhotos(idx);
+        });
+    }
+</script>
+</body>
+</html>
