@@ -52,14 +52,15 @@
 
         ::-webkit-scrollbar { height: 5px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-    </style>
-.relationship-memo {
-    background-color: #fff1f2 !important; /* 연한 핑크 배경 */
-    border-left: 4px solid #e11d48 !important; /* 진한 빨강 포인트 */
-    min-height: 60px;
-    align-items: flex-start !important;
-    padding: 12px !important;
+        .relationship-memo {
+        background-color: #fff1f2 !important; /* 연한 핑크 배경 */
+        border-left: 4px solid #e11d48 !important; /* 진한 빨강 포인트 */
+        min-height: 60px;
+        align-items: flex-start !important;
+        padding: 12px !important;
+        margin-top: 8px; /* 위 항목들과 간격 띄우기 */
 }
+    </style>
 </head>
 <body>
 
@@ -188,6 +189,7 @@
                 <span class="label" style="display: block; margin-bottom: 5px;">📍 관계 현황 및 상세 설명</span>
                 <span class="val" style="text-align: left; display: block; line-height: 1.5; color: #333;">
                     ${getV('관계설명')}
+                </span>
 
                     <div class="section-title">🔥 3. 성향 / 취향</div>
                     <div class="grid">
