@@ -129,47 +129,39 @@
     }
 
     async function loadData() {
-    try {
-        const res = await fetch('인명.csv');
-        const ab = await res.arrayBuffer();
-        const text = new TextDecoder('utf-8').decode(ab);
-        const rows = parseCSV(text);
-        
-        // [핵심 수정] 헤더의 앞뒤 공백을 완전히 제거하여 저장
-        const header = rows[0].map(h => h.replace(/["']/g, '').trim());
-        
-        masterDB = rows.slice(1).map(r => {
-            let obj = {};
-            header.forEach((h, i) => {
-                // 데이터 값도 양끝 공백 제거
-                obj[h] = (r[i] || "").trim();
-            });
+        try {
+            const res = await fetch('인명.csv');
+            const ab = await res.arrayBuffer();
+            const text = new TextDecoder('utf-8').decode(ab);
+            const rows = parseCSV(text);
+            const header = rows[0].map(h => h.replace(/["']/g, '').trim());
             
-            // 사진 처리 로직 유지
-            obj._imgs = [];
-            obj._folders = new Set(['전체']);
-            const name = obj['이름'] || "";
-            const photoField = obj['사진파일'] || "";
+            masterDB = rows.slice(1).map(r => {
+                let obj = {};
+                header.forEach((h, i) => obj[h] = r[i] || "");
+                
+                obj._imgs = [];
+                obj._folders = new Set(['전체']);
+                const name = obj['이름'] ? obj['이름'].trim() : "";
 
-            if (photoField && name) {
-                photoField.replace(/^["']|["']$/g, '').split(',').forEach(p => {
-                    const path = p.trim().replace(/^["']|["']$/g, '');
-                    if(path) {
-                        const folder = path.includes('/') ? path.split('/')[0] : '기타';
-                        obj._folders.add(folder);
-                        obj._imgs.push({ fullPath: `img/${name}/${path}`, folder: folder });
-                    }
-                });
-            }
-            obj._currentTab = '전체'; 
-            return obj;
-        });
-        runSearch();
-    } catch (e) { 
-        console.error(e);
-        alert("데이터 로드 실패: CSV 파일 형식을 확인하세요."); 
+                if (obj['사진파일'] && name) {
+                    const raw = obj['사진파일'].replace(/^["']|["']$/g, '');
+                    raw.split(',').forEach(p => {
+                        const path = p.trim().replace(/^["']|["']$/g, '');
+                        if(path) {
+                            const folder = path.includes('/') ? path.split('/')[0] : '기타';
+                            obj._folders.add(folder);
+                            obj._imgs.push({ fullPath: `img/${name}/${path}`, folder: folder });
+                        }
+                    });
+                }
+                obj._currentTab = '전체'; 
+                return obj;
+            });
+            runSearch();
+        } catch (e) { alert("데이터 로드 실패"); }
     }
-}
+
     function setCardTab(idx, folder) {
         masterDB[idx]._currentTab = folder;
         renderCardPhotos(idx);
@@ -190,106 +182,66 @@
         `).join('');
     }
 
-function runSearch() {
-    const term = document.getElementById('searchInput').value.toLowerCase();
-    const container = document.getElementById('list');
-    container.innerHTML = "";
-    
-    // 1. 기존 리스트를 완전히 비워서 섞임 방지
-    container.innerHTML = ""; 
-
-    const filtered = masterDB.filter(p => 
-        (p['이름'] || '').toLowerCase().includes(term) || 
-        (p['소속'] || '').toLowerCase().includes(term)
-    );
-    
-filtered.forEach(p => {
-        const realIdx = masterDB.indexOf(p);
+    function runSearch() {
+        const term = document.getElementById('searchInput').value.toLowerCase();
+        const container = document.getElementById('list');
+        const filtered = masterDB.filter(p => (p['이름']||'').toLowerCase().includes(term) || (p['소속']||'').toLowerCase().includes(term));
         
-        // [핵심] 데이터의 모든 키값에서 공백을 제거하고 가져오는 함수
-        const getV = (key) => {
-            // 엑셀 헤더에 공백이 섞여있을 경우를 대비해 유연하게 매칭
-            const actualKey = Object.keys(p).find(k => k.trim() === key);
-            return (actualKey ? p[actualKey] : "").trim() || "-";
-        };
-        
-        // 카드 틀 생성
-        const cardHtml = `
-            <div class="card" id="card-${realIdx}">
-                <div class="name-row">
+        container.innerHTML = filtered.map(p => {
+            const realIdx = masterDB.indexOf(p);
+            return `
+                <div class="card">
                     <div class="name-row"><span class="name">${p['이름']}</span><span class="sub-text">${p['생년월일']}</span><span class="sub-text">${p['연락처']}</span><span class="sub-text">${p['소속']}</span></div>
-                </div>
-                
-                <div class="card-photo-tabs" id="tabs-${realIdx}"></div>
-                <div class="photo-list" id="photos-${realIdx}"></div>
-                        <div class="section-title">📍 기본 정보 (프로필/히스토리)</div>
-                <div class="grid">
+                    
+                    <div class="card-photo-tabs" id="tabs-${realIdx}"></div>
+                    <div class="photo-list" id="photos-${realIdx}"></div>
+                    
+                    <div class="grid">
                         <div class="box full"><span class="label">주소</span><span class="val">${p['주소'] || '-'}</span></div>
                         <div class="box full"><span class="label">보유자료</span><span class="val red">${p['보유자료'] || '-'}</span></div>
                         <div class="box"><span class="label">사이즈</span><span class="val red">${p['사이즈'] || '-'}</span></div>
                         <div class="box"><span class="label">관찰동기</span><span class="val red">${p['관찰동기'] || '-'}</span></div>
+                        <div class="box"><span class="label">진척도</span><span class="val red">${p['진척도'] || '-'}</span></div>
                         <div class="box"><span class="label">첫만남</span><span class="val red">${p['첫만남'] || '-'}</span></div>
                         <div class="box"><span class="label">첫스킨십</span><span class="val red">${p['첫스킨십'] || '-'}</span></div>
                         <div class="box"><span class="label">첫빠구리</span><span class="val red">${p['첫빠구리'] || '-'}</span></div>
-</div>
-                        <div class="section-title">📈 관계 상태 / 진행도</div>
-                <div class="grid">
-                        <div class="box"><span class="label">진척도</span><span class="val red">${p['진척도'] || '-'}</span></div>
-                        <div class="box"><span class="label">호감도</span><span class="val red">${p['나에대한 호감도'] || '-'}</span></div>
                         <div class="box"><span class="label">최근수위</span><span class="val red">${p['최근수위'] || '-'}</span></div>
-                        <div class="box"><span class="label">최근고민</span><span class="val">${p['최근고민'] || '-'}</span></div>
-</div>
-                        <div class="section-title">🔥 성향 / 취향 (핵심 데이터)</div>
-                <div class="grid"> 
-                       <div class="box"><span class="label">선호취향</span><span class="val">${p['선호취향'] || '-'}</span></div>
                         <div class="box"><span class="label">특이반응</span><span class="val red">${p['특이반응'] || '-'}</span></div>
-</div>
-                        <div class="section-title">⚠️ 행동 리스크 / 주의사항</div>
-                <div class="grid"> 
-                       <div class="box"><span class="label">주의사항</span><span class="val">${p['주의사항'] || '-'}</span></div>
-                        <div class="box"><span class="label">경계인물</span><span class="val">${p['경계인물'] || '-'}</span></div>
-</div>
-                <div class="section-title">💰 접근성 / 운영 정보</div>
-                <div class="grid"> 
-                       <div class="box"><span class="label">접근가능시간</span><span class="val">${p['접근가능시간'] || '-'}</span></div>
+                        <div class="box"><span class="label">호감도</span><span class="val red">${p['나에대한 호감도'] || '-'}</span></div>
                         <div class="box"><span class="label">누적지출</span><span class="val">${p['누적지출'] || '-'}</span></div>
-                        <div class="box"><span class="label">가성비</span><span class="val">${p['가성비'] || '-'}</span></div>
-</div>
-                <div class="section-title">🎯 난이도 / 전략</div>
-                <div class="grid">
-                        <div class="box"><span class="label">난이도</span><span class="val">${p['공략난이도'] || '-'}</span></div>
-                        <div class="memo"><strong>📝 공략계획:</strong><br>${p['공략계획'] || '-'}</div>
+                        <div class="box"><span class="label">주의사항</span><span class="val">${p['주의사항'] || '-'}</span></div>
+                        <div class="box"><span class="label">선호취향</span><span class="val">${p['선호취향'] || '-'}</span></div>
                         <div class="box"><span class="label">마지막본날</span><span class="val">${p['마지막본날'] || '-'}</span></div>
-                    <div class="box full">
-                        <span class="label">노션링크</span>
-                        <span class="val">
-                            ${(() => {
-                                let link = p['노션링크'] ? p['노션링크'].trim() : "";
-                                if (!link || link === "-") return "-";
-                                let href = link.startsWith('http') ? link : 'https://' + link;
-                                return `<a href="${href}" target="_blank" style="color:var(--포인트); text-decoration:none; font-weight:bold; background:#eff6ff; padding:3px 10px; border-radius:5px; border:1px solid #bfdbfe; display:inline-block;">노션 상세정보 열기 ↗</a>`;
-                            })()}
-                        </span>
-                    </div>
-                    
-                    <div class="box full"><span class="label">특이사항</span><span class="val">${p['특이반응'] || '-'}</span></div>
-                </div>
-
-
-                <div class="memo blue-memo"><strong>🤝 공통화제:</strong><br>${p['공통화제'] || '-'}</div>
-                
-                <div style="text-align:right; font-size:10px; color:#94a3b8; margin-top:10px;">
-                    최종확인: ${p['마지막 본날짜'] || '-'}
-                </div>
-            </div>`;
+                        <div class="box"><span class="label">접근가능시간</span><span class="val">${p['접근가능시간'] || '-'}</span></div>
+                        <div class="box"><span class="label">가성비</span><span class="val">${p['가성비'] || '-'}</span></div>
+                        <div class="box"><span class="label">경계인물</span><span class="val">${p['경계인물'] || '-'}</span></div>
+                        <div class="box"><span class="label">최근고민</span><span class="val">${p['최근고민'] || '-'}</span></div>
+                        <div class="box"><span class="label">난이도</span><span class="val">${p['공략난이도'] || '-'}</span></div>
+<div class="box full">
+    <span class="label">노션링크</span>
+    <span class="val">
+        ${(() => {
+            let link = p['노션링크'] ? p['노션링크'].trim() : "";
+            if (!link || link === "-") return "-";
             
-        // 컨테이너에 카드 추가 (누적되지 않도록 카드를 하나씩 append)
-        container.insertAdjacentHTML('beforeend', cardHtml);
-        
-        // 카드 생성이 끝난 후 해당 카드 안의 사진/탭 렌더링
-        renderCardPhotos(realIdx);
-    });
-}
+            // http로 시작하지 않으면 자동으로 붙여줌 (주소만 적었을 경우 대비)
+            let href = link.startsWith('http') ? link : 'https://' + link;
+            
+            return `<a href="${href}" target="_blank" style="color:var(--포인트); text-decoration:none; font-weight:bold; background:#eff6ff; padding:3px 10px; border-radius:5px; border:1px solid #bfdbfe; display:inline-block;">노션 상세정보 열기 ↗</a>`;
+        })()}
+    </span>
+</div>
+
+                    <div class="memo"><strong>📝 공략계획:</strong><br>${p['공략계획'] || '-'}</div>
+                    <div class="memo blue-memo"><strong>🤝 공통화제:</strong><br>${p['공통화제'] || '-'}</div>
+                    
+                    <div style="text-align:right; font-size:10px; color:#94a3b8; margin-top:10px;">
+                        최종확인: ${p['마지막 본날짜'] || '-'}
+                    </div>
+                </div>`;
+        }).join('');
+        filtered.forEach(p => renderCardPhotos(masterDB.indexOf(p)));
+    }
 </script>
 </body>
 </html>
