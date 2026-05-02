@@ -5,85 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🔒 SMART 실전 전략 수첩</title>
     <style>
-        :root { --메인: #e11d48; --포인트: #2563eb; --배경: #f1f5f9; }
-        body { font-family: 'Malgun Gothic', sans-serif; background: var(--배경); margin: 0; padding: 10px; color: #1e293b; }
+        :root { --메인: #e11d48; --포인트: #2563eb; --배경: #f1f5f9; --테두리: #e2e8f0; }
+        body { font-family: 'Malgun Gothic', sans-serif; background: var(--배경); margin: 0; padding: 10px; color: #1e293b; line-height: 1.4; }
         
-        /* 보안 로그인 섹션 */
+        /* 로그인 */
         #auth-section { margin: 100px auto; text-align: center; max-width: 350px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         input[type="password"] { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 70%; margin-bottom: 10px; font-size: 16px; outline: none; }
         .login-btn { padding: 12px 20px; background: var(--메인); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 80%; }
 
-        #mainContent { max-width: 650px; margin: 0 auto; display: none; }
-        
-        /* 검색창 고정 */
+        #mainContent { max-width: 700px; margin: 0 auto; display: none; }
         .sticky-header { position: sticky; top: 0; background: var(--배경); z-index: 1000; padding: 10px 0; }
-        .search-box { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 15px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .search-box { width: 100%; padding: 14px; border: 2px solid var(--테두리); border-radius: 12px; box-sizing: border-box; font-size: 16px; outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
-        /* 카드 스타일 */
-        .card { background: white; border-radius: 15px; padding: 18px; margin-bottom: 25px; box-shadow: 0 3px 12px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; overflow: hidden; }
-        .name-row { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 15px; }
-        .name { font-size: 1.4em; font-weight: 900; color: #000; }
-        .sub-text { font-size: 0.85em; color: #64748b; }
+        /* 카드 레이아웃 */
+        .card { background: white; border-radius: 18px; padding: 20px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid var(--테두리); }
+        
+        /* 상단 프로필 영역 */
+        .profile-row { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px; }
+        .name-part { display: flex; align-items: baseline; gap: 10px; }
+        .name { font-size: 1.8em; font-weight: 900; color: #000; }
+        .contact { font-size: 1.1em; color: #475569; font-weight: bold; }
+        .birth { font-size: 1em; color: #64748b; flex-grow: 1; text-align: center; }
+        .belong { font-size: 1.1em; font-weight: bold; color: var(--포인트); }
 
-        /* [핵심] 탭 가로 스크롤: 무조건 한 줄 고정 및 옆으로 끌기 */
-        .card-photo-tabs { 
-            display: flex !important; 
-            flex-wrap: nowrap !important;   /* 줄바꿈 절대 금지 */
-            gap: 6px; 
-            margin: 12px 0; 
-            padding: 2px 0 10px 0; 
-            overflow-x: auto !important;    /* 가로 스크롤 활성화 */
-            overflow-y: hidden !important;  /* 세로 넘침 방지 */
-            width: 100%;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        /* [핵심] 가변형 탭 버튼: 글자 길이에 맞춰 자동 조절 */
-        .p-btn { 
-            flex: 0 0 auto !important;      /* 찌그러짐 방지 */
-            min-width: fit-content;         /* 글자 길이에 맞춤 */
-            padding: 5px 14px; 
-            background: #ffffff; 
-            border: 1px solid #cbd5e1; 
-            border-radius: 15px; 
-            cursor: pointer; 
-            font-size: 11px; 
-            font-weight: bold; 
-            color: #475569; 
-            white-space: nowrap !important; /* 버튼 내 글자 줄바꿈 금지 */
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            transition: all 0.2s;
-        }
+        /* 사진 및 탭 */
+        .card-photo-tabs { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; padding: 5px 0; }
+        .p-btn { flex: 0 0 auto; padding: 6px 15px; background: #fff; border: 1px solid #cbd5e1; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s; }
         .p-btn.active { background: var(--포인트); color: white; border-color: var(--포인트); }
-
-        /* 사진 가로 스크롤 영역 */
-        .photo-list { 
-            display: flex !important; 
-            flex-wrap: nowrap !important;
-            gap: 10px; 
-            overflow-x: auto !important; 
-            margin-bottom: 15px; 
-            padding-bottom: 10px;
-            min-height: 120px;
-        }
-        .photo-item { flex: 0 0 120px; width: 120px; height: 120px; border-radius: 10px; overflow: hidden; background: #eee; border: 1px solid #ddd; }
+        
+        .photo-list { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 12px; min-height: 140px; }
+        .photo-item { flex: 0 0 140px; width: 140px; height: 140px; border-radius: 12px; overflow: hidden; background: #f1f5f9; border: 1px solid #eee; }
         .photo-item img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* 데이터 그리드 확장 (항목 추가) */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 15px; }
-        .box { background: #f8fafc; padding: 8px 10px; border-radius: 6px; display: flex; justify-content: space-between; font-size: 12px; border: 1px solid #f1f5f9; align-items: center; }
-        .label { color: #64748b; font-weight: bold; margin-right: 5px; white-space: nowrap; }
-        .val { color: #1e293b; font-weight: bold; text-align: right; word-break: break-all; }
-        .red { color: var(--메인); }
+        /* 섹션별 구성 */
+        .section-title { font-size: 14px; font-weight: 800; color: #334155; background: #f8fafc; padding: 6px 12px; margin: 18px 0 8px 0; border-radius: 6px; border-left: 4px solid #94a3b8; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .box { padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 13px; align-items: center; border: 1px solid rgba(0,0,0,0.05); }
+        .label { color: rgba(0,0,0,0.6); font-weight: bold; font-size: 12px; }
+        .val { color: #1e293b; font-weight: bold; text-align: right; }
+        .red { color: var(--메인) !important; }
         .full { grid-column: span 2; }
 
-        /* 메모 및 주의사항 */
-        .memo { background: #fff7ed; border-left: 4px solid #fb923c; padding: 10px; font-size: 12px; margin-top: 8px; border-radius: 4px; white-space: pre-wrap; line-height: 1.5; }
-        .blue-memo { background: #f0f9ff; border-left-color: #0ea5e9; }
+        /* [핵심] 섹션별 박스 색상 정의 */
+        .s1 .box { background-color: #f0f9ff; border-color: #bae6fd; } /* 기본정보: 파랑 */
+        .s1 .label { color: #0369a1; }
+        
+        .s2 .box { background-color: #fff1f2; border-color: #fecdd3; } /* 관계상태: 빨강 */
+        .s2 .label { color: #9f1239; }
 
-        /* 스크롤바 디자인 */
-        .card-photo-tabs::-webkit-scrollbar, .photo-list::-webkit-scrollbar { height: 4px; }
-        .card-photo-tabs::-webkit-scrollbar-thumb, .photo-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .s3 .box { background-color: #f0fdf4; border-color: #bbf7d0; } /* 성향취향: 초록 */
+        .s3 .label { color: #166534; }
+
+        .s4 .box { background-color: #fffbeb; border-color: #fde68a; } /* 리스크: 노랑 */
+        .s4 .label { color: #92400e; }
+
+        .s5 .box { background-color: #faf5ff; border-color: #e9d5ff; } /* 접근성: 보라 */
+        .s5 .label { color: #6b21a8; }
+
+        .s6 .box { background-color: #fdf2f8; border-color: #fbcfe8; } /* 난이도: 핑크 */
+        .s6 .label { color: #9d174d; }
+
+        .s7 .box { background-color: #f8fafc; border-color: #e2e8f0; } /* 시스템: 회색 */
+        .s7 .label { color: #475569; }
+
+        /* 기타 정보 */
+        .blue-memo { background: rgba(255,255,255,0.5); border-left: 4px solid #0ea5e9; padding: 10px; font-size: 12px; border-radius: 4px; line-height: 1.5; margin-top: 5px;}
+        .notion-btn { text-decoration: none; background: #000; color: white; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .footer-info { text-align: right; font-size: 11px; color: #94a3b8; margin-top: 15px; }
+
+        ::-webkit-scrollbar { height: 5px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -91,75 +82,62 @@
     <div id="auth-section">
         <h2>🔒 보안 수첩 접속</h2>
         <input type="password" id="pw" placeholder="비밀번호" onkeypress="if(event.key==='Enter') unlock()">
-        <button onclick="unlock()">열기</button>
+        <button class="login-btn" onclick="unlock()">열기</button>
     </div>
 
     <div id="mainContent">
         <div class="sticky-header">
-            <input type="text" id="searchInput" class="search-box" placeholder="이름 또는 소속 검색..." onkeyup="runSearch()">
+            <input type="text" id="searchInput" class="search-box" placeholder="이름 또는 소속으로 검색..." onkeyup="runSearch()">
         </div>
         <div id="list"></div>
     </div>
 
 <script>
     let masterDB = [];
+    const subFolders = ['body', 'face', 'extra', 'etc']; // 사진을 찾을 하위 폴더들
+
+    window.onload = () => { document.getElementById('pw').focus(); };
 
     function unlock() {
         if(document.getElementById('pw').value === "1234") {
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
             loadData();
-        } else { alert("비밀번호 틀림"); }
-    }
-
-    function parseCSV(text) {
-        const rows = [];
-        let currRow = [], currCol = "", inQuotes = false;
-        for (let i = 0; i < text.length; i++) {
-            const c = text[i];
-            if (inQuotes && c === '"' && text[i+1] === '"') { currCol += '"'; i++; }
-            else if (c === '"') inQuotes = !inQuotes;
-            else if ((c === ',' || c === '\t') && !inQuotes) { currRow.push(currCol.trim()); currCol = ""; }
-            else if ((c === '\n' || c === '\r') && !inQuotes) {
-                if (currCol !== "" || currRow.length > 0) { currRow.push(currCol.trim()); rows.push(currRow); currCol = ""; currRow = []; }
-            } else { currCol += c; }
-        }
-        if (currCol || currRow.length > 0) { currRow.push(currCol.trim()); rows.push(currRow); }
-        return rows;
+        } else { alert("비밀번호가 틀렸습니다."); document.getElementById('pw').value=""; }
     }
 
     async function loadData() {
         try {
             const res = await fetch('인명.csv');
             const ab = await res.arrayBuffer();
-            const text = new TextDecoder('utf-8').decode(ab);
-            const rows = parseCSV(text);
-            const header = rows[0].map(h => h.replace(/["']/g, '').trim());
+            let text = new TextDecoder('utf-8').decode(ab).replace(/^\uFEFF/, "");
+            
+            const rows = text.split(/\r?\n/).filter(row => row.trim() !== "").map(row => row.split(',').map(cell => cell.trim()));
+            const header = rows[0].map(h => h.trim()); // 헤더 공백 제거
             
             masterDB = rows.slice(1).map(r => {
                 let obj = {};
                 header.forEach((h, i) => obj[h] = r[i] || "");
                 
+                // [사진 자동 로직 보완] 대소문자 .jpg/.JPG 모두 탐색
                 obj._imgs = [];
-                obj._folders = new Set(['전체']);
-                const name = obj['이름'] ? obj['이름'].trim() : "";
+                const name = obj['이름'] ? obj['이름'].trim() : ""; // 이름 공백 제거
 
-                if (obj['사진파일'] && name) {
-                    const raw = obj['사진파일'].replace(/^["']|["']$/g, '');
-                    raw.split(',').forEach(p => {
-                        const path = p.trim().replace(/^["']|["']$/g, '');
-                        if(path) {
-                            const folder = path.includes('/') ? path.split('/')[0] : '기타';
-                            obj._folders.add(folder);
-                            obj._imgs.push({ fullPath: `img/${name}/${path}`, folder: folder });
+                if (name) {
+                    subFolders.forEach(folder => {
+                        for (let i = 1; i <= 20; i++) { // 탐색 장수를 20장으로 줄여 버벅임 완화
+                            // 소문자 .jpg 시도
+                            obj._imgs.push({ path: `img/${name}/${folder}/${i}.jpg`, folder: folder });
+                            // 대문자 .JPG 시도 (장희정님 문제 해결용)
+                            obj._imgs.push({ path: `img/${name}/${folder}/${i}.JPG`, folder: folder });
                         }
                     });
                 }
-                obj._currentTab = '전체'; 
+                obj._currentTab = '전체';
                 return obj;
             });
             runSearch();
-        } catch (e) { alert("데이터 로드 실패"); }
+        } catch (e) { alert("인명.csv 파일을 불러오지 못했습니다."); }
     }
 
     function setCardTab(idx, folder) {
@@ -172,75 +150,112 @@
         const tabContainer = document.getElementById(`tabs-${idx}`);
         const photoContainer = document.getElementById(`photos-${idx}`);
         
-        tabContainer.innerHTML = Array.from(p._folders).map(f => `
-            <button class="p-btn ${p._currentTab === f ? 'active' : ''}" onclick="setCardTab(${idx}, '${f}')">${f}</button>
-        `).join('');
+        tabContainer.innerHTML = `<button class="p-btn ${p._currentTab === '전체' ? 'active' : ''}" onclick="setCardTab(${idx}, '전체')">전체</button>` +
+            subFolders.map(f => `<button class="p-btn ${p._currentTab === f ? 'active' : ''}" onclick="setCardTab(${idx}, '${f}')">${f}</button>`).join('');
 
         const displayImgs = p._currentTab === '전체' ? p._imgs : p._imgs.filter(img => img.folder === p._currentTab);
+        
         photoContainer.innerHTML = displayImgs.map(img => `
-            <div class="photo-item"><img src="${img.fullPath}" onerror="this.src='https://via.placeholder.com/120?text=실패'"></div>
+            <div class="photo-item" id="p-${idx}-${img.path.replace(/\//g,'-')}">
+                <img src="${img.path}" loading="lazy" onerror="this.parentElement.remove()">
+            </div>
         `).join('');
     }
 
     function runSearch() {
         const term = document.getElementById('searchInput').value.toLowerCase();
         const container = document.getElementById('list');
-        const filtered = masterDB.filter(p => (p['이름']||'').toLowerCase().includes(term) || (p['소속']||'').toLowerCase().includes(term));
-        
-        container.innerHTML = filtered.map(p => {
-            const realIdx = masterDB.indexOf(p);
-            return `
-                <div class="card">
-                    <div class="name-row"><span class="name">${p['이름']}</span><span class="sub-text">${p['생년월일']}</span><span class="sub-text">${p['연락처']}</span><span class="sub-text">${p['소속']}</span></div>
-                    
-                    <div class="card-photo-tabs" id="tabs-${realIdx}"></div>
-                    <div class="photo-list" id="photos-${realIdx}"></div>
-                    
-                    <div class="grid">
-                        <div class="box full"><span class="label">주소</span><span class="val">${p['주소'] || '-'}</span></div>
-                        <div class="box full"><span class="label">보유자료</span><span class="val red">${p['보유자료'] || '-'}</span></div>
-                        <div class="box"><span class="label">사이즈</span><span class="val red">${p['사이즈'] || '-'}</span></div>
-                        <div class="box"><span class="label">관찰동기</span><span class="val red">${p['관찰동기'] || '-'}</span></div>
-                        <div class="box"><span class="label">진척도</span><span class="val red">${p['진척도'] || '-'}</span></div>
-                        <div class="box"><span class="label">첫만남</span><span class="val red">${p['첫만남'] || '-'}</span></div>
-                        <div class="box"><span class="label">첫스킨십</span><span class="val red">${p['첫스킨십'] || '-'}</span></div>
-                        <div class="box"><span class="label">첫빠구리</span><span class="val red">${p['첫빠구리'] || '-'}</span></div>
-                        <div class="box"><span class="label">최근수위</span><span class="val red">${p['최근수위'] || '-'}</span></div>
-                        <div class="box"><span class="label">특이반응</span><span class="val red">${p['특이반응'] || '-'}</span></div>
-                        <div class="box"><span class="label">호감도</span><span class="val red">${p['나에대한 호감도'] || '-'}</span></div>
-                        <div class="box"><span class="label">누적지출</span><span class="val">${p['누적지출'] || '-'}</span></div>
-                        <div class="box"><span class="label">주의사항</span><span class="val">${p['주의사항'] || '-'}</span></div>
-                        <div class="box"><span class="label">선호취향</span><span class="val">${p['선호취향'] || '-'}</span></div>
-                        <div class="box"><span class="label">마지막본날</span><span class="val">${p['마지막본날'] || '-'}</span></div>
-                        <div class="box"><span class="label">접근가능시간</span><span class="val">${p['접근가능시간'] || '-'}</span></div>
-                        <div class="box"><span class="label">가성비</span><span class="val">${p['가성비'] || '-'}</span></div>
-                        <div class="box"><span class="label">경계인물</span><span class="val">${p['경계인물'] || '-'}</span></div>
-                        <div class="box"><span class="label">최근고민</span><span class="val">${p['최근고민'] || '-'}</span></div>
-                        <div class="box"><span class="label">난이도</span><span class="val">${p['공략난이도'] || '-'}</span></div>
-<div class="box full">
-    <span class="label">노션링크</span>
-    <span class="val">
-        ${(() => {
-            let link = p['노션링크'] ? p['노션링크'].trim() : "";
-            if (!link || link === "-") return "-";
-            
-            // http로 시작하지 않으면 자동으로 붙여줌 (주소만 적었을 경우 대비)
-            let href = link.startsWith('http') ? link : 'https://' + link;
-            
-            return `<a href="${href}" target="_blank" style="color:var(--포인트); text-decoration:none; font-weight:bold; background:#eff6ff; padding:3px 10px; border-radius:5px; border:1px solid #bfdbfe; display:inline-block;">노션 상세정보 열기 ↗</a>`;
-        })()}
-    </span>
-</div>
+        container.innerHTML = ""; 
 
-                    <div class="memo"><strong>📝 공략계획:</strong><br>${p['공략계획'] || '-'}</div>
-                    <div class="memo blue-memo"><strong>🤝 공통화제:</strong><br>${p['공통화제'] || '-'}</div>
-                    
-                    <div style="text-align:right; font-size:10px; color:#94a3b8; margin-top:10px;">
-                        최종확인: ${p['마지막 본날짜'] || '-'}
+        const filtered = masterDB.filter(p => (p['이름']||'').includes(term) || (p['소속']||'').includes(term));
+        
+        filtered.forEach(p => {
+            const idx = masterDB.indexOf(p);
+            const getV = (key) => p[key] || "-";
+
+            const cardHtml = `
+                <div class="card">
+                    <div class="profile-row">
+                        <div class="name-part"><span class="name">${getV('이름')}</span><span class="contact">${getV('연락처')}</span></div>
+                        <div class="birth">${getV('생년월일')}</div>
+                        <div class="belong">${getV('소속')}</div>
                     </div>
+
+                    <div class="card-photo-tabs" id="tabs-${idx}"></div>
+                    <div class="photo-list" id="photos-${idx}"></div>
+
+                    <div class="s1">
+                        <div class="section-title">📍 1. 기본 정보</div>
+                        <div class="grid">
+                            <div class="box full"><span class="label">주소</span><span class="val">${getV('주소')}</span></div>
+                            <div class="box full"><span class="label">보유자료</span><span class="val">${getV('보유자료')}</span></div>
+                            <div class="box"><span class="label">사이즈</span><span class="val red">${getV('사이즈')}</span></div>
+                            <div class="box"><span class="label">관찰동기</span><span class="val">${getV('관찰동기')}</span></div>
+                            <div class="box"><span class="label">첫만남</span><span class="val">${getV('첫만남')}</span></div>
+                            <div class="box"><span class="label">첫스킨십</span><span class="val">${getV('첫스킨십')}</span></div>
+                            <div class="box full"><span class="label">첫빠구리</span><span class="val">${getV('첫빠구리')}</span></div>
+                        </div>
+                    </div>
+
+                    <div class="s2">
+                        <div class="section-title">📈 2. 관계 상태 / 진행도</div>
+                        <div class="grid">
+                            <div class="box"><span class="label">진척도</span><span class="val red">${getV('진척도')}</span></div>
+                            <div class="box"><span class="label">호감도</span><span class="val red">${getV('호감도')}</span></div>
+                            <div class="box"><span class="label">최근수위</span><span class="val">${getV('최근수위')}</span></div>
+                            <div class="box"><span class="label">최근고민</span><span class="val">${getV('최근고민')}</span></div>
+                        </div>
+                    </div>
+
+                    <div class="s3">
+                        <div class="section-title">🔥 3. 성향 / 취향</div>
+                        <div class="grid">
+                            <div class="box full"><span class="label">선호취향</span><span class="val">${getV('선호취향')}</span></div>
+                            <div class="box full"><span class="label">특이사항</span><span class="val">${getV('특이사항')}</span></div>
+                            <div class="box full"><span class="label">특이반응</span><span class="val">${getV('특이반응')}</span></div>
+                        </div>
+                    </div>
+
+                    <div class="s4">
+                        <div class="section-title">⚠️ 4. 리스크 / 주의사항</div>
+                        <div class="grid">
+                            <div class="box full"><span class="label">주의사항</span><span class="val red">${getV('주의사항')}</span></div>
+                            <div class="box full"><span class="label">경계인물</span><span class="val">${getV('경계인물')}</span></div>
+                        </div>
+                    </div>
+
+                    <div class="s5">
+                        <div class="section-title">💰 5. 접근성 / 운영 정보</div>
+                        <div class="grid">
+                            <div class="box"><span class="label">접근가능</span><span class="val">${getV('접근가능')}</span></div>
+                            <div class="box"><span class="label">누적지출</span><span class="val">${getV('누적지출')}</span></div>
+                            <div class="box full"><span class="label">가성비</span><span class="val">${getV('가성비')}</span></div>
+                        </div>
+                    </div>
+
+                    <div class="s6">
+                        <div class="section-title">🎯 6. 난이도 / 전략</div>
+                        <div class="grid">
+                            <div class="box"><span class="label">난이도</span><span class="val">${getV('난이도')}</span></div>
+                            <div class="box full blue-memo"><strong>공략계획:</strong><br>${getV('공략계획')}</div>
+                        </div>
+                    </div>
+
+                    <div class="s7">
+                        <div class="section-title">⚙️ 7. 시스템 정보</div>
+                        <div class="grid">
+                            <div class="box full">
+                                <span class="label">상세정보</span>
+                                <span class="val">${getV('노션링크') !== '-' ? `<a href="${getV('노션링크')}" target="_blank" class="notion-btn">노션링크</a>` : '-'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer-info">마지막 본날: ${getV('마지막본날')}</div>
                 </div>`;
-        }).join('');
-        filtered.forEach(p => renderCardPhotos(masterDB.indexOf(p)));
+            
+            container.insertAdjacentHTML('beforeend', cardHtml);
+            renderCardPhotos(idx);
+        });
     }
 </script>
 </body>
