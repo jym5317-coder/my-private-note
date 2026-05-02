@@ -84,6 +84,57 @@
         /* 스크롤바 디자인 */
         .card-photo-tabs::-webkit-scrollbar, .photo-list::-webkit-scrollbar { height: 4px; }
         .card-photo-tabs::-webkit-scrollbar-thumb, .photo-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        /* 비밀 기록 및 사진 섹션 전용 스타일 */
+        s-secret {
+            background-color: #fcfaff !important; /* 연한 보라색 배경 */
+            border-left: 4px solid #8b5cf6 !important; /* 보라색 포인트 */
+            padding: 15px !important;
+            margin-top: 10px;
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 사진을 2열로 배치 */
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .photo-box {
+            width: 100%;
+            aspect-ratio: 3 / 4; /* 세로가 긴 사진 비율 */
+            background: #eee;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+
+        .photo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 사진이 찌그러지지 않게 꽉 채움 */
+        }
+
+        /* 공략 계획 섹션 스타일 */
+        .s-plan {
+            background-color: #f0fdf4 !important; /* 연한 녹색 배경 (긍정적 진행) */
+            border-left: 4px solid #22c55e !important; /* 녹색 포인트 */
+            padding: 15px !important;
+            margin-top: 10px;
+        }
+
+        .plan-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 0.95em;
+        }
+
+        .plan-check {
+            color: #22c55e;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -178,6 +229,15 @@
             const idx = masterDB.indexOf(p);
             const getV = (key) => p[key] || "-";
         // 우선순위에 따른 카드 테두리 강조 로직
+        const priority = getV('우선순위');
+        const priorityStyle = priority === '1' ? 'border: 3px solid #e11d48;' : 'border: 1px solid #e2e8f0;';
+
+        // 날짜 계산 (마지막 만남 후 며칠 지났는지)
+        const lastDate = new Date(getV('마지막본날'));
+        const today = new Date();
+        const diffTime = Math.abs(today - lastDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const alertColor = diffDays > 7 ? 'red' : 'green'; // 7일 이상 지나면 빨간색 표시
         const priority = getV('우선순위');
         const priorityStyle = priority === '1' ? 'border: 3px solid #e11d48;' : 'border: 1px solid #e2e8f0;';
 
@@ -298,7 +358,7 @@
                             </div>
                         </div>
                     </div>
-                        <!-- 🎯 성과 중심 공략 섹션 -->
+                        <!-- 🎯 9. 성과 중심 공략 섹션 -->
                         <div class="s6" style="${priorityStyle}">
                             <div class="section-title">🎯 집중 공략 및 성과 관리</div>
                             <div class="grid">
@@ -320,7 +380,7 @@
                                 </div>
                             </div>
                         </div>
-                    <div class="section-title">⚙️ 9. 시스템 정보</div>
+                    <div class="section-title">⚙️ 10. 시스템 정보</div>
                     <div class="grid">
                         <div class="box full">
                             <span class="label">상세정보</span>
