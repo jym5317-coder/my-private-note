@@ -3,36 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔒 SMART 인원 관리 시스템 (9 Sections)</title>
+    <title>🔒 SMART 실전 전략 수첩</title>
     <style>
         :root { --메인: #e11d48; --포인트: #2563eb; --배경: #f1f5f9; --테두리: #e2e8f0; }
-        body { font-family: 'Malgun Gothic', sans-serif; background: var(--배경); margin: 0; padding: 10px; color: #1e293b; }
+        body { font-family: 'Malgun Gothic', sans-serif; background: var(--배경); margin: 0; padding: 10px; color: #1e293b; line-height: 1.4; }
         
-        /* 레이아웃 및 검색 */
+        /* 로그인 */
         #auth-section { margin: 100px auto; text-align: center; max-width: 350px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        #mainContent { max-width: 750px; margin: 0 auto; display: none; }
-        .search-box { width: 100%; padding: 14px; border: 2px solid var(--테두리); border-radius: 12px; margin-bottom: 20px; box-sizing: border-box; outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        input[type="password"] { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 70%; margin-bottom: 10px; font-size: 16px; outline: none; }
+        .login-btn { padding: 12px 20px; background: var(--메인); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 80%; }
 
-        /* 카드 및 섹션 스타일 */
+        #mainContent { max-width: 700px; margin: 0 auto; display: none; }
+        .sticky-header { position: sticky; top: 0; background: var(--배경); z-index: 1000; padding: 10px 0; }
+        .search-box { width: 100%; padding: 14px; border: 2px solid var(--테두리); border-radius: 12px; box-sizing: border-box; font-size: 16px; outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+        /* 카드 레이아웃 */
         .card { background: white; border-radius: 18px; padding: 20px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid var(--테두리); }
-        .section-title { font-size: 14px; font-weight: 800; background: #f8fafc; padding: 6px 12px; margin: 18px 0 8px 0; border-left: 4px solid #94a3b8; color: #334155; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .box { padding: 10px 12px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 13px; border: 1px solid rgba(0,0,0,0.05); align-items: center; }
-        .label { color: #64748b; font-weight: bold; font-size: 11px; }
-        .val { font-weight: bold; color: #1e293b; text-align: right; }
-        .full { grid-column: span 2; }
-        .red { color: var(--메인) !important; }
+        
+        /* 상단 프로필 영역 */
+        .profile-row { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px; }
+        .name-part { display: flex; align-items: baseline; gap: 10px; }
+        .name { font-size: 1.8em; font-weight: 900; color: #000; }
+        .contact { font-size: 1.1em; color: #475569; font-weight: bold; }
+        .birth { font-size: 1em; color: #64748b; flex-grow: 1; text-align: center; }
+        .belong { font-size: 1.1em; font-weight: bold; color: var(--포인트); }
 
-        /* 사진 로딩 최적화 */
-        .photo-list { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 12px; min-height: 140px; }
-        .photo-item { flex: 0 0 140px; height: 140px; border-radius: 12px; background: #f1f5f9; overflow: hidden; border: 1px solid #eee; }
+        /* 사진 및 탭 */
+        .card-photo-tabs { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; padding: 5px 0; }
+        .p-btn { flex: 0 0 auto; padding: 6px 15px; background: #fff; border: 1px solid #cbd5e1; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s; }
+        .p-btn.active { background: var(--포인트); color: white; border-color: var(--포인트); }
+        
+        .photo-list { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 12px; min-height: 140px; }
+        .photo-item { flex: 0 0 140px; width: 140px; height: 140px; border-radius: 12px; overflow: hidden; background: #f1f5f9; border: 1px solid #eee; }
         .photo-item img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* 섹션별 테마 색상 */
-        .s2 .box { background-color: #fff1f2; border-color: #fecdd3; } /* 관계 */
-        .s3 .box { background-color: #f0fdf4; border-color: #bbf7d0; } /* 성향 */
-        .s4 .box { background-color: #fffbeb; border-color: #fde68a; } /* 리스크 */
-        .s-secret { background-color: #fcfaff; border-left: 4px solid #8b5cf6; padding: 15px; margin-top: 10px; border-radius: 8px; } /* 비밀기록 */
+        /* 섹션별 구성 */
+        .section-title { font-size: 14px; font-weight: 800; color: #334155; background: #f8fafc; padding: 6px 12px; margin: 18px 0 8px 0; border-radius: 6px; border-left: 4px solid #94a3b8; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .box { background: #ffffff; padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 13px; border: 1px solid #f1f5f9; align-items: center; box-shadow: inset 0 0 5px rgba(0,0,0,0.02); }
+        .label { color: #64748b; font-weight: bold; font-size: 12px; }
+        .val { color: #1e293b; font-weight: bold; text-align: right; }
+        .red { color: var(--메인); }
+        .full { grid-column: span 2; }
+
+        /* 비밀 기록 및 사진 섹션 전용 스타일 */
+       .s-secret {
+           background-color: #fcfaff !important; /* 연한 보라색 배경 */
+           border-left: 4px solid #8b5cf6 !important; /* 보라색 포인트 */
+           padding: 15px !important;
+           margin-top: 10px;
+       }
+
+       .photo-grid {
+           display: grid;
+           grid-template-columns: repeat(2, 1fr); /* 사진을 2열로 배치 */
+           gap: 10px;
+           margin-top: 10px;
+       }
+
+       .photo-box {
+           width: 100%;
+           aspect-ratio: 3 / 4; /* 세로가 긴 사진 비율 */
+           background: #eee;
+           border-radius: 8px;
+           overflow: hidden;
+           border: 1px solid #ddd;
+       }
+
+       .photo-box img {
+           width: 100%;
+           height: 100%;
+           object-fit: cover; /* 사진이 찌그러지지 않게 꽉 채움 */
+       }
+
+        /* 공략 계획 섹션 스타일 */
+        .s-plan {
+            background-color: #f0fdf4 !important; /* 연한 녹색 배경 (긍정적 진행) */
+            border-left: 4px solid #22c55e !important; /* 녹색 포인트 */
+            padding: 15px !important;
+            margin-top: 10px;
+        }
+
+        .plan-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 0.95em;
+        }
+
+        .plan-check {
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        /* 기타 정보 */
+        .notion-btn { text-decoration: none; background: #000; color: white; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .footer-info { text-align: right; font-size: 11px; color: #94a3b8; margin-top: 15px; }
+
+        ::-webkit-scrollbar { height: 5px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .relationship-memo {
+        background-color: #fff1f2 !important; /* 연한 핑크 배경 */
+        border-left: 4px solid #e11d48 !important; /* 진한 빨강 포인트 */
+        min-height: 60px;
+        align-items: flex-start !important;
+        padding: 12px !important;
+        margin-top: 8px; /* 위 항목들과 간격 띄우기 */
+}
     </style>
 </head>
 <body>
