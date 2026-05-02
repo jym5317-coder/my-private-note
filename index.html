@@ -76,6 +76,27 @@
            object-fit: cover; /* 사진이 찌그러지지 않게 꽉 채움 */
        }
 
+        /* 공략 계획 섹션 스타일 */
+        .s-plan {
+            background-color: #f0fdf4 !important; /* 연한 녹색 배경 (긍정적 진행) */
+            border-left: 4px solid #22c55e !important; /* 녹색 포인트 */
+            padding: 15px !important;
+            margin-top: 10px;
+        }
+
+        .plan-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 0.95em;
+        }
+
+        .plan-check {
+            color: #22c55e;
+            font-weight: bold;
+        }
+
         /* 기타 정보 */
         .notion-btn { text-decoration: none; background: #000; color: white; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; }
         .footer-info { text-align: right; font-size: 11px; color: #94a3b8; margin-top: 15px; }
@@ -272,7 +293,31 @@
                         <div class="box full blue-memo"><strong>공략계획:</strong><br>${getV('공략계획')}</div>
                     </div>
 
-                    <div class="section-title">⚙️ 8. 시스템 정보</div>
+                    <!-- 8. 공략 계획 섹션 -->
+                    <div class="s-plan">
+                        <div class="section-title">🎯 8. 맞춤형 공략 계획</div>
+    
+                        <div class="box full" style="margin-bottom: 10px; background: white;">
+                            <span class="label">📍 현재 목표 단계</span>
+                            <span class="val" style="font-weight: bold; color: #166534;">
+                                ${getV('공략단계')}
+                            </span>
+                        </div>
+
+                        <div class="box full" style="background: white;">
+                            <span class="label">📋 세부 실행 아이템</span>
+                            <div style="margin-top: 8px;">
+                                ${getV('세부전략').split('/').map(item => `
+                                    <div class="plan-item">
+                                        <span class="plan-check">✔</span>
+                                        <span>${item.trim()}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">⚙️ 9. 시스템 정보</div>
                     <div class="grid">
                         <div class="box full">
                             <span class="label">상세정보</span>
