@@ -316,7 +316,28 @@
                             </div>
                         </div>
                     </div>
-
+                        <!-- 🎯 성과 중심 공략 섹션 -->
+                        <div class="s6" style="${priorityStyle}">
+                            <div class="section-title">🎯 집중 공략 및 성과 관리</div>
+                            <div class="grid">
+                                <div class="box full" style="background: #fff7ed;">
+                                    <span class="label">🔥 다음 핵심 액션</span>
+                                    <span class="val" style="color: #ea580c; font-size: 1.1em;">${getV('다음액션')}</span>
+                                </div>
+                                <div class="box">
+                                    <span class="label">우선순위</span>
+                                    <span class="val">${priority === '1' ? '⭐⭐⭐' : '⭐'}</span>
+                                </div>
+                                <div class="box">
+                                    <span class="label">방치 기간</span>
+                                    <span class="val" style="color: ${alertColor}">${diffDays}일째</span>
+                                </div>
+                                <div class="box full blue-memo">
+                                    <strong>상세 공략 로드맵:</strong><br>
+                                    ${getV('공략계획').split('/').map(step => `• ${step.trim()}`).join('<br>')}
+                                </div>
+                            </div>
+                        </div>
                     <div class="section-title">⚙️ 9. 시스템 정보</div>
                     <div class="grid">
                         <div class="box full">
