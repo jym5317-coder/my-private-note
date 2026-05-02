@@ -248,7 +248,21 @@
         const diffTime = Math.abs(today - lastDate);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         const alertColor = diffDays > 7 ? 'red' : 'green'; // 7일 이상 지나면 빨간색 표시
-            const cardHtml = `
+            const cardHtml = const photoSection = `
+<div class="s2-5" style="margin-top: 15px;">
+    <div class="section-title">📸 2.5 외형 및 변화 기록</div>
+    <div class="photo-container" style="display: flex; gap: 10px; overflow-x: auto; padding: 10px; background: #fff; border-radius: 12px; border: 1px solid #eee;">
+        <!-- 몸사진 전용 슬롯 -->
+        ${[1, 2, 3].map(num => `
+            <div class="body-photo" style="flex: 0 0 180px; height: 240px; background: #f8f9fa; border-radius: 8px; overflow: hidden;">
+                <img src="img/${getV('이름')}/body/${num}.jpg" 
+                     onerror="this.src='https://via.placeholder.com/180x240?text=No+Image'" 
+                     style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+        `).join('')}
+    </div>
+</div>
+`;`
                 <div class="card">
                     <div class="profile-row">
                         <div class="name-part"><span class="name">${getV('이름')}</span><span class="contact">${getV('연락처')}</span></div>
