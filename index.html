@@ -232,9 +232,57 @@ function unlock() {
     }
 
     function runSearch() {
-        const term = document.getElementById('searchInput').value.toLowerCase();
-        const container = document.getElementById('list');
-        container.innerHTML = ""; 
+    const term = document.getElementById('searchInput').value.toLowerCase();
+    const container = document.getElementById('list');
+    container.innerHTML = ""; 
+
+    const filtered = masterDB.filter(p => 
+        p['이름'].includes(term) || p['소속'].includes(term) || p['특이사항'].includes(term)
+    );
+    
+    filtered.forEach(p => {
+        const v = (key) => p[key] || "-";
+        const name = v('이름').trim();
+
+        // 중복 선언 에러를 피하기 위해 함수 내부에서만 쓰이는 변수로 정의
+        let currentPriority = v('우선순위'); 
+        let priorityStyle = currentPriority === '1' ? 'border: 3px solid #e11d48;' : 'border: 1px solid #e2e8f0;';
+
+        const cardHtml = `
+            <div class="card" style="${priorityStyle}">
+                <!-- 프로필 상단 -->
+                <div style="display:flex; justify-content:space-between; align-items:baseline; border-bottom:2px solid #f1f5f9; padding-bottom:10px; margin-bottom:15px;">
+                    <div><span style="font-size:1.8em; font-weight:900;">${name}</span> <span style="color:#64748b; font-size:0.9em; margin-left:10px;">${v('연락처')}</span></div>
+                    <div style="color:var(--포인트); font-weight:bold;">${v('소속')}</div>
+                </div>
+
+                <!-- 9개 섹션 및 사진 리스트 생략 (기존 구조 유지) -->
+                <div class="section-title">📷 미디어 자료</div>
+                <div class="photo-list">
+                    ${[1,2,3,4,5].map(i => `
+                        <div class="photo-item"><img src="img/${name}/face/${i}.jpg" loading="lazy" onerror="this.parentElement.remove()"></div>
+                        <div class="photo-item"><img src="img/${name}/body/${i}.jpg" loading="lazy" onerror="this.parentElement.remove()"></div>
+                    `).join('')}
+                </div>
+                
+                <!-- ... 나머지 1~9번 섹션들 ... -->
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', cardHtml);
+    });
+}
+
+// 🔐 이 함수가 반드시 script 태그 안에 살아있어야 합니다!
+function unlock() {
+    const pwInput = document.getElementById('pw').value;
+    if (pwInput === "1234") { // 설정한 비밀번호
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        if (masterDB.length === 0) loadData();
+    } else {
+        alert("비밀번호가 올바르지 않습니다.");
+    }
+}
 
         const filtered = masterDB.filter(p => (p['이름']||'').includes(term) || (p['소속']||'').includes(term));
         
