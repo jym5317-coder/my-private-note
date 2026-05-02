@@ -241,8 +241,35 @@
                         </div>
                     </div>
 
+                    <!-- 4. 비밀 기록 및 미디어 섹션 -->
+                    <div class="s-secret">
+                        <div class="section-title">🔒 4. 시크릿 기록 & 미디어</div>
+    
+                        <div class="box full" style="margin-bottom: 10px; background: white;">
+                            <span class="label">✍️ 은밀한 기록</span>
+                            <span class="val" style="display:block; margin-top:5px; line-height:1.6; color:#4c1d95;">
+                                ${getV('비밀기록')}
+                            </span>
+                        </div>
+
+                        <div class="box full" style="background: white;">
+                            <span class="label">📏 체형 특징</span>
+                            <span class="val" style="display:block; margin-top:5px;">${getV('체형특징')}</span>
+                        </div>
+
+                        <!-- 몸사진 갤러리 (img/이름/body/ 폴더 안에 1.jpg, 2.jpg... 저장) -->
+                        <div class="photo-grid">
+                            <div class="photo-box">
+                                <img src="img/${getV('이름')}/body/1.jpg" onerror="this.parentElement.style.display='none'">
+                            </div>
+                            <div class="photo-box">
+                                <img src="img/${getV('이름')}/body/2.jpg" onerror="this.parentElement.style.display='none'">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="s4">
-                        <div class="section-title">⚠️ 4. 리스크 / 주의사항</div>
+                        <div class="section-title">⚠️ 5. 리스크 / 주의사항</div>
                         <div class="grid">
                             <div class="box full"><span class="label">주의사항</span><span class="val red">${getV('주의사항')}</span></div>
                             <div class="box full"><span class="label">경계인물</span><span class="val">${getV('경계인물')}</span></div>
@@ -250,7 +277,7 @@
                     </div>
 
                     <div class="s5">
-                        <div class="section-title">💰 5. 접근성 / 운영 정보</div>
+                        <div class="section-title">💰 6. 접근성 / 운영 정보</div>
                         <div class="grid">
                             <div class="box"><span class="label">접근가능</span><span class="val">${getV('접근가능')}</span></div>
                             <div class="box"><span class="label">누적지출</span><span class="val">${getV('누적지출')}</span></div>
@@ -259,7 +286,7 @@
                     </div>
 
                     <div class="s6">
-                        <div class="section-title">🎯 6. 난이도 / 전략</div>
+                        <div class="section-title">🎯 7. 난이도 / 전략</div>
                         <div class="grid">
                             <div class="box"><span class="label">난이도</span><span class="val">${getV('난이도')}</span></div>
                             <div class="box full blue-memo"><strong>공략계획:</strong><br>${getV('공략계획')}</div>
@@ -267,7 +294,7 @@
                     </div>
 
                     <div class="s7">
-                        <div class="section-title">⚙️ 7. 시스템 정보</div>
+                        <div class="section-title">⚙️ 10. 시스템 정보</div>
                         <div class="grid">
                             <div class="box full">
                                 <span class="label">상세정보</span>
