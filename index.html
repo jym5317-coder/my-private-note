@@ -159,14 +159,26 @@
 
     window.onload = () => { document.getElementById('pw').focus(); };
 
-    function unlock() {
-        if(document.getElementById('pw').value === "1234") {
-            document.getElementById('auth-section').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
+function unlock() {
+    const pwInput = document.getElementById('pw').value;
+    
+    // 설정하신 비밀번호가 "1234"가 맞는지 확인하세요
+    if (pwInput === "1234") {
+        // 로그인 창 숨기기
+        document.getElementById('auth-section').style.display = 'none';
+        // 메인 콘텐츠 보이기
+        document.getElementById('mainContent').style.display = 'block';
+        
+        // 데이터 로드 함수 호출 (이미 로드되었다면 생략 가능)
+        if (masterDB.length === 0) {
             loadData();
-        } else { alert("비밀번호가 틀렸습니다."); document.getElementById('pw').value=""; }
+        } else {
+            runSearch();
+        }
+    } else {
+        alert("비밀번호가 올바르지 않습니다.");
     }
-
+}
     async function loadData() {
         try {
             const res = await fetch('인명.csv');
