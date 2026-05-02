@@ -293,52 +293,6 @@
                         </div>
                     </div>
 
-                    <div class="s-plan">
-                        <div class="section-title">🎯 8. 맞춤형 공략 계획</div>
-    
-                        <div class="box full" style="margin-bottom: 10px; background: white;">
-                            <span class="label">📍 현재 목표 단계</span>
-                            <span class="val" style="font-weight: bold; color: #166534;">
-                                ${getV('공략단계')}
-                            </span>
-                        </div>
-
-                        <div class="box full" style="background: white;">
-                            <span class="label">📋 세부 실행 아이템</span>
-                            <div style="margin-top: 8px;">
-                                ${getV('세부전략').split('/').map(item => `
-                                    <div class="plan-item">
-                                        <span class="plan-check">✔</span>
-                                        <span>${item.trim()}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </div>
-
-                        <!-- 🎯 9. 성과 중심 공략 섹션 -->
-                        <div class="s6" style="${priorityStyle}">
-                            <div class="section-title">🎯 집중 공략 및 성과 관리</div>
-                            <div class="grid">
-                                <div class="box full" style="background: #fff7ed;">
-                                    <span class="label">🔥 다음 핵심 액션</span>
-                                    <span class="val" style="color: #ea580c; font-size: 1.1em;">${getV('다음액션')}</span>
-                                </div>
-                                <div class="box">
-                                    <span class="label">우선순위</span>
-                                    <span class="val">${priority === '1' ? '⭐⭐⭐' : '⭐'}</span>
-                                </div>
-                                <div class="box">
-                                    <span class="label">방치 기간</span>
-                                    <span class="val" style="color: ${alertColor}">${diffDays}일째</span>
-                                </div>
-                                <div class="box full blue-memo">
-                                    <strong>상세 공략 로드맵:</strong><br>
-                                    ${getV('공략계획').split('/').map(step => `• ${step.trim()}`).join('<br>')}
-                                </div>
-                            </div>
-                        </div>
-
                     <div class="s7">
                         <div class="section-title">⚙️ 10. 시스템 정보</div>
                         <div class="grid">
