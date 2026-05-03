@@ -197,46 +197,75 @@ const alertColor = diffDays > 7 ? 'red' : 'green'; // 7일 이상 지나면 빨�
         renderCardPhotos(idx);
     }
 
-// [수정된 STEP 2] 사진 로딩 최적화 로직
-function renderCardPhotos(idx, isMore = false) {
+// [수정] 메인 사진 영역 최적화 및 '전체' 탭 제거 버전
+function renderCardPhotos(idx, showAll = false) {
     const p = masterDB[idx];
     const photoContainer = document.getElementById(`photos-${idx}`);
-    
-    // 현재 탭에 맞는 사진 필터링
-    const allImgs = p._currentTab === '전체' ? p._imgs : p._imgs.filter(img => img.folder === p._currentTab);
-    
-    // isMore가 true면 전체를, 아니면 앞의 5장만 추출
-    const displayImgs = isMore ? allImgs : allImgs.slice(0, 5);
-    
-    const html = displayImgs.map(img => `
+    const tabContainer = document.getElementById(`tabs-${idx}`);
+    const moreBtn = document.getElementById(`more-btn-${idx}`);
+
+    // 1. 확장 상태 관리
+    if (showAll) {
+        p._isExpanded = true;
+        if (moreBtn) moreBtn.remove();
+        if (tabContainer) tabContainer.style.display = 'flex';
+        
+        // '전체' 탭이 없으므로, 확장 시 첫 번째 폴더를 기본값으로 설정
+        if (p._currentTab === '전체' && subFolders.length > 0) {
+            p._currentTab = subFolders[0];
+        }
+    }
+
+    // 2. 사진 필터링 로직
+    let targetImgs = p._imgs;
+    // 확장된 상태라면 현재 선택된 폴더(탭)의 사진만 필터링
+    if (p._isExpanded) {
+        targetImgs = p._imgs.filter(img => img.folder === p._currentTab);
+    }
+
+    // 확장 전에는 10장만, 확장 후에는 해당 폴더 전체 출력
+    const displayImgs = p._isExpanded ? targetImgs : p._imgs.slice(0, 10);
+
+    // 3. 사진 HTML 출력
+    photoContainer.innerHTML = displayImgs.map(img => `
         <div class="photo-item">
             <img src="${img.path}" loading="lazy" onerror="this.parentElement.remove()">
         </div>
     `).join('');
 
-    if (isMore) {
-        // '더보기' 클릭 시 기존 사진 뒤에 추가
-        photoContainer.insertAdjacentHTML('beforeend', html);
-        // 클릭된 더보기 버튼은 제거
-        const moreBtn = document.getElementById(`more-btn-${idx}`);
-        if (moreBtn) moreBtn.remove();
-    } else {
-        // 탭 전환 시 새로 렌더링
-        photoContainer.innerHTML = html;
-        
-        // 기존에 생성된 더보기 버튼이 있다면 먼저 제거
-        const oldBtn = document.getElementById(`more-btn-${idx}`);
-        if (oldBtn) oldBtn.remove();
-
-        // 사진이 5장보다 많으면 더보기 버튼 생성
-        if (allImgs.length > 5) {
-            photoContainer.insertAdjacentHTML('afterend', `
-                <button id="more-btn-${idx}" class="p-btn" style="width:100%; margin-top:10px; background:#e2e8f0; color:#475569;" 
-                        onclick="renderCardPhotos(${idx}, true)">📷 사진 전체 보기 (${allImgs.length}장)</button>
-            `);
-        }
+    // 4. 전체보기 버튼 생성 (확장 전이면서 사진이 많을 때)
+    if (!p._isExpanded && p._imgs.length > 10 && !moreBtn) {
+        photoContainer.insertAdjacentHTML('afterend', `
+            <button id="more-btn-${idx}" class="p-btn" 
+                    style="width:100%; margin: 10px 0; background:#f1f5f9; border-radius: 20px; font-weight: bold; color: #475569;" 
+                    onclick="renderCardPhotos(${idx}, true)">
+                📷 사진 전체 보기 및 폴더 분류 (${p._imgs.length}장)
+            </button>
+        `);
     }
+
+    // 5. 탭 버튼 생성 (확장 상태일 때만)
+    if (p._isExpanded) renderTabButtons(idx);
 }
+
+// [수정] '전체' 버튼을 제외한 폴더별 탭 생성
+function renderTabButtons(idx) {
+    const p = masterDB[idx];
+    const tabContainer = document.getElementById(`tabs-${idx}`);
+    
+    // subFolders 배열만 사용하여 버튼 생성 ('전체' 제외)
+    tabContainer.innerHTML = subFolders.map(f => `
+        <button class="p-btn ${p._currentTab === f ? 'active' : ''}" 
+                onclick="setCardTab(${idx}, '${f}')">${f}</button>
+    `).join('');
+}
+
+// [수정] 탭 클릭 시 해당 폴더 사진 렌더링
+function setCardTab(idx, folder) {
+    masterDB[idx]._currentTab = folder;
+    renderCardPhotos(idx);
+}
+
     function runSearch() {
         const term = document.getElementById('searchInput').value.toLowerCase();
         const container = document.getElementById('list');
