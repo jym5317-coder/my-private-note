@@ -171,13 +171,30 @@ const alertColor = diffDays > 30 ? 'red' : 'green'; // 30일 이상 지나면 �
                 let obj = {};
                 header.forEach((h, i) => obj[h] = r[i] || "");
                 
+obj._imgs = [];
+    // 사용자가 CSV의 '사진목록' 컬럼에 "폴더/파일명.jpg|폴더2/파일명2.jpg" 식으로 적었다고 가정
+    if (obj['사진목록']) {
+        const paths = obj['사진목록'].split('|');
+        paths.forEach(p => {
+            // p 예시: "2026-05-03/장희정_154722.jpg"
+            const folderName = p.split('/')[0]; // 첫 번째 구간을 폴더(탭) 이름으로 사용
+            obj._imgs.push({ 
+                path: `img/${obj['이름']}/${p}`, 
+                folder: folderName 
+            });
+        });
+    }
+    obj._currentTab = '전체'; // 초기값 (나중에 첫 번째 폴더로 자동 전환됨)
+    return obj;
+});
+
                 // [사진 자동 로직 보완] 대소문자 .jpg/.JPG 모두 탐색
                 obj._imgs = [];
                 const name = obj['이름'] ? obj['이름'].trim() : ""; // 이름 공백 제거
 
                 if (name) {
                     subFolders.forEach(folder => {
-                        for (let i = 1; i <= 20; i++) { // 탐색 장수를 20장으로 줄여 버벅임 완화
+                        for (let i = 1; i <= 5; i++) { // 탐색 장수를 20장으로 줄여 버벅임 완화
                             // 소문자 .jpg 시도
                             obj._imgs.push({ path: `img/${name}/${folder}/${i}.jpg`, folder: folder });
                             // 대문자 .JPG 시도 (장희정님 문제 해결용)
