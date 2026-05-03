@@ -224,7 +224,7 @@ function renderCardPhotos(idx, showAll = false) {
     }
 
     // 확장 전에는 10장만, 확장 후에는 해당 폴더 전체 출력
-    const displayImgs = p._isExpanded ? targetImgs : p._imgs.slice(0, 10);
+    const displayImgs = p._isExpanded ? targetImgs : p._imgs.slice(0, 5);
 
     // 3. 사진 HTML 출력
     photoContainer.innerHTML = displayImgs.map(img => `
@@ -239,7 +239,7 @@ function renderCardPhotos(idx, showAll = false) {
             <button id="more-btn-${idx}" class="p-btn" 
                     style="width:100%; margin: 10px 0; background:#f1f5f9; border-radius: 20px; font-weight: bold; color: #475569;" 
                     onclick="renderCardPhotos(${idx}, true)">
-                📷 사진 전체 보기 및 폴더 분류 (${p._imgs.length}장)
+                📷 사진 폴더 분류 (${p._imgs.length}장)
             </button>
         `);
     }
