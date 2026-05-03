@@ -243,12 +243,10 @@ function renderCardPhotos(idx, showAll = false) {
     // 확장 전에는 10장만, 확장 후에는 해당 폴더 전체 출력
     const displayImgs = p._isExpanded ? targetImgs : p._imgs.slice(0, 5);
 
-// renderCardPhotos 함수 내의 .map 부분 수정
-photoContainer.innerHTML = displayImgs.map(img => {
-    // 파일명에 한글이나 특수문자가 있어도 안전하게 읽을 수 있도록 인코딩 처리
-    // img.path가 "img/장희정/사진 1.jpg" 라면 "img/%EC%9E%A5.../사진%201.jpg" 식으로 변환됨
+// renderCardPhotos 내 이미지 태그 생성 부분
+const html = displayImgs.map(img => {
+    // 슬래시(/)는 남겨두고 폴더명과 파일명만 안전하게 인코딩
     const safePath = img.path.split('/').map(part => encodeURIComponent(part)).join('/');
-
     return `
         <div class="photo-item">
             <img src="${safePath}" loading="lazy" onerror="this.parentElement.remove()">
