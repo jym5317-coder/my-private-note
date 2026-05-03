@@ -301,16 +301,6 @@ const alertColor = diffDays > 7 ? 'red' : 'green'; // 7일 이상 지나면 빨�
                             <span class="label">📏 체형 특징</span>
                             <span class="val" style="display:block; margin-top:5px;">${getV('체형특징')}</span>
                         </div>
-
-                        <!-- 몸사진 갤러리 (img/이름/body/ 폴더 안에 1.jpg, 2.jpg... 저장) -->
-                        <div class="photo-grid">
-                            <div class="photo-box">
-                                <img src="img/${getV('이름')}/body/1.jpg" onerror="this.parentElement.style.display='none'">
-                            </div>
-                            <div class="photo-box">
-                                <img src="img/${getV('이름')}/body/2.jpg" onerror="this.parentElement.style.display='none'">
-                            </div>
-                        </div>
                     </div>
 
                     <div class="s4">
