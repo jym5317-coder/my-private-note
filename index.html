@@ -197,23 +197,46 @@ const alertColor = diffDays > 7 ? 'red' : 'green'; // 7일 이상 지나면 빨�
         renderCardPhotos(idx);
     }
 
-    function renderCardPhotos(idx) {
-        const p = masterDB[idx];
-        const tabContainer = document.getElementById(`tabs-${idx}`);
-        const photoContainer = document.getElementById(`photos-${idx}`);
-        
-        tabContainer.innerHTML = `<button class="p-btn ${p._currentTab === '전체' ? 'active' : ''}" onclick="setCardTab(${idx}, '전체')">전체</button>` +
-            subFolders.map(f => `<button class="p-btn ${p._currentTab === f ? 'active' : ''}" onclick="setCardTab(${idx}, '${f}')">${f}</button>`).join('');
+// [수정된 STEP 2] 사진 로딩 최적화 로직
+function renderCardPhotos(idx, isMore = false) {
+    const p = masterDB[idx];
+    const photoContainer = document.getElementById(`photos-${idx}`);
+    
+    // 현재 탭에 맞는 사진 필터링
+    const allImgs = p._currentTab === '전체' ? p._imgs : p._imgs.filter(img => img.folder === p._currentTab);
+    
+    // isMore가 true면 전체를, 아니면 앞의 10장만 추출
+    const displayImgs = isMore ? allImgs : allImgs.slice(0, 10);
+    
+    const html = displayImgs.map(img => `
+        <div class="photo-item">
+            <img src="${img.path}" loading="lazy" onerror="this.parentElement.remove()">
+        </div>
+    `).join('');
 
-        const displayImgs = p._currentTab === '전체' ? p._imgs : p._imgs.filter(img => img.folder === p._currentTab);
+    if (isMore) {
+        // '더보기' 클릭 시 기존 사진 뒤에 추가
+        photoContainer.insertAdjacentHTML('beforeend', html);
+        // 클릭된 더보기 버튼은 제거
+        const moreBtn = document.getElementById(`more-btn-${idx}`);
+        if (moreBtn) moreBtn.remove();
+    } else {
+        // 탭 전환 시 새로 렌더링
+        photoContainer.innerHTML = html;
         
-        photoContainer.innerHTML = displayImgs.map(img => `
-            <div class="photo-item" id="p-${idx}-${img.path.replace(/\//g,'-')}">
-                <img src="${img.path}" loading="lazy" onerror="this.parentElement.remove()">
-            </div>
-        `).join('');
+        // 기존에 생성된 더보기 버튼이 있다면 먼저 제거
+        const oldBtn = document.getElementById(`more-btn-${idx}`);
+        if (oldBtn) oldBtn.remove();
+
+        // 사진이 10장보다 많으면 더보기 버튼 생성
+        if (allImgs.length > 10) {
+            photoContainer.insertAdjacentHTML('afterend', `
+                <button id="more-btn-${idx}" class="p-btn" style="width:100%; margin-top:10px; background:#e2e8f0; color:#475569;" 
+                        onclick="renderCardPhotos(${idx}, true)">📷 사진 전체 보기 (${allImgs.length}장)</button>
+            `);
+        }
     }
-
+}
     function runSearch() {
         const term = document.getElementById('searchInput').value.toLowerCase();
         const container = document.getElementById('list');
