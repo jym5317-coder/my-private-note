@@ -205,8 +205,8 @@ function renderCardPhotos(idx, isMore = false) {
     // 현재 탭에 맞는 사진 필터링
     const allImgs = p._currentTab === '전체' ? p._imgs : p._imgs.filter(img => img.folder === p._currentTab);
     
-    // isMore가 true면 전체를, 아니면 앞의 10장만 추출
-    const displayImgs = isMore ? allImgs : allImgs.slice(0, 10);
+    // isMore가 true면 전체를, 아니면 앞의 5장만 추출
+    const displayImgs = isMore ? allImgs : allImgs.slice(0, 5);
     
     const html = displayImgs.map(img => `
         <div class="photo-item">
@@ -228,8 +228,8 @@ function renderCardPhotos(idx, isMore = false) {
         const oldBtn = document.getElementById(`more-btn-${idx}`);
         if (oldBtn) oldBtn.remove();
 
-        // 사진이 10장보다 많으면 더보기 버튼 생성
-        if (allImgs.length > 10) {
+        // 사진이 5장보다 많으면 더보기 버튼 생성
+        if (allImgs.length > 5) {
             photoContainer.insertAdjacentHTML('afterend', `
                 <button id="more-btn-${idx}" class="p-btn" style="width:100%; margin-top:10px; background:#e2e8f0; color:#475569;" 
                         onclick="renderCardPhotos(${idx}, true)">📷 사진 전체 보기 (${allImgs.length}장)</button>
