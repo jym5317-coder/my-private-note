@@ -116,7 +116,7 @@ const lastDate = new Date(getV('마지막본날'));
 const today = new Date();
 const diffTime = Math.abs(today - lastDate);
 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-const alertColor = diffDays > 7 ? 'red' : 'green'; // 7일 이상 지나면 빨간색 표시
+const alertColor = diffDays > 30 ? 'red' : 'green'; // 30일 이상 지나면 빨간색 표시
 .s-secret { background-color: #fcfaff; ... }
         .relationship-memo { ... }
 
