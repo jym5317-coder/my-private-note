@@ -280,55 +280,6 @@ function setCardTab(idx, folder) {
     renderCardPhotos(idx);
 }
 
-function calculateStrategy(p) {
-    const getNum = (v) => parseFloat(v) || 0;
-
-    const favor = getNum(p['나에대한 호감도']);
-    const progress = getNum(p['진척도']);
-
-    const lastDate = new Date(p['마지막본날']);
-    const today = new Date();
-    const diffDays = Math.ceil(Math.abs(today - lastDate) / (1000 * 60 * 60 * 24));
-
-    const risk = (p['주의사항'] !== "-" || p['경계인물'] !== "-") ? 5 : 0;
-
-    const relationScore = (favor * 0.6) + (progress * 0.4);
-
-    let accessScore = 0;
-    if (diffDays <= 3) accessScore += 3;
-    else if (diffDays <= 7) accessScore += 2;
-
-    if (p['접근가능'] === '상시') accessScore += 3;
-
-    let stage = "";
-    let actions = [];
-
-    if (risk >= 5) {
-        stage = "⚠️ 관망";
-        actions = ["연락 최소화", "상황 관찰", "리스크 제거"];
-    } else if (relationScore < 4) {
-        stage = "🌱 초기";
-        actions = ["가벼운 연락", "부담 없는 대화", "관심사 탐색"];
-    } else if (relationScore < 7) {
-        stage = "🔥 강화";
-        actions = ["3일 내 연락", "7일 내 만남", "취향 기반 대화"];
-    } else if (relationScore >= 7 && accessScore >= 5) {
-        stage = "🚀 공략";
-        actions = ["즉시 연락", "약속 제안", "관계 진전"];
-    } else {
-        stage = "⏳ 대기";
-        actions = ["연락 유지", "타이밍 관찰"];
-    }
-
-    return {
-        stage,
-        actions,
-        relationScore: relationScore.toFixed(1),
-        accessScore,
-        diffDays
-    };
-}
-
 function runSearch() {
     const term = document.getElementById('searchInput').value.toLowerCase();
     const container = document.getElementById('list');
@@ -339,30 +290,18 @@ function runSearch() {
     filtered.forEach(p => {
         const idx = masterDB.indexOf(p);
         const getV = (key) => p[key] || "-";
-        const auto = calculateStrategy(p);
 
-        const priority = auto.relationScore >= 7 ? '1' : '0';
+const priority = getV('우선순위');
         const priorityStyle = priority === '1' ? 'border: 3px solid #e11d48;' : 'border: 1px solid #e2e8f0;';
 
         const lastDate = new Date(getV('마지막본날'));
         const today = new Date();
         const diffDays = Math.ceil(Math.abs(today - lastDate) / (1000 * 60 * 60 * 24));
-        const alertColor = diffDays > 14 ? '#dc2626' : diffDays > 7 ? '#f59e0b' : '#16a34a';
+        const alertColor = diffDays > 7 ? 'red' : 'green';
 
         const cardHtml = `
             <div class="card" style="${priorityStyle}">
                 <div class="profile-row">
-<div style="background:#0f172a; color:white; padding:12px; border-radius:10px; margin-bottom:15px;">
-    <div style="font-weight:bold; font-size:14px;">
-        📊 상태: ${auto.stage}
-    </div>
-    <div style="font-size:13px; margin-top:5px;">
-        관계 ${auto.relationScore} / 접근 ${auto.accessScore} / ${auto.diffDays}일
-    </div>
-    <div style="margin-top:8px; font-size:13px;">
-        👉 ${auto.actions.join(' / ')}
-    </div>
-</div>
                     <div class="name-part"><span class="name">${getV('이름')}</span><span class="contact">${getV('연락처')}</span></div>
                     <div class="birth">${getV('생년월일')}</div>
                     <div class="belong">${getV('소속')}</div>
@@ -510,9 +449,7 @@ function runSearch() {
                             <div class="grid">
                                 <div class="box full" style="background: #fff7ed;">
                                     <span class="label">🔥 다음 핵심 액션</span>
-                                    <span class="val">
-    ${auto.actions.map(a => `• ${a}`).join('<br>')}
-</span>
+                                    <span class="val" style="color: #ea580c; font-size: 1.1em;">${getV('다음액션')}</span>
                                 </div>
                                 <div class="box">
                                     <span class="label">우선순위</span>
