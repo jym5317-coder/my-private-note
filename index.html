@@ -1,186 +1,555 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SMART 행동 기반 관리</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔒 SMART 실전 전략 수첩</title>
+    <style>
+        :root { --메인: #e11d48; --포인트: #2563eb; --배경: #f1f5f9; --테두리: #e2e8f0; }
+        body { font-family: 'Malgun Gothic', sans-serif; background: var(--배경); margin: 0; padding: 10px; color: #1e293b; line-height: 1.4; }
+        
+        /* 로그인 */
+        #auth-section { margin: 100px auto; text-align: center; max-width: 350px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        input[type="password"] { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 70%; margin-bottom: 10px; font-size: 16px; outline: none; }
+        .login-btn { padding: 12px 20px; background: var(--메인); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 80%; }
 
-<style>
-body { font-family: sans-serif; background:#f1f5f9; margin:0; padding:10px;}
-.card { background:white; padding:15px; margin-bottom:15px; border-radius:12px; }
-input, select { width:100%; padding:8px; margin-bottom:5px; }
-button { padding:10px; width:100%; border:none; border-radius:8px; }
-.save { background:#2563eb; color:white; }
-.delete { background:#dc2626; color:white; margin-top:5px; }
-.summary { background:#0f172a; color:white; padding:10px; border-radius:8px; margin-bottom:10px;}
-</style>
-</head>
+        #mainContent { max-width: 700px; margin: 0 auto; display: none; }
+        .sticky-header { position: sticky; top: 0; background: var(--배경); z-index: 1000; padding: 10px 0; }
+        .search-box { width: 100%; padding: 14px; border: 2px solid var(--테두리); border-radius: 12px; box-sizing: border-box; font-size: 16px; outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
-<body>
+        /* 카드 레이아웃 */
+        .card { background: white; border-radius: 18px; padding: 20px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid var(--테두리); }
+        
+        /* 상단 프로필 영역 */
+        .profile-row { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px; }
+        .name-part { display: flex; align-items: baseline; gap: 10px; }
+        .name { font-size: 1.8em; font-weight: 900; color: #000; }
+        .contact { font-size: 1.1em; color: #475569; font-weight: bold; }
+        .birth { font-size: 1em; color: #64748b; flex-grow: 1; text-align: center; }
+        .belong { font-size: 1.1em; font-weight: bold; color: var(--포인트); }
 
-<h2>📊 행동 기반 입력</h2>
+        /* 사진 및 탭 */
+        .card-photo-tabs { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; padding: 5px 0; }
+        .p-btn { flex: 0 0 auto; padding: 6px 15px; background: #fff; border: 1px solid #cbd5e1; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s; }
+        .p-btn.active { background: var(--포인트); color: white; border-color: var(--포인트); }
+        
+        .photo-list { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 12px; min-height: 140px; }
+        .photo-item { flex: 0 0 140px; width: 140px; height: 140px; border-radius: 12px; overflow: hidden; background: #f1f5f9; border: 1px solid #eee; }
+        .photo-item img { width: 100%; height: 100%; object-fit: cover; }
 
-<div class="card">
-<input id="name" placeholder="이름">
+        /* 섹션별 구성 */
+        .section-title { font-size: 14px; font-weight: 800; color: #334155; background: #f8fafc; padding: 6px 12px; margin: 18px 0 8px 0; border-radius: 6px; border-left: 4px solid #94a3b8; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .box { padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 13px; align-items: center; border: 1px solid rgba(0,0,0,0.05); }
+        .label { color: rgba(0,0,0,0.6); font-weight: bold; font-size: 12px; }
+        .val { color: #1e293b; font-weight: bold; text-align: right; }
+        .red { color: var(--메인) !important; }
+        .full { grid-column: span 2; }
 
-<select id="responseSpeed">
-<option>응답속도 선택</option>
-<option>1시간 이내</option>
-<option>당일</option>
-<option>1일 이상</option>
-</select>
+        /* [핵심] 섹션별 박스 색상 정의 */
+        .s1 .box { background-color: #f0f9ff; border-color: #bae6fd; } /* 기본정보: 파랑 */
+        .s1 .label { color: #0369a1; }
+        
+        .s2 .box { background-color: #fff1f2; border-color: #fecdd3; } /* 관계상태: 빨강 */
+        .s2 .label { color: #9f1239; }
 
-<select id="responseLength">
-<option>응답길이</option>
-<option>짧음</option>
-<option>보통</option>
-<option>김</option>
-</select>
+        .s3 .box { background-color: #f0fdf4; border-color: #bbf7d0; } /* 성향취향: 초록 */
+        .s3 .label { color: #166534; }
 
-<select id="initContact">
-<option>먼저연락비율</option>
-<option>높음</option>
-<option>반반</option>
-<option>낮음</option>
-</select>
+        .s4 .box { background-color: #fffbeb; border-color: #fde68a; } /* 리스크: 노랑 */
+        .s4 .label { color: #92400e; }
 
-<input id="meetCount" type="number" placeholder="총 만남 횟수">
+        .s5 .box { background-color: #faf5ff; border-color: #e9d5ff; } /* 접근성: 보라 */
+        .s5 .label { color: #6b21a8; }
 
-<select id="reject">
-<option>최근 거절 여부</option>
-<option>No</option>
-<option>Yes</option>
-</select>
+        .s6 .box { background-color: #fdf2f8; border-color: #fbcfe8; } /* 난이도: 핑크 */
+        .s6 .label { color: #9d174d; }
 
-<select id="risk1">
-<option>불편반응 여부</option>
-<option>No</option>
-<option>Yes</option>
-</select>
+        .s7 .box { background-color: #f8fafc; border-color: #e2e8f0; } /* 시스템: 회색 */
+        .s7 .label { color: #475569; }
 
-<select id="risk2">
-<option>회피행동 여부</option>
-<option>No</option>
-<option>Yes</option>
-</select>
+        .relationship-memo {
+            background-color: #fff1f2 !important; /* 연한 핑크 배경 */
+            border-left: 4px solid #e11d48 !important; /* 진한 빨강 포인트 */
+            min-height: 60px;
+            align-items: flex-start !important;
+            padding: 12px !important;
+        }
 
-<select id="risk3">
-<option>경쟁요소 여부</option>
-<option>No</option>
-<option>Yes</option>
-</select>
+        .relationship-memo .val {
+            text-align: left !important;
+            display: block;
+            line-height: 1.5;
+            margin-top: 5px;
+            color: #333;
+            white-space: pre-wrap; /* 엑셀에서 줄바꿈한 것도 보이게 설정 */
+        }
 
-<button class="save" onclick="addData()">저장</button>
-</div>
-
-<div id="list"></div>
-
-<script>
-
-// 저장
-function addData() {
-    const data = {
-        name: document.getElementById('name').value,
-        responseSpeed: document.getElementById('responseSpeed').value,
-        responseLength: document.getElementById('responseLength').value,
-        initContact: document.getElementById('initContact').value,
-        meetCount: parseInt(document.getElementById('meetCount').value) || 0,
-        reject: document.getElementById('reject').value,
-        risk1: document.getElementById('risk1').value,
-        risk2: document.getElementById('risk2').value,
-        risk3: document.getElementById('risk3').value,
-        lastContact: new Date().toISOString()
-    };
-
-    let db = JSON.parse(localStorage.getItem('db') || '[]');
-    db.push(data);
-    localStorage.setItem('db', JSON.stringify(db));
-
-    loadData();
+/* 공략 계획 섹션 스타일 */
+.s-plan {
+    background-color: #f0fdf4 !important; /* 연한 녹색 배경 (긍정적 진행) */
+    border-left: 4px solid #22c55e !important; /* 녹색 포인트 */
+    padding: 15px !important;
+    margin-top: 10px;
 }
 
-// 점수 계산
-function calculate(p) {
-    let score = 0;
-    let risk = 0;
+.plan-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 0.95em;
+}
 
-    if (p.responseSpeed === "1시간 이내") score += 3;
-    if (p.responseSpeed === "당일") score += 2;
+.plan-check {
+    color: #22c55e;
+    font-weight: bold;
+}
 
-    if (p.responseLength === "김") score += 2;
+.guide-box {
+    margin-top: 10px;
+    background-color: #f8fafc;
+    border-left: 4px solid #64748b;
+    padding: 8px 12px !important;
+}
+.small {
+    font-size: 0.85em;
+    line-height: 1.4;
+    color: #475569;
+}
 
-    if (p.initContact === "높음") score += 3;
-    if (p.initContact === "반반") score += 1;
+        .box { ... }
+// 우선순위에 따른 카드 테두리 강조 로직
+const priority = getV('우선순위');
+const priorityStyle = priority === '1' ? 'border: 3px solid #e11d48;' : 'border: 1px solid #e2e8f0;';
 
-    if (p.meetCount >= 3) score += 2;
+// 날짜 계산 (마지막 만남 후 며칠 지났는지)
+const lastDate = new Date(getV('마지막본날'));
+const today = new Date();
+const diffTime = Math.abs(today - lastDate);
+const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+const alertColor = diffDays > 30 ? 'red' : 'green'; // 30일 이상 지나면 빨간색 표시
+.s-secret { background-color: #fcfaff; ... }
+        .relationship-memo { ... }
 
-    if (p.reject === "Yes") score -= 4;
+        /* 기타 정보 */
+        .blue-memo { background: rgba(255,255,255,0.5); border-left: 4px solid #0ea5e9; padding: 10px; font-size: 12px; border-radius: 4px; line-height: 1.5; margin-top: 5px;}
+        .notion-btn { text-decoration: none; background: #000; color: white; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .footer-info { text-align: right; font-size: 11px; color: #94a3b8; margin-top: 15px; }
 
-    if (p.risk1 === "Yes") risk += 3;
-    if (p.risk2 === "Yes") risk += 3;
-    if (p.risk3 === "Yes") risk += 2;
+        ::-webkit-scrollbar { height: 5px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body>
 
-    const days = Math.floor((new Date() - new Date(p.lastContact)) / (1000*60*60*24));
+    <div id="auth-section">
+        <h2>🔒 보안 수첩 접속</h2>
+        <input type="password" id="pw" placeholder="비밀번호" onkeypress="if(event.key==='Enter') unlock()">
+        <button class="login-btn" onclick="unlock()">열기</button>
+    </div>
+
+    <div id="mainContent">
+        <div class="sticky-header">
+            <input type="text" id="searchInput" class="search-box" placeholder="이름 또는 소속으로 검색..." onkeyup="runSearch()">
+        </div>
+        <div id="list"></div>
+    </div>
+
+<script>
+let masterDB = [];
+const subFolders = ['body', 'day', 'face', 'secret'];
+
+window.onload = () => { document.getElementById('pw').focus(); };
+
+function unlock() {
+    if(document.getElementById('pw').value === "1234") {
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        loadData();
+    } else { alert("비밀번호가 틀렸습니다."); document.getElementById('pw').value=""; }
+}
+
+async function loadData() {
+    try {
+        const res = await fetch('인명.csv');
+        const ab = await res.arrayBuffer();
+        let text = new TextDecoder('utf-8').decode(ab).replace(/^\uFEFF/, "");
+        
+        const rows = text.split(/\r?\n/).filter(row => row.trim() !== "").map(row => row.split(',').map(cell => cell.trim()));
+        const header = rows[0].map(h => h.trim());
+        
+        masterDB = rows.slice(1).map(r => {
+            let obj = {};
+            header.forEach((h, i) => obj[h] = r[i] || "");
+            
+            obj._imgs = [];
+            const name = (obj['이름'] || "").trim();
+
+            // 1. CSV '사진목록' 컬럼 기반 경로 생성 (최우선)
+            if (obj['사진목록'] && obj['사진목록'] !== "-") {
+                const paths = obj['사진목록'].split('|');
+                paths.forEach(p => {
+                    const cleanPath = p.trim();
+                    if (cleanPath) {
+                        const folderName = cleanPath.split('/')[0]; 
+                        obj._imgs.push({ 
+                            path: `img/${name}/${cleanPath}`, 
+                            folder: folderName 
+                        });
+                    }
+                });
+            } 
+            // 2. 사진목록이 비어있을 때만 기본 하위 폴더에서 파일 탐색 (선택 사항)
+            // 모든 사진이 40장으로 나오는게 싫으시면 이 else if 문 전체를 삭제하셔도 됩니다.
+            else if (name) {
+                // 여기에 반복문이 있으면 사진 장수가 고정되므로, 
+                // 명확한 관리를 위해 사진목록 컬럼 사용을 권장합니다.
+            }
+
+            obj._currentTab = '전체';
+            obj._isExpanded = false;
+            return obj;
+        });
+
+        runSearch();
+    } catch (e) { 
+        console.error("로드 오류:", e);
+    }
+}
+
+function renderCardPhotos(idx, showAll = false) {
+    const p = masterDB[idx];
+    const photoContainer = document.getElementById(`photos-${idx}`);
+    if (!photoContainer) return;
+
+    const tabContainer = document.getElementById(`tabs-${idx}`);
+    const moreBtn = document.getElementById(`more-btn-${idx}`);
+
+    if (showAll) {
+        p._isExpanded = true;
+        if (moreBtn) moreBtn.remove();
+        if (tabContainer) tabContainer.style.display = 'flex';
+        if (p._imgs.length > 0 && p._currentTab === '전체') {
+            p._currentTab = p._imgs[0].folder;
+        }
+    }
+
+    let targetImgs = p._imgs;
+    if (p._isExpanded) {
+        targetImgs = p._imgs.filter(img => img.folder === p._currentTab);
+    }
+
+    const displayImgs = p._isExpanded ? targetImgs : p._imgs.slice(0, 5);
+
+    photoContainer.innerHTML = displayImgs.map(img => {
+        const safePath = img.path.split('/').map(part => encodeURIComponent(part)).join('/');
+        return `
+            <div class="photo-item">
+                <img src="${safePath}" loading="lazy" onerror="this.parentElement.style.display='none'">
+            </div>
+        `;
+    }).join('');
+
+    if (!p._isExpanded && p._imgs.length > 0 && !moreBtn) {
+        photoContainer.insertAdjacentHTML('afterend', `
+            <button id="more-btn-${idx}" class="p-btn" 
+                    style="width:100%; margin: 10px 0; background:#f1f5f9; border-radius: 20px; font-weight: bold; color: #475569;" 
+                    onclick="renderCardPhotos(${idx}, true)">
+                📷 사진 폴더 분류 (${p._imgs.length}장)
+            </button>
+        `);
+    }
+
+    if (p._isExpanded) renderTabButtons(idx);
+}
+
+function renderTabButtons(idx) {
+    const p = masterDB[idx];
+    const tabContainer = document.getElementById(`tabs-${idx}`);
+    // 실제 가지고 있는 폴더들만 탭으로 생성
+    const folders = [...new Set(p._imgs.map(i => i.folder))];
+    
+    tabContainer.innerHTML = folders.map(f => `
+        <button class="p-btn ${p._currentTab === f ? 'active' : ''}" 
+                onclick="setCardTab(${idx}, '${f}')">${f}</button>
+    `).join('');
+}
+function setCardTab(idx, folder) {
+    masterDB[idx]._currentTab = folder;
+    renderCardPhotos(idx);
+}
+
+function calculateStrategy(p) {
+    const getNum = (v) => parseFloat(v) || 0;
+
+    const favor = getNum(p['나에대한 호감도']);
+    const progress = getNum(p['진척도']);
+
+    const lastDate = new Date(p['마지막본날']);
+    const today = new Date();
+    const diffDays = Math.ceil(Math.abs(today - lastDate) / (1000 * 60 * 60 * 24));
+
+    const risk = (p['주의사항'] !== "-" || p['경계인물'] !== "-") ? 5 : 0;
+
+    const relationScore = (favor * 0.6) + (progress * 0.4);
+
+    let accessScore = 0;
+    if (diffDays <= 3) accessScore += 3;
+    else if (diffDays <= 7) accessScore += 2;
+
+    if (p['접근가능'] === '상시') accessScore += 3;
 
     let stage = "";
-    let action = "";
+    let actions = [];
 
     if (risk >= 5) {
         stage = "⚠️ 관망";
-        action = "접촉 줄이기 / 상황 관찰";
-    } else if (score < 4) {
+        actions = ["연락 최소화", "상황 관찰", "리스크 제거"];
+    } else if (relationScore < 4) {
         stage = "🌱 초기";
-        action = "가벼운 연락";
-    } else if (score < 7) {
+        actions = ["가벼운 연락", "부담 없는 대화", "관심사 탐색"];
+    } else if (relationScore < 7) {
         stage = "🔥 강화";
-        action = "3일 내 연락 / 만남 시도";
-    } else {
+        actions = ["3일 내 연락", "7일 내 만남", "취향 기반 대화"];
+    } else if (relationScore >= 7 && accessScore >= 5) {
         stage = "🚀 공략";
-        action = "즉시 약속 제안";
+        actions = ["즉시 연락", "약속 제안", "관계 진전"];
+    } else {
+        stage = "⏳ 대기";
+        actions = ["연락 유지", "타이밍 관찰"];
     }
 
-    return {score, risk, days, stage, action};
+    return {
+        stage,
+        actions,
+        relationScore: relationScore.toFixed(1),
+        accessScore,
+        diffDays
+    };
 }
 
-// 출력
-function loadData() {
-    const list = document.getElementById('list');
-    list.innerHTML = "";
+function runSearch() {
+    const term = document.getElementById('searchInput').value.toLowerCase();
+    const container = document.getElementById('list');
+    container.innerHTML = ""; 
 
-    let db = JSON.parse(localStorage.getItem('db') || '[]');
+    const filtered = masterDB.filter(p => (p['이름']||'').includes(term) || (p['소속']||'').includes(term));
+    
+    filtered.forEach(p => {
+        const idx = masterDB.indexOf(p);
+        const getV = (key) => p[key] || "-";
+        const auto = calculateStrategy(p);
 
-    db.forEach((p, i) => {
-        const r = calculate(p);
+        const priority = auto.relationScore >= 7 ? '1' : '0';
+        const priorityStyle = priority === '1' ? 'border: 3px solid #e11d48;' : 'border: 1px solid #e2e8f0;';
 
-        list.innerHTML += `
-        <div class="card">
-            <div class="summary">
-                ${p.name} <br>
-                ${r.stage} | 점수:${r.score} | ${r.days}일 경과 <br>
-                👉 ${r.action}
+        const lastDate = new Date(getV('마지막본날'));
+        const today = new Date();
+        const diffDays = Math.ceil(Math.abs(today - lastDate) / (1000 * 60 * 60 * 24));
+        const alertColor = diffDays > 14 ? '#dc2626' : diffDays > 7 ? '#f59e0b' : '#16a34a';
+
+        const cardHtml = `
+            <div class="card" style="${priorityStyle}">
+                <div class="profile-row">
+<div style="background:#0f172a; color:white; padding:12px; border-radius:10px; margin-bottom:15px;">
+    <div style="font-weight:bold; font-size:14px;">
+        📊 상태: ${auto.stage}
+    </div>
+    <div style="font-size:13px; margin-top:5px;">
+        관계 ${auto.relationScore} / 접근 ${auto.accessScore} / ${auto.diffDays}일
+    </div>
+    <div style="margin-top:8px; font-size:13px;">
+        👉 ${auto.actions.join(' / ')}
+    </div>
+</div>
+                    <div class="name-part"><span class="name">${getV('이름')}</span><span class="contact">${getV('연락처')}</span></div>
+                    <div class="birth">${getV('생년월일')}</div>
+                    <div class="belong">${getV('소속')}</div>
+                </div>
+                <div class="card-photo-tabs" id="tabs-${idx}" style="display: none; margin-bottom:10px; gap: 5px; flex-wrap: wrap;"></div>
+                <div class="photo-list" id="photos-${idx}"></div>
+
+                    <div class="s1">
+                        <div class="section-title">📍 1. 기본 정보</div>
+                        <div class="grid">
+                            <div class="box full"><span class="label">주소</span><span class="val">${getV('주소')}</span></div>
+                            <div class="box full"><span class="label">보유자료</span><span class="val">${getV('보유자료')}</span></div>
+                            <div class="box"><span class="label">사이즈</span><span class="val red">${getV('사이즈')}</span></div>
+                            <div class="box"><span class="label">관찰동기</span><span class="val">${getV('관찰동기')}</span></div>
+                            <div class="box"><span class="label">첫만남</span><span class="val">${getV('첫만남')}</span></div>
+                            <div class="box"><span class="label">첫스킨십</span><span class="val">${getV('첫스킨십')}</span></div>
+                            <div class="box full"><span class="label">첫빠구리</span><span class="val">${getV('첫빠구리')}</span></div>
+                        </div>
+                    </div>
+
+                    <div class="s2">
+                        <div class="section-title">📈 2. 관계 상태 / 진행도</div>
+                        <div class="grid">
+                            <div class="box"><span class="label">진척도</span><span class="val red">${getV('진척도')}</span></div>
+                            <div class="box"><span class="label">호감도</span><span class="val red">${getV('나에대한 호감도')}</span></div>
+                           <div class="box"><span class="label">관계온도</span><span class="val red">${getV('관계온도')}</span></div>
+                            <div class="box"><span class="label">최근수위</span><span class="val">${getV('최근수위')}</span></div>
+                            <div class="box"><span class="label">최근고민</span><span class="val">${getV('최근고민')}</span></div>
+<div class="box full relationship-memo">
+            <div style="width: 100%;">
+                <span class="label" style="display: block; margin-bottom: 5px;">📍 관계 현황 및 상세 설명</span>
+                <span class="val" style="text-align: left; display: block; line-height: 1.5; color: #333;">
+                    ${getV('관계설명')}
+                </span>
             </div>
-
-            응답속도: ${p.responseSpeed}<br>
-            응답길이: ${p.responseLength}<br>
-            먼저연락: ${p.initContact}<br>
-            만남횟수: ${p.meetCount}<br>
-
-            <button class="delete" onclick="deleteData(${i})">삭제</button>
         </div>
-        `;
-    });
-}
+    </div>
+</div>
+                    <div class="s3">
+                        <div class="section-title">🔥 3. 성향 / 취향</div>
+                        <div class="grid">
+                            <div class="box full"><span class="label">선호취향</span><span class="val">${getV('선호취향')}</span></div>
+                            <div class="box full"><span class="label">특이사항</span><span class="val">${getV('특이사항')}</span></div>
+                            <div class="box full"><span class="label">특이반응</span><span class="val">${getV('특이반응')}</span></div>
+     <div class="box full guide-box">
+         <span class="label">💡 성향 기록 가이드</span>
+         <span class="val small">대화나 행동에서 나타나는 선호도와 민감도를 기록합니다. '특이반응'은 향후 공략 시 핵심 트리거가 될 수 있는 요소를 구체적으로 적습니다.</span>
+     </div>
+                        </div>
+                    </div>
 
-// 삭제
-function deleteData(i) {
-    let db = JSON.parse(localStorage.getItem('db') || '[]');
-    db.splice(i,1);
-    localStorage.setItem('db', JSON.stringify(db));
-    loadData();
-}
+                    <!-- 4. 비밀 기록 및 미디어 섹션 -->
+                    <div class="s-secret">
+                        <div class="section-title">🔒 4. 시크릿 기록 & 미디어</div>
+    
+                        <div class="box full" style="margin-bottom: 10px; background: white;">
+                            <span class="label">✍️ 은밀한 기록</span>
+                            <span class="val" style="display:block; margin-top:5px; line-height:1.6; color:#4c1d95;">
+                                ${getV('비밀기록')}
+                            </span>
+                        </div>
 
-loadData();
+                        <div class="box full" style="background: white;">
+                            <span class="label">📏 체형 특징</span>
+                            <span class="val" style="display:block; margin-top:5px;">${getV('체형특징')}</span>
+                        </div>
+
+<div class="box full guide-box">
+    <span class="label">🔒 시크릿 데이터 관리</span>
+    <span class="val small">외부에 노출되지 않는 사적인 피드백과 신체적 특징을 기록합니다. 노션 링크의 상세 내용과 연동하여 시각 자료가 필요한 부분은 노션에 저장하세요.</span>
+
+                    </div>
+                 </div>
+
+                    <div class="s4">
+                        <div class="section-title">⚠️ 5. 리스크 / 주의사항</div>
+                        <div class="grid">
+                            <div class="box full"><span class="label">주의사항</span><span class="val red">${getV('주의사항')}</span></div>
+                            <div class="box full"><span class="label">경계인물</span><span class="val">${getV('경계인물')}</span></div>
+<div class="box full guide-box" style="border-left: 4px solid #f59e0b;">
+    <span class="label">⚠️ 리스크 관리 수칙</span>
+    <span class="val small">불편함을 느끼는 지점이나 주변 관계(경계인물)를 기록하여 치명적인 실수를 방지합니다. 빨간색 글씨로 강조된 부분은 반드시 숙지해야 할 금기사항입니다.</span>
+</div>
+                        </div>
+                    </div>
+
+                    <div class="s5">
+                        <div class="section-title">💰 6. 접근성 / 운영 정보</div>
+                        <div class="grid">
+                            <div class="box"><span class="label">접근가능</span><span class="val">${getV('접근가능')}</span></div>
+                            <div class="box"><span class="label">누적지출</span><span class="val">${getV('누적지출')}</span></div>
+                            <div class="box full"><span class="label">가성비</span><span class="val">${getV('가성비')}</span></div>
+<div class="box full guide-box">
+    <span class="label">💰 운영 효율성 가이드</span>
+    <span class="val small"><b>가성비:</b> 상(적은 자원 대비 효과 높음), 중, 하로 구분. <b>누적지출:</b> 단순 금액 외에 공동 관리 여부 등 경제적 관계를 기록합니다.</span>
+</div>
+                        </div>
+                    </div>
+
+                    <div class="s6">
+
+                        <div class="section-title">🎯 7. 난이도 / 전략</div>
+                        <div class="grid">
+                            <div class="box"><span class="label">난이도</span><span class="val">${getV('난이도')}</span></div>
+                            <div class="box full blue-memo"><strong>공략계획:</strong><br>${getV('공략계획')}</div>
+<div class="box full guide-box">
+    <span class="label">🎯 전략 수립 가이드</span>
+    <span class="val small"><b>난이도:</b> 1(매우 쉬움)~10(매우 어려움). <b>공략계획:</b> 현재 관계에서 다음 단계로 넘어가기 위한 구체적인 방법론을 문장 형식으로 기록합니다.</span>
+</div>
+                        </div>
+                    </div>
+
+                    <div class="s-plan">
+                        <div class="section-title">🎯 8. 맞춤형 공략 계획</div>
+    
+                        <div class="box full" style="margin-bottom: 10px; background: white;">
+                            <span class="label">📍 현재 목표 단계</span>
+                            <span class="val" style="font-weight: bold; color: #166534;">
+                                ${getV('공략단계')}
+                            </span>
+                        </div>
+
+                        <div class="box full" style="background: white;">
+                            <span class="label">📋 세부 실행 아이템</span>
+                            <div style="margin-top: 8px;">
+                                ${getV('세부전략').split('/').map(item => `
+                                    <div class="plan-item">
+                                        <span class="plan-check">✔</span>
+                                        <span>${item.trim()}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                       </div>
+
+<div class="box full guide-box">
+    <span class="label">📍 실행 아이템 가이드</span>
+    <span class="val small">현재 달성해야 할 최우선 목표 단계를 설정하고, 이를 위한 세부 실행 목록(체크리스트)을 관리합니다. 이행 완료 시 체크 표시를 업데이트합니다.</span>
+                        </div>
+                     </div>
+
+
+                        <!-- 🎯 9. 성과 중심 공략 섹션 -->
+                        <div class="s6" style="${priorityStyle}">
+                            <div class="section-title">🎯 9. 집중 공략 및 성과 관리</div>
+                            <div class="grid">
+                                <div class="box full" style="background: #fff7ed;">
+                                    <span class="label">🔥 다음 핵심 액션</span>
+                                    <span class="val">
+    ${auto.actions.map(a => `• ${a}`).join('<br>')}
+</span>
+                                </div>
+                                <div class="box">
+                                    <span class="label">우선순위</span>
+                                    <span class="val">${priority === '1' ? '⭐⭐⭐' : '⭐'}</span>
+                                </div>
+                                <div class="box">
+                                    <span class="label">방치 기간</span>
+                                    <span class="val" style="color: ${alertColor}">${diffDays}일째</span>
+                                </div>
+                                <div class="box full blue-memo">
+                                    <strong>상세 공략 로드맵:</strong><br>
+                                    ${getV('공략계획').split('/').map(step => `• ${step.trim()}`).join('<br>')}
+                                </div>
+<div class="box full guide-box" style="border-left: 4px solid #e11d48;">
+    <span class="label">🚀 성과 관리 지침</span>
+    <span class="val small"><b>방치 기간:</b> 마지막 교류 이후 경과 시간입니다. 7일 이상 경과 시 알림이 필요합니다. <b>로드맵:</b> 공략 시작부터 최종 목표까지의 흐름을 요약합니다.</span>
+</div>
+                            </div>
+                        </div>
+
+                    <div class="s7">
+                        <div class="section-title">⚙️ 10. 시스템 정보</div>
+                        <div class="grid">
+                            <div class="box full">
+                                <span class="label">상세정보</span>
+                                <span class="val">${getV('노션링크') !== '-' ? `<a href="${getV('노션링크')}" target="_blank" class="notion-btn">노션링크</a>` : '-'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer-info">마지막 본날: ${getV('마지막본날')} (${diffDays}일 전)</div>
+                </div>
+             </div>`;
+            
+            container.insertAdjacentHTML('beforeend', cardHtml);
+            renderCardPhotos(idx);
+        });
+    }
 </script>
-
 </body>
 </html>
