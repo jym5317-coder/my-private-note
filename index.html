@@ -167,6 +167,7 @@ async function loadData() {
         const rows = text.split(/\r?\n/).filter(row => row.trim() !== "").map(row => row.split(',').map(cell => cell.trim()));
         const header = rows[0].map(h => h.trim());
         
+        // [수정] 중복 코드를 제거하고 로직을 하나로 통합함
         masterDB = rows.slice(1).map(r => {
             let obj = {};
             header.forEach((h, i) => obj[h] = r[i] || "");
@@ -174,12 +175,12 @@ async function loadData() {
             obj._imgs = [];
             const name = obj['이름'] ? obj['이름'].trim() : "";
 
-            // [수정] 오직 '사진목록'에 데이터가 있을 때만 처리함
+            // 1. CSV의 '사진목록' 컬럼에 직접 경로가 있는 경우 (하위 폴더 대응)
             if (obj['사진목록'] && obj['사진목록'] !== "-") {
                 const paths = obj['사진목록'].split('|');
                 paths.forEach(p => {
                     const cleanPath = p.trim();
-                    if (cleanPath) {
+                    if(cleanPath) {
                         const folderName = cleanPath.split('/')[0]; 
                         obj._imgs.push({ 
                             path: `img/${name}/${cleanPath}`, 
@@ -188,20 +189,29 @@ async function loadData() {
                     }
                 });
             } 
-            // 기존의 for문 (1~5번 반복 탐색) 로직은 여기서 삭제합니다.
-            // 그래야 데이터가 없는 사람의 배열이 늘어나지 않습니다.
+            // 2. 사진목록이 비어있을 때만 기존의 1~5.jpg 자동 탐색 (백업 로직)
+            else if (name) {
+                subFolders.forEach(folder => {
+                    for (let i = 1; i <= 5; i++) {
+                        obj._imgs.push({ path: `img/${name}/${folder}/${i}.jpg`, folder: folder });
+                        obj._imgs.push({ path: `img/${name}/${folder}/${i}.JPG`, folder: folder });
+                    }
+                });
+            }
 
             obj._currentTab = '전체';
-            obj._isExpanded = false;
+            obj._isExpanded = false; // 확장 상태 초기화
             return obj;
         });
 
         runSearch();
     } catch (e) { 
-        console.error("오류:", e);
+        console.error(e);
+        alert("인명.csv 파일을 불러오거나 데이터를 처리하는 중 오류가 발생했습니다."); 
     }
 }
 
+// renderCardPhotos 함수 내 displayImgs 슬라이싱 수정 (초기 5장)
 function renderCardPhotos(idx, showAll = false) {
     const p = masterDB[idx];
     const photoContainer = document.getElementById(`photos-${idx}`);
@@ -210,17 +220,15 @@ function renderCardPhotos(idx, showAll = false) {
     const tabContainer = document.getElementById(`tabs-${idx}`);
     const moreBtn = document.getElementById(`more-btn-${idx}`);
 
-    // 사진이 아예 없는 경우 컨테이너 숨김
-    if (p._imgs.length === 0) {
-        photoContainer.style.display = 'none';
-        return;
-    }
-
     if (showAll) {
         p._isExpanded = true;
         if (moreBtn) moreBtn.remove();
         if (tabContainer) tabContainer.style.display = 'flex';
-        if (p._imgs.length > 0) p._currentTab = p._imgs[0].folder;
+        
+        // '전체' 탭 제거 대응: 실제 데이터가 있는 첫 번째 폴더를 탭으로 지정
+        if ((p._currentTab === '전체' || !p._currentTab) && p._imgs.length > 0) {
+            p._currentTab = p._imgs[0].folder;
+        }
     }
 
     let targetImgs = p._imgs;
@@ -228,25 +236,25 @@ function renderCardPhotos(idx, showAll = false) {
         targetImgs = p._imgs.filter(img => img.folder === p._currentTab);
     }
 
-    // 확장 전에는 처음 5장만 보여줌
+    // 확장 전에는 최대 5장만 보여줌
     const displayImgs = p._isExpanded ? targetImgs : p._imgs.slice(0, 5);
 
     photoContainer.innerHTML = displayImgs.map(img => {
         const safePath = img.path.split('/').map(part => encodeURIComponent(part)).join('/');
         return `
             <div class="photo-item">
-                <img src="${safePath}" loading="lazy" onerror="this.parentElement.style.display='none'">
+                <img src="${safePath}" loading="lazy" onerror="this.parentElement.remove()">
             </div>
         `;
     }).join('');
 
-    // [중요] 실제 사진 장수를 버튼에 동적으로 표시
+    // 사진이 있고, 아직 확장 안 됐을 때만 버튼 표시
     if (!p._isExpanded && p._imgs.length > 0 && !moreBtn) {
         photoContainer.insertAdjacentHTML('afterend', `
             <button id="more-btn-${idx}" class="p-btn" 
                     style="width:100%; margin: 10px 0; background:#f1f5f9; border-radius: 20px; font-weight: bold; color: #475569;" 
                     onclick="renderCardPhotos(${idx}, true)">
-                📷 사진 폴더 분류 (${p._imgs.length}장)
+                📷 사진 폴더별 보기 (${p._imgs.length}장)
             </button>
         `);
     }
