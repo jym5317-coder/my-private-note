@@ -196,13 +196,40 @@ const subFolders = ['body', 'day', 'face', 'secret'];
 
 window.onload = () => { document.getElementById('pw').focus(); };
 
+/**
+ * 비밀번호를 확인하고 메인 콘텐츠를 표시하는 함수
+ */
 function unlock() {
-    if(document.getElementById('pw').value === "1234") {
+    // 입력 필드와 비밀번호 값 가져오기
+    const pwInput = document.getElementById('pw');
+    const passwordValue = pwInput.value.trim(); // 공백 제거
+
+    // 비밀번호 비교 (문자열 '1234'와 비교)
+    if (passwordValue === "1234") {
+        // 인증 섹션 숨기기 및 메인 섹션 표시
         document.getElementById('auth-section').style.display = 'none';
         document.getElementById('mainContent').style.display = 'block';
-        loadData();
-    } else { alert("비밀번호가 틀렸습니다."); document.getElementById('pw').value=""; }
+        
+        // 데이터 로드 함수 호출 (이전에 정의한 함수)
+        if (typeof loadData === 'function') {
+            loadData();
+        }
+    } else {
+        // 틀렸을 경우 알림 및 초기화
+        alert("비밀번호가 틀렸습니다.");
+        pwInput.value = "";
+        pwInput.focus();
+    }
 }
+
+/**
+ * 엔터 키 입력 시 자동으로 unlock 함수 호출
+ */
+document.getElementById('pw')?.addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        unlock();
+    }
+});
 
 async function loadData() {
     try {
