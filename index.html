@@ -263,44 +263,39 @@ function renderTabButtons(idx) {
                 onclick="setCardTab(${idx}, '${f}')">${f}</button>
     `).join('');
 }
-
-// [수정] 탭 클릭 시 해당 폴더 사진 렌더링
 function setCardTab(idx, folder) {
     masterDB[idx]._currentTab = folder;
     renderCardPhotos(idx);
 }
 
-    function runSearch() {
-        const term = document.getElementById('searchInput').value.toLowerCase();
-        const container = document.getElementById('list');
-        container.innerHTML = ""; 
+function runSearch() {
+    const term = document.getElementById('searchInput').value.toLowerCase();
+    const container = document.getElementById('list');
+    container.innerHTML = ""; 
 
-        const filtered = masterDB.filter(p => (p['이름']||'').includes(term) || (p['소속']||'').includes(term));
-        
-        filtered.forEach(p => {
-            const idx = masterDB.indexOf(p);
-            const getV = (key) => p[key] || "-";
+    const filtered = masterDB.filter(p => (p['이름']||'').includes(term) || (p['소속']||'').includes(term));
+    
+    filtered.forEach(p => {
+        const idx = masterDB.indexOf(p);
+        const getV = (key) => p[key] || "-";
 
-// 우선순위에 따른 카드 테두리 강조 로직
 const priority = getV('우선순위');
-const priorityStyle = priority === '1' ? 'border: 3px solid #e11d48;' : 'border: 1px solid #e2e8f0;';
+        const priorityStyle = priority === '1' ? 'border: 3px solid #e11d48;' : 'border: 1px solid #e2e8f0;';
 
-// 날짜 계산 (마지막 만남 후 며칠 지났는지)
-const lastDate = new Date(getV('마지막본날'));
-const today = new Date();
-const diffTime = Math.abs(today - lastDate);
-const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-const alertColor = diffDays > 7 ? 'red' : 'green'; // 7일 이상 지나면 빨간색 표시
-            const cardHtml = `
-                <div class="card">
-                    <div class="profile-row">
-                        <div class="name-part"><span class="name">${getV('이름')}</span><span class="contact">${getV('연락처')}</span></div>
-                        <div class="birth">${getV('생년월일')}</div>
-                        <div class="belong">${getV('소속')}</div>
-                    </div>
+        const lastDate = new Date(getV('마지막본날'));
+        const today = new Date();
+        const diffDays = Math.ceil(Math.abs(today - lastDate) / (1000 * 60 * 60 * 24));
+        const alertColor = diffDays > 7 ? 'red' : 'green';
 
-        <div class="card-photo-tabs" id="tabs-${idx}" style="display: none; margin-bottom:10px; gap: 5px; flex-wrap: wrap;"></div>
-        <div class="photo-list" id="photos-${idx}"></div>
+        const cardHtml = `
+            <div class="card" style="${priorityStyle}">
+                <div class="profile-row">
+                    <div class="name-part"><span class="name">${getV('이름')}</span><span class="contact">${getV('연락처')}</span></div>
+                    <div class="birth">${getV('생년월일')}</div>
+                    <div class="belong">${getV('소속')}</div>
+                </div>
+                <div class="card-photo-tabs" id="tabs-${idx}" style="display: none; margin-bottom:10px; gap: 5px; flex-wrap: wrap;"></div>
+                <div class="photo-list" id="photos-${idx}"></div>
 
                     <div class="s1">
                         <div class="section-title">📍 1. 기본 정보</div>
