@@ -174,7 +174,7 @@ async function loadData() {
             obj._imgs = [];
             const name = obj['이름'] ? obj['이름'].trim() : "";
 
-            // [핵심] 사진목록 컬럼에 데이터가 있는 경우 (하위 폴더/파일명 그대로 사용)
+            // [수정] 오직 '사진목록'에 데이터가 있을 때만 처리함
             if (obj['사진목록'] && obj['사진목록'] !== "-") {
                 const paths = obj['사진목록'].split('|');
                 paths.forEach(p => {
@@ -188,15 +188,8 @@ async function loadData() {
                     }
                 });
             } 
-            // 사진목록이 비어있을 때만 기본 폴더에서 1~5번 숫자 파일 탐색
-            else if (name) {
-                subFolders.forEach(folder => {
-                    for (let i = 1; i <= 5; i++) {
-                        obj._imgs.push({ path: `img/${name}/${folder}/${i}.jpg`, folder: folder });
-                        obj._imgs.push({ path: `img/${name}/${folder}/${i}.JPG`, folder: folder });
-                    }
-                });
-            }
+            // 기존의 for문 (1~5번 반복 탐색) 로직은 여기서 삭제합니다.
+            // 그래야 데이터가 없는 사람의 배열이 늘어나지 않습니다.
 
             obj._currentTab = '전체';
             obj._isExpanded = false;
@@ -205,12 +198,10 @@ async function loadData() {
 
         runSearch();
     } catch (e) { 
-        console.error("데이터 로드 중 오류 발생:", e);
-        alert("인명.csv 파일을 불러오는 중 오류가 발생했습니다. 콘솔을 확인하세요."); 
+        console.error("오류:", e);
     }
 }
 
-// 사진을 실제로 화면에 그리는 함수 (인코딩 보완)
 function renderCardPhotos(idx, showAll = false) {
     const p = masterDB[idx];
     const photoContainer = document.getElementById(`photos-${idx}`);
@@ -219,14 +210,17 @@ function renderCardPhotos(idx, showAll = false) {
     const tabContainer = document.getElementById(`tabs-${idx}`);
     const moreBtn = document.getElementById(`more-btn-${idx}`);
 
+    // 사진이 아예 없는 경우 컨테이너 숨김
+    if (p._imgs.length === 0) {
+        photoContainer.style.display = 'none';
+        return;
+    }
+
     if (showAll) {
         p._isExpanded = true;
         if (moreBtn) moreBtn.remove();
         if (tabContainer) tabContainer.style.display = 'flex';
-        
-        if ((p._currentTab === '전체' || !p._currentTab) && p._imgs.length > 0) {
-            p._currentTab = p._imgs[0].folder;
-        }
+        if (p._imgs.length > 0) p._currentTab = p._imgs[0].folder;
     }
 
     let targetImgs = p._imgs;
@@ -234,10 +228,10 @@ function renderCardPhotos(idx, showAll = false) {
         targetImgs = p._imgs.filter(img => img.folder === p._currentTab);
     }
 
+    // 확장 전에는 처음 5장만 보여줌
     const displayImgs = p._isExpanded ? targetImgs : p._imgs.slice(0, 5);
 
     photoContainer.innerHTML = displayImgs.map(img => {
-        // 경로의 각 부분을 안전하게 인코딩 (한글 파일명/폴더명 대응)
         const safePath = img.path.split('/').map(part => encodeURIComponent(part)).join('/');
         return `
             <div class="photo-item">
@@ -246,67 +240,8 @@ function renderCardPhotos(idx, showAll = false) {
         `;
     }).join('');
 
+    // [중요] 실제 사진 장수를 버튼에 동적으로 표시
     if (!p._isExpanded && p._imgs.length > 0 && !moreBtn) {
-        photoContainer.insertAdjacentHTML('afterend', `
-            <button id="more-btn-${idx}" class="p-btn" 
-                    style="width:100%; margin: 10px 0; background:#f1f5f9; border-radius: 20px; font-weight: bold; color: #475569;" 
-                    onclick="renderCardPhotos(${idx}, true)">
-                📷 사진 폴더별 분류 (${p._imgs.length}장)
-            </button>
-        `);
-    }
-
-    if (p._isExpanded) renderTabButtons(idx);
-}
-    function setCardTab(idx, folder) {
-        masterDB[idx]._currentTab = folder;
-        renderCardPhotos(idx);
-    }
-
-// [수정] 메인 사진 영역 최적화 및 '전체' 탭 제거 버전
-function renderCardPhotos(idx, showAll = false) {
-    const p = masterDB[idx];
-    const photoContainer = document.getElementById(`photos-${idx}`);
-    const tabContainer = document.getElementById(`tabs-${idx}`);
-    const moreBtn = document.getElementById(`more-btn-${idx}`);
-
-    // 1. 확장 상태 관리
-    if (showAll) {
-        p._isExpanded = true;
-        if (moreBtn) moreBtn.remove();
-        if (tabContainer) tabContainer.style.display = 'flex';
-        
-        // '전체' 탭이 없으므로, 확장 시 첫 번째 폴더를 기본값으로 설정
-        if (p._currentTab === '전체' && subFolders.length > 0) {
-            p._currentTab = subFolders[0];
-        }
-    }
-
-    // 2. 사진 필터링 로직
-    let targetImgs = p._imgs;
-    // 확장된 상태라면 현재 선택된 폴더(탭)의 사진만 필터링
-    if (p._isExpanded) {
-        targetImgs = p._imgs.filter(img => img.folder === p._currentTab);
-    }
-
-    // 확장 전에는 10장만, 확장 후에는 해당 폴더 전체 출력
-    const displayImgs = p._isExpanded ? targetImgs : p._imgs.slice(0, 5);
-
-// renderCardPhotos 함수 내의 .map 부분 수정
-photoContainer.innerHTML = displayImgs.map(img => {
-    // 파일명에 한글이나 특수문자가 있어도 안전하게 읽을 수 있도록 인코딩 처리
-    // img.path가 "img/장희정/사진 1.jpg" 라면 "img/%EC%9E%A5.../사진%201.jpg" 식으로 변환됨
-    const safePath = img.path.split('/').map(part => encodeURIComponent(part)).join('/');
-
-    return `
-        <div class="photo-item">
-            <img src="${safePath}" loading="lazy" onerror="this.parentElement.remove()">
-        </div>
-    `;
-}).join('');
-
-    // 4. 전체보기 버튼 생성 (확장 전이면서 사진이 많을 때)
-    if (!p._isExpanded && p._imgs.length > 10 && !moreBtn) {
         photoContainer.insertAdjacentHTML('afterend', `
             <button id="more-btn-${idx}" class="p-btn" 
                     style="width:100%; margin: 10px 0; background:#f1f5f9; border-radius: 20px; font-weight: bold; color: #475569;" 
@@ -315,6 +250,9 @@ photoContainer.innerHTML = displayImgs.map(img => {
             </button>
         `);
     }
+
+    if (p._isExpanded) renderTabButtons(idx);
+}
 
     // 5. 탭 버튼 생성 (확장 상태일 때만)
     if (p._isExpanded) renderTabButtons(idx);
