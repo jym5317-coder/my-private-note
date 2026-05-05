@@ -166,6 +166,47 @@ const alertColor = diffDays > 30 ? 'red' : 'green'; // 30일 이상 지나면 �
     background-color: #10b981; /* Emerald Green */
 }
 
+/* 레이아웃 복구를 위한 핵심 CSS */
+.card {
+    display: flex;
+    flex-direction: column; /* 요소를 위에서 아래로 정렬 */
+    width: 100%;
+    max-width: 450px; /* 카드의 적정 너비 고정 */
+    margin: 0 auto 20px;
+    padding: 15px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-sizing: border-box; /* 패딩이 너비를 넘지 않도록 설정 */
+    overflow: hidden;
+}
+
+/* 모든 섹션을 블록화하여 강제로 줄바꿈 */
+.s1, .s2, .s3, .s4, .s5, .s6, .s7, .s-secret, .s-plan, .metrics-container, .photo-container {
+    display: block !important; 
+    width: 100% !important;
+    margin-bottom: 15px;
+    clear: both; /* 주변 요소가 침범하지 못하게 함 */
+}
+
+/* 내부 그리드 시스템 안정화 */
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2열 유지 */
+    gap: 8px;
+    width: 100%;
+}
+
+.box.full {
+    grid-column: span 2; /* 전체 너비 사용 */
+}
+
+/* 텍스트가 넘칠 경우 대비 */
+.val {
+    word-break: break-all;
+    white-space: normal;
+}
+
         /* 기타 정보 */
         .blue-memo { background: rgba(255,255,255,0.5); border-left: 4px solid #0ea5e9; padding: 10px; font-size: 12px; border-radius: 4px; line-height: 1.5; margin-top: 5px;}
         .notion-btn { text-decoration: none; background: #000; color: white; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; }
