@@ -416,8 +416,16 @@ function setCardTab(idx, folder) {
                         <div class="birth">${getV('생년월일')}</div>
                         <div class="belong">${getV('소속')}</div>
                     </div>
-                    <div class="card-photo-tabs" id="tabs-${idx}" style="display: none; margin-bottom:10px; gap: 5px; flex-wrap: wrap;"></div>
-                    <div class="photo-list" id="photos-${idx}"></div>
+                    
+<!-- [수정된 부분] 사진 섹션: 기본 정보(S1) 바로 위에 위치 -->
+        <div class="photo-container" style="margin: 10px 0; padding: 10px; background: #f8fafc; border-radius: 8px;">
+            <div class="card-photo-tabs" id="tabs-${idx}" style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px;">
+                <!-- 탭 버튼이 생성될 곳 -->
+            </div>
+            <div class="photo-list" id="photos-${idx}" style="min-height: 50px;">
+                <!-- 사진 이미지가 렌더링될 곳 -->
+            </div>
+        </div>
 
                     <!-- S1. 기본 정보 -->
                     <div class="s1">
