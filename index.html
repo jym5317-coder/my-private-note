@@ -412,6 +412,41 @@ function setCardTab(idx, folder) {
             const cardHtml = `
                 <div class="card" style="${priorityStyle}">
                     <div class="profile-row">
+<div class="card" style="${priorityStyle}">
+        <!-- 상단 프로필 정보 -->
+        <div class="profile-row">
+            <div class="name-part"><span class="name">${getV('이름')}</span><span class="contact">${getV('연락처')}</span></div>
+            <div class="birth">${getV('생년월일')}</div>
+            <div class="belong">${getV('소속')}</div>
+        </div>
+
+        <!-- [추가된 내용] 객관화 지표 섹션: 사진과 기본 정보 사이의 핵심 수치 -->
+        <div class="metrics-container" style="display: flex; justify-content: space-between; padding: 10px; background: #fff; border: 1px solid #eee; border-radius: 8px; margin-bottom: 10px;">
+            <div class="metric-item" style="text-align: center; flex: 1;">
+                <div style="font-size: 10px; color: #666;">종합 호감 점수</div>
+                <div style="font-size: 16px; font-weight: bold; color: #e11d48;">${calc.score}점</div>
+            </div>
+            <div class="metric-item" style="text-align: center; flex: 1; border-left: 1px solid #eee; border-right: 1px solid #eee;">
+                <div style="font-size: 10px; color: #666;">접근성 지수</div>
+                <div style="font-size: 16px; font-weight: bold; color: #2563eb;">${calc.access}%</div>
+            </div>
+            <div class="metric-item" style="text-align: center; flex: 1;">
+                <div style="font-size: 10px; color: #666;">리스크 등급</div>
+                <div style="font-size: 16px; font-weight: bold; color: ${calc.risk > 70 ? '#e11d48' : '#16a34a'};">
+                    ${calc.risk > 70 ? '위험' : '안전'} (${calc.risk})
+                </div>
+            </div>
+        </div>
+
+        <!-- 사진 섹션 -->
+        <div class="photo-container" style="margin-bottom: 10px; background: #f8fafc; border-radius: 8px; padding: 5px;">
+            <div class="card-photo-tabs" id="tabs-${idx}"></div>
+            <div class="photo-list" id="photos-${idx}"></div>
+        </div>
+
+        <!-- S1. 기본 정보 (이후 생략) -->
+        <div class="s1">...</div>
+    </div>`;
                         <div class="name-part"><span class="name">${getV('이름')}</span><span class="contact">${getV('연락처')}</span></div>
                         <div class="birth">${getV('생년월일')}</div>
                         <div class="belong">${getV('소속')}</div>
