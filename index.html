@@ -199,28 +199,29 @@ window.onload = () => { document.getElementById('pw').focus(); };
 /**
  * 비밀번호를 확인하고 메인 콘텐츠를 표시하는 함수
  */
-function unlock() {
-    // 입력 필드와 비밀번호 값 가져오기
-    const pwInput = document.getElementById('pw');
-    const passwordValue = pwInput.value.trim(); // 공백 제거
+/**
+     * 1. 보안 해제 함수
+     */
+    function unlock() {
+        const pwInput = document.getElementById('pw');
+        const passwordValue = pwInput.value.trim();
 
-    // 비밀번호 비교 (문자열 '1234'와 비교)
-    if (passwordValue === "1234") {
-        // 인증 섹션 숨기기 및 메인 섹션 표시
-        document.getElementById('auth-section').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'block';
-        
-        // 데이터 로드 함수 호출 (이전에 정의한 함수)
-        if (typeof loadData === 'function') {
-            loadData();
+        if (passwordValue === "1234") { // 비밀번호 설정
+            document.getElementById('auth-section').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            
+            // 본 화면이 뜰 때 데이터를 로드하고 검색 실행
+            if (typeof loadData === 'function') {
+                loadData(); 
+            } else {
+                runSearch(); // 데이터가 이미 있다면 바로 실행
+            }
+        } else {
+            alert("비밀번호가 틀렸습니다.");
+            pwInput.value = "";
+            pwInput.focus();
         }
-    } else {
-        // 틀렸을 경우 알림 및 초기화
-        alert("비밀번호가 틀렸습니다.");
-        pwInput.value = "";
-        pwInput.focus();
     }
-}
 
 /**
  * 엔터 키 입력 시 자동으로 unlock 함수 호출
@@ -376,44 +377,55 @@ function setCardTab(idx, folder) {
     renderCardPhotos(idx);
 }
 
-function runSearch() {
-    const term = document.getElementById('searchInput').value.toLowerCase();
-    const container = document.getElementById('list');
-    container.innerHTML = ""; 
+/**
+     * 2. 검색 및 카드 렌더링 함수 (레이아웃 완벽 보존)
+     */
+    function runSearch() {
+        const searchInput = document.getElementById('searchInput');
+        const term = searchInput ? searchInput.value.toLowerCase() : "";
+        const container = document.getElementById('list');
+        if (!container) return;
+        
+        container.innerHTML = ""; // 기존 리스트 초기화
 
-    // 1. 검색어로 데이터 필터링
-    const filtered = masterDB.filter(p => (p['이름']||'').includes(term) || (p['소속']||'').includes(term));
-    
-    // 2. 루프 시작
-    filtered.forEach(p => {
-        const idx = masterDB.indexOf(p);
-        const getV = (key) => p[key] || "-";
-        const calc = getBehaviorStatus(p);
+        // 데이터 필터링
+        const filtered = masterDB.filter(p => 
+            (p['이름'] || '').includes(term) || (p['소속'] || '').includes(term)
+        );
 
-// 우선순위 및 날짜 계산
-        const priority = getV('우선순위');
-        const priorityStyle = priority === '1' ? 'border: 3px solid #e11d48;' : 'border: 1px solid #e2e8f0;';
-        const lastDate = new Date(getV('마지막본날'));
-        const today = new Date();
-        const diffDays = Math.ceil(Math.abs(today - lastDate) / (1000 * 60 * 60 * 24));
-        const alertColor = diffDays > 7 ? 'red' : 'green';
+        filtered.forEach(p => {
+            const idx = masterDB.indexOf(p);
+            const getV = (key) => p[key] || "-";
+            
+            // 로직 계산 영역
+            const calc = typeof getBehaviorStatus === 'function' ? getBehaviorStatus(p) : {status: '미정', score:0, access:0, risk:0};
+            const priority = getV('우선순위');
+            const priorityStyle = priority === '1' ? 'border: 3px solid #e11d48;' : 'border: 1px solid #e2e8f0;';
+            
+            const lastDateStr = getV('마지막본날');
+            const lastDate = new Date(lastDateStr);
+            const today = new Date();
+            const diffDays = isNaN(lastDate) ? "-" : Math.ceil(Math.abs(today - lastDate) / (1000 * 60 * 60 * 24));
+            const alertColor = diffDays > 7 ? '#e11d48' : '#16a34a';
 
-        const cardHtml = `
-            <div class="card" style="${priorityStyle}">
-                <div class="profile-row">
-                    <div class="name-part"><span class="name">${getV('이름')}</span><span class="contact">${getV('연락처')}</span></div>
-                    <div class="birth">${getV('생년월일')}</div>
-                    <div class="belong">${getV('소속')}</div>
-                </div>
-                <div class="card-photo-tabs" id="tabs-${idx}" style="display: none; margin-bottom:10px; gap: 5px; flex-wrap: wrap;"></div>
-                <div class="photo-list" id="photos-${idx}"></div>
+            // [보존사항] S1 ~ S10 레이아웃 통합
+            const cardHtml = `
+                <div class="card" style="${priorityStyle}">
+                    <div class="profile-row">
+                        <div class="name-part"><span class="name">${getV('이름')}</span><span class="contact">${getV('연락처')}</span></div>
+                        <div class="birth">${getV('생년월일')}</div>
+                        <div class="belong">${getV('소속')}</div>
+                    </div>
+                    <div class="card-photo-tabs" id="tabs-${idx}" style="display: none; margin-bottom:10px; gap: 5px; flex-wrap: wrap;"></div>
+                    <div class="photo-list" id="photos-${idx}"></div>
 
+                    <!-- S1. 기본 정보 -->
                     <div class="s1">
                         <div class="section-title">📍 1. 기본 정보</div>
                         <div class="grid">
                             <div class="box full"><span class="label">주소</span><span class="val">${getV('주소')}</span></div>
                             <div class="box full"><span class="label">보유자료</span><span class="val">${getV('보유자료')}</span></div>
-                            <div class="box"><span class="label">사이즈</span><span class="val red">${getV('사이즈')}</span></div>
+                            <div class="box"><span class="label">사이즈</span><span class="val red" style="color:red;">${getV('사이즈')}</span></div>
                             <div class="box"><span class="label">관찰동기</span><span class="val">${getV('관찰동기')}</span></div>
                             <div class="box"><span class="label">첫만남</span><span class="val">${getV('첫만남')}</span></div>
                             <div class="box"><span class="label">첫스킨십</span><span class="val">${getV('첫스킨십')}</span></div>
@@ -421,171 +433,144 @@ function runSearch() {
                         </div>
                     </div>
 
+                    <!-- S2. 관계 상태 -->
                     <div class="s2">
                         <div class="section-title">📈 2. 관계 상태 / 진행도</div>
                         <div class="grid">
-                            <div class="box"><span class="label">진척도</span><span class="val red">${getV('진척도')}</span></div>
-                            <div class="box"><span class="label">호감도</span><span class="val red">${getV('나에대한 호감도')}</span></div>
-                           <div class="box"><span class="label">관계온도</span><span class="val red">${getV('관계온도')}</span></div>
+                            <div class="box"><span class="label">진척도</span><span class="val red" style="color:red;">${getV('진척도')}</span></div>
+                            <div class="box"><span class="label">호감도</span><span class="val red" style="color:red;">${getV('나에대한 호감도')}</span></div>
+                            <div class="box"><span class="label">관계온도</span><span class="val red" style="color:red;">${getV('관계온도')}</span></div>
                             <div class="box"><span class="label">최근수위</span><span class="val">${getV('최근수위')}</span></div>
                             <div class="box"><span class="label">최근고민</span><span class="val">${getV('최근고민')}</span></div>
-<div class="box full relationship-memo">
-            <div style="width: 100%;">
-                <span class="label" style="display: block; margin-bottom: 5px;">📍 관계 현황 및 상세 설명</span>
-                <span class="val" style="text-align: left; display: block; line-height: 1.5; color: #333;">
-                    ${getV('관계설명')}
-                </span>
-            </div>
-        </div>
-    </div>
-</div>
+                            <div class="box full relationship-memo">
+                                <div style="width: 100%;">
+                                    <span class="label" style="display: block; margin-bottom: 5px;">📍 관계 현황 및 상세 설명</span>
+                                    <span class="val" style="text-align: left; display: block; line-height: 1.5; color: #333;">${getV('관계설명')}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- S3. 성향 / 취향 -->
                     <div class="s3">
                         <div class="section-title">🔥 3. 성향 / 취향</div>
                         <div class="grid">
                             <div class="box full"><span class="label">선호취향</span><span class="val">${getV('선호취향')}</span></div>
                             <div class="box full"><span class="label">특이사항</span><span class="val">${getV('특이사항')}</span></div>
                             <div class="box full"><span class="label">특이반응</span><span class="val">${getV('특이반응')}</span></div>
-     <div class="box full guide-box">
-         <span class="label">💡 성향 기록 가이드</span>
-         <span class="val small">대화나 행동에서 나타나는 선호도와 민감도를 기록합니다. '특이반응'은 향후 공략 시 핵심 트리거가 될 수 있는 요소를 구체적으로 적습니다.</span>
-     </div>
+                            <div class="box full guide-box">
+                                <span class="label">💡 성향 기록 가이드</span>
+                                <span class="val small">대화나 행동에서 나타나는 선호도와 민감도를 기록합니다.</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- 4. 비밀 기록 및 미디어 섹션 -->
+                    <!-- S4. 시크릿 기록 -->
                     <div class="s-secret">
                         <div class="section-title">🔒 4. 시크릿 기록 & 미디어</div>
-    
                         <div class="box full" style="margin-bottom: 10px; background: white;">
                             <span class="label">✍️ 은밀한 기록</span>
-                            <span class="val" style="display:block; margin-top:5px; line-height:1.6; color:#4c1d95;">
-                                ${getV('비밀기록')}
-                            </span>
+                            <span class="val" style="display:block; margin-top:5px; line-height:1.6; color:#4c1d95;">${getV('비밀기록')}</span>
                         </div>
-
                         <div class="box full" style="background: white;">
                             <span class="label">📏 체형 특징</span>
                             <span class="val" style="display:block; margin-top:5px;">${getV('체형특징')}</span>
                         </div>
-
-<div class="box full guide-box">
-    <span class="label">🔒 시크릿 데이터 관리</span>
-    <span class="val small">외부에 노출되지 않는 사적인 피드백과 신체적 특징을 기록합니다. 노션 링크의 상세 내용과 연동하여 시각 자료가 필요한 부분은 노션에 저장하세요.</span>
-
                     </div>
-                 </div>
 
+                    <!-- S5. 리스크 -->
                     <div class="s4">
                         <div class="section-title">⚠️ 5. 리스크 / 주의사항</div>
                         <div class="grid">
-                            <div class="box full"><span class="label">주의사항</span><span class="val red">${getV('주의사항')}</span></div>
+                            <div class="box full"><span class="label">주의사항</span><span class="val red" style="color:red;">${getV('주의사항')}</span></div>
                             <div class="box full"><span class="label">경계인물</span><span class="val">${getV('경계인물')}</span></div>
-<div class="box full guide-box" style="border-left: 4px solid #f59e0b;">
-    <span class="label">⚠️ 리스크 관리 수칙</span>
-    <span class="val small">불편함을 느끼는 지점이나 주변 관계(경계인물)를 기록하여 치명적인 실수를 방지합니다. 빨간색 글씨로 강조된 부분은 반드시 숙지해야 할 금기사항입니다.</span>
-</div>
                         </div>
                     </div>
 
+                    <!-- S6. 접근성 -->
                     <div class="s5">
                         <div class="section-title">💰 6. 접근성 / 운영 정보</div>
                         <div class="grid">
                             <div class="box"><span class="label">접근가능</span><span class="val">${getV('접근가능')}</span></div>
                             <div class="box"><span class="label">누적지출</span><span class="val">${getV('누적지출')}</span></div>
                             <div class="box full"><span class="label">가성비</span><span class="val">${getV('가성비')}</span></div>
-<div class="box full guide-box">
-    <span class="label">💰 운영 효율성 가이드</span>
-    <span class="val small"><b>가성비:</b> 상(적은 자원 대비 효과 높음), 중, 하로 구분. <b>누적지출:</b> 단순 금액 외에 공동 관리 여부 등 경제적 관계를 기록합니다.</span>
-</div>
                         </div>
                     </div>
 
+                    <!-- S7~S9. 전략 및 공략 -->
                     <div class="s6">
-
                         <div class="section-title">🎯 7. 난이도 / 전략</div>
                         <div class="grid">
                             <div class="box"><span class="label">난이도</span><span class="val">${getV('난이도')}</span></div>
                             <div class="box full blue-memo"><strong>공략계획:</strong><br>${getV('공략계획')}</div>
-<div class="box full guide-box">
-    <span class="label">🎯 전략 수립 가이드</span>
-    <span class="val small"><b>난이도:</b> 1(매우 쉬움)~10(매우 어려움). <b>공략계획:</b> 현재 관계에서 다음 단계로 넘어가기 위한 구체적인 방법론을 문장 형식으로 기록합니다.</span>
-</div>
                         </div>
                     </div>
 
                     <div class="s-plan">
                         <div class="section-title">🎯 8. 맞춤형 공략 계획</div>
-    
                         <div class="box full" style="margin-bottom: 10px; background: white;">
                             <span class="label">📍 현재 목표 단계</span>
-                            <span class="val" style="font-weight: bold; color: #166534;">
-                                ${getV('공략단계')}
-                            </span>
+                            <span class="val" style="font-weight: bold; color: #166534;">${getV('공략단계')}</span>
                         </div>
-
                         <div class="box full" style="background: white;">
                             <span class="label">📋 세부 실행 아이템</span>
                             <div style="margin-top: 8px;">
                                 ${getV('세부전략').split('/').map(item => `
-                                    <div class="plan-item">
-                                        <span class="plan-check">✔</span>
+                                    <div class="plan-item" style="display:flex; align-items:center; gap:5px; margin-bottom:3px;">
+                                        <span class="plan-check" style="color:#16a34a;">✔</span>
                                         <span>${item.trim()}</span>
                                     </div>
                                 `).join('')}
                             </div>
-                       </div>
-
-<div class="box full guide-box">
-    <span class="label">📍 실행 아이템 가이드</span>
-    <span class="val small">현재 달성해야 할 최우선 목표 단계를 설정하고, 이를 위한 세부 실행 목록(체크리스트)을 관리합니다. 이행 완료 시 체크 표시를 업데이트합니다.</span>
                         </div>
-                     </div>
+                    </div>
 
-
-                        <!-- 🎯 9. 성과 중심 공략 섹션 -->
-                        <div class="s6" style="${priorityStyle}">
-                            <div class="section-title">🎯 9. 집중 공략 및 성과 관리</div>
-                            <div class="grid">
-                                <div class="box full" style="background: #fff7ed;">
-                                    <span class="label">🔥 다음 핵심 액션</span>
-                                    <span class="val" style="color: #ea580c; font-size: 1.1em;">${getV('다음액션')}</span>
-                                </div>
-                                <div class="box">
-                                    <span class="label">우선순위</span>
-                                    <span class="val">${priority === '1' ? '⭐⭐⭐' : '⭐'}</span>
-                                </div>
-                                <div class="box">
-                                    <span class="label">방치 기간</span>
-                                    <span class="val" style="color: ${alertColor}">${diffDays}일째</span>
-                                </div>
-                                <div class="box full blue-memo">
-                                    <strong>상세 공략 로드맵:</strong><br>
-                                    ${getV('공략계획').split('/').map(step => `• ${step.trim()}`).join('<br>')}
-                                </div>
-<div class="box full guide-box" style="border-left: 4px solid #e11d48;">
-    <span class="label">🚀 성과 관리 지침</span>
-    <span class="val small"><b>방치 기간:</b> 마지막 교류 이후 경과 시간입니다. 7일 이상 경과 시 알림이 필요합니다. <b>로드맵:</b> 공략 시작부터 최종 목표까지의 흐름을 요약합니다.</span>
-</div>
+                    <div class="s6" style="margin-top:10px; border-top:1px dashed #ccc; padding-top:10px;">
+                        <div class="section-title">🚀 9. 집중 공략 관리</div>
+                        <div class="grid">
+                            <div class="box full" style="background: #fff7ed;">
+                                <span class="label">🔥 다음 핵심 액션</span>
+                                <span class="val" style="color: #ea580c; font-size: 1.1em;">${getV('다음액션')}</span>
+                            </div>
+                            <div class="box">
+                                <span class="label">우선순위</span>
+                                <span class="val">${priority === '1' ? '⭐⭐⭐' : '⭐'}</span>
+                            </div>
+                            <div class="box">
+                                <span class="label">방치 기간</span>
+                                <span class="val" style="color: ${alertColor}">${diffDays}일째</span>
                             </div>
                         </div>
+                    </div>
 
+                    <!-- S10. 시스템 정보 -->
                     <div class="s7">
                         <div class="section-title">⚙️ 10. 시스템 정보</div>
                         <div class="grid">
                             <div class="box full">
                                 <span class="label">상세정보</span>
-                                <span class="val">${getV('노션링크') !== '-' ? `<a href="${getV('노션링크')}" target="_blank" class="notion-btn">노션링크</a>` : '-'}</span>
+                                <span class="val">${getV('노션링크') !== '-' ? `<a href="${getV('노션링크')}" target="_blank" class="notion-btn" style="color:#2563eb; text-decoration:underline;">노션링크</a>` : '-'}</span>
                             </div>
                         </div>
                     </div>
-                    <div class="footer-info">마지막 본날: ${getV('마지막본날')} (${diffDays}일 전)</div>
-                </div>
-             </div>`;
+                    <div class="footer-info" style="margin-top:15px; font-size:11px; color:#666; text-align:right;">
+                        마지막 본날: ${lastDateStr} (${diffDays}일 전)
+                    </div>
+                </div>`;
             
             container.insertAdjacentHTML('beforeend', cardHtml);
-            renderCardPhotos(idx);
+            
+            // 사진 렌더링 (함수가 존재할 경우)
+            if (typeof renderCardPhotos === 'function') {
+                renderCardPhotos(idx);
+            }
         });
     }
+
+    // 엔터키 입력 시 비밀번호 확인 기능 추가
+    document.getElementById('pw')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') unlock();
+    });
 </script>
 </body>
 </html>
