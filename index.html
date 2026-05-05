@@ -207,6 +207,54 @@ const alertColor = diffDays > 30 ? 'red' : 'green'; // 30일 이상 지나면 �
     white-space: normal;
 }
 
+/* 공통 섹션 스타일 (8번 디자인 모티브) */
+.section-wrapper {
+    width: 100%; /* 부모 너비에 맞춤 */
+    box-sizing: border-box; /* 패딩을 너비 내부로 포함 (삐져나옴 방지) */
+    background: #f0fdf4; /* 연한 초록색 배경 */
+    border-left: 5px solid #22c55e; /* 좌측 포인트 라인 */
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* 내부 흰색 박스 스타일 */
+.info-item {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between; /* 라벨 왼쪽, 값 오른쪽 정렬 */
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.label-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #4b5563;
+    font-size: 0.95rem;
+}
+
+.value-text {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+/* 체크 리스트 스타일 */
+.check-item {
+    display: flex;
+    justify-content: flex-end; /* 오른쪽 정렬 */
+    align-items: center;
+    gap: 5px;
+    color: #16a34a;
+    font-size: 0.9rem;
+}
+
         /* 기타 정보 */
         .blue-memo { background: rgba(255,255,255,0.5); border-left: 4px solid #0ea5e9; padding: 10px; font-size: 12px; border-radius: 4px; line-height: 1.5; margin-top: 5px;}
         .notion-btn { text-decoration: none; background: #000; color: white; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; }
