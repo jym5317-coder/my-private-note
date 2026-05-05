@@ -466,25 +466,32 @@ function setCardTab(idx, folder) {
     renderCardPhotos(idx);
 }
 
-/**
-     * 2. 검색 및 카드 렌더링 함수 (레이아웃 완벽 보존)
-     */
-    function runSearch() {
-        const searchInput = document.getElementById('searchInput');
-        const term = searchInput ? searchInput.value.toLowerCase() : "";
-        const container = document.getElementById('list');
-        if (!container) return;
-        
-        container.innerHTML = ""; // 기존 리스트 초기화
+const filtered = masterDB.filter(p => 
+        (p['이름'] || '').includes(term) || (p['소속'] || '').includes(term)
+    );
 
-        // 데이터 필터링
-        const filtered = masterDB.filter(p => 
-            (p['이름'] || '').includes(term) || (p['소속'] || '').includes(term)
-        );
+    // [도구] 8번 섹션 스타일의 HTML을 만들어주는 내부 함수
+    const renderSection = (title, icon, items) => {
+        return `
+        <div class="section-wrapper" style="width: 100%; box-sizing: border-box; background: #f0fdf4; border-left: 5px solid #22c55e; border-radius: 12px; padding: 12px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="font-weight: bold; font-size: 1.05rem; display: flex; align-items: center; gap: 6px; margin-bottom: 4px; color: #166534;">
+                <span>${icon}</span> <span>${title}</span>
+            </div>
+            ${items.map(item => `
+                <div class="info-item" style="background: #ffffff; border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); box-sizing: border-box; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem; color: #4b5563;">
+                        <span>${item.icon}</span>
+                        <span>${item.label}</span>
+                    </div>
+                    <div style="font-weight: 600; font-size: 0.9rem; color: #1f2937; text-align: right;">${item.value || '-'}</div>
+                </div>
+            `).join('')}
+        </div>`;
+    };
 
-        filtered.forEach(p => {
-            const idx = masterDB.indexOf(p);
-            const getV = (key) => p[key] || "-";
+filtered.forEach((p, idx) => {
+        const getV = (key) => p[key] || "-";
+        const calc = typeof getBehaviorStatus === 'function' ? getBehaviorStatus(p) : {score:0, access:0, risk:0};
             
             // 로직 계산 영역
             const calc = typeof getBehaviorStatus === 'function' ? getBehaviorStatus(p) : {status: '미정', score:0, access:0, risk:0};
@@ -496,6 +503,18 @@ function setCardTab(idx, folder) {
             const today = new Date();
             const diffDays = isNaN(lastDate) ? "-" : Math.ceil(Math.abs(today - lastDate) / (1000 * 60 * 60 * 24));
             const alertColor = diffDays > 7 ? '#e11d48' : '#16a34a';
+
+// 1~9 섹션 데이터 구성
+        const s1 = renderSection("1. 기본 정보", "📍", [
+            { icon: "🏠", label: "주소", value: getV('주소') },
+            { icon: "📦", label: "보유자료", value: getV('보유자료') },
+            { icon: "📏", label: "사이즈", value: `<span style="color:red;">${getV('사이즈')}</span>` }
+        ]);
+
+        const s2 = renderSection("2. 관계 상태", "📈", [
+            { icon: "🤝", label: "진척도", value: getV('진척도') },
+            { icon: "❤️", label: "호감도", value: getV('호감도') }
+        ]);
 
             // [보존사항] S1 ~ S10 레이아웃 통합
             const cardHtml = `
