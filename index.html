@@ -292,8 +292,42 @@ async function loadData() {
         const header = rows[0];
         
         masterDB = rows.slice(1).map(r => {
-            let obj = {};
-            header.forEach((h, i) => obj[h] = r[i] || "");
+    // 1. 기본 속성들을 포함하여 객체 초기화
+    let obj = {
+        _imgs: [],
+        _currentTab: '전체',
+        _isExpanded: false
+    };
+
+// 2. 헤더 기반 데이터 매핑
+    header.forEach((h, i) => {
+        obj[h] = r[i] || "";
+    });
+
+// 3. 사진 목록 처리 (안전하게 접근)
+    const photoList = obj['사진목록'];
+    if (photoList && photoList !== "-") {
+        photoList.split('|').forEach(p => {
+            const cleanPath = p.trim();
+            if (cleanPath) {
+                // 문자열 템플릿 사용 시 가독성 확보
+                const name = obj['이름'] || 'unknown';
+                obj._imgs.push({
+                    path: `img/${name}/${cleanPath}`,
+                    folder: cleanPath.split('/')[0]
+                });
+            }
+        });
+    }
+
+// 4. 초기 탭 설정 업데이트
+    if (obj._imgs.length > 0) {
+        obj._currentTab = obj._imgs[0].folder;
+    }
+
+    return obj;
+});
+
             obj._imgs = [];
             if (obj['사진목록'] && obj['사진목록'] !== "-") {
                 obj['사진목록'].split('|').forEach(p => {
