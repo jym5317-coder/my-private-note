@@ -567,13 +567,9 @@ filtered.forEach((p, idx) => {
             { icon: "🔗", label: "노션링크", value: `<a href="${getV('노션링크')}" target="_blank">바로가기</a>` }
         ]);
 
-
-
-
-
-
             // [보존사항] S1 ~ S10 레이아웃 통합
             const cardHtml = `
+                 <div class="card" style="width: 100%; box-sizing: border-box;">
         <!-- 상단 프로필 정보 -->
         <div class="profile-row">
             <div class="name-part"><span class="name">${getV('이름')}</span><span class="contact">${getV('연락처')}</span></div>
