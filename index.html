@@ -376,7 +376,13 @@ function runSearch() {
                     </div>
                     <div style="color: #2563eb; font-weight: bold;">${getV('소속')}</div>
                 </div>
-
+<div class="photo-area" style="margin-top: 15px; display: flex; gap: 10px;">
+                    ${p._imgs && p._imgs.length > 0 ? p._imgs.map(img => `
+                        <img src="${img.path}" 
+                             style="width: 100px; height: 100px; object-fit: cover; border-radius: 10px;"
+                             onerror="this.src='https://via.placeholder.com/100?text=No+Img'">
+                    `).join('') : '<span style="color:#ccc; font-size:12px;">사진 없음</span>'}
+                </div>
                 <div class="section-title" style="background: #f8fafc; padding: 5px 10px; margin-top: 15px; font-weight: bold; border-left: 4px solid #94a3b8;">📍 기본 정보</div>
                 <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
                     <div class="box" style="grid-column: span 2; background: #f8fafc; padding: 8px;">
