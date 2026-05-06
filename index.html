@@ -282,11 +282,11 @@ const alertColor = diffDays > 30 ? 'red' : 'green'; // 30일 이상 지나면 �
 <script>
 let masterDB = [];
 
-// 1. 데이터 로드 (에러 처리 catch 블록 포함)
+// 1. 데이터 로드 함수
 async function loadData() {
     try {
         const res = await fetch('인명.csv');
-        if (!res.ok) throw new Error('파일을 찾을 수 없습니다.');
+        if (!res.ok) throw new Error('CSV 파일을 불러올 수 없습니다.');
         
         const ab = await res.arrayBuffer();
         let text = new TextDecoder('utf-8').decode(ab).replace(/^\uFEFF/, "");
@@ -299,39 +299,45 @@ async function loadData() {
             header.forEach((h, i) => {
                 obj[h] = r[i] || "";
             });
-            // 이미지 배열 초기화 로직
+            
+            // 이미지 배열 초기화 (생략 없이 구현)
             obj._imgs = [];
             if (obj['사진목록'] && obj['사진목록'] !== "-") {
                 obj['사진목록'].split('|').forEach(p => {
                     const cleanPath = p.trim();
-                    if(cleanPath) obj._imgs.push({ path: `img/${obj['이름']}/${cleanPath}`, folder: cleanPath.split('/')[0] });
+                    if(cleanPath) {
+                        obj._imgs.push({ 
+                            path: `img/${obj['이름']}/${cleanPath}`, 
+                            folder: cleanPath.split('/')[0] 
+                        });
+                    }
                 });
             }
             obj._currentTab = obj._imgs.length > 0 ? obj._imgs[0].folder : '전체';
             obj._isExpanded = false;
+            
+            // 함수 내부에서 객체 반환 (정상 위치)
             return obj;
         });
         console.log("데이터 로드 완료:", masterDB.length, "건");
     } catch (error) {
-        console.error("CSV 로드 중 오류 발생:", error);
-        alert("데이터를 불러오지 못했습니다. 파일명을 확인하세요.");
+        console.error("오류 발생:", error);
     }
 }
 
-// 2. 보안 해제 함수
+// 2. 보안 해제
 function unlock() {
     const inputPw = document.getElementById('pw').value;
-    // 비밀번호는 본인의 설정에 맞게 수정하세요.
     if (inputPw === "1234") { 
         document.getElementById('auth-section').style.display = 'none';
         document.getElementById('mainContent').style.display = 'block';
-        runSearch(); // 로그인 성공 시 즉시 검색 실행 (전체 목록 표시)
+        runSearch();
     } else {
         alert("비밀번호가 올바르지 않습니다.");
     }
 }
 
-// 3. 검색 및 화면 렌더링 (생략 없이 전체 구현)
+// 3. 검색 및 전체 결과 표출 (생략 없음)
 function runSearch() {
     const term = document.getElementById('searchInput').value.toLowerCase();
     const listDiv = document.getElementById('list');
@@ -344,6 +350,7 @@ function runSearch() {
     filtered.forEach((p, idx) => {
         const getV = (key) => p[key] || "-";
         
+        // 카드 레이아웃 생성
         html += `
             <div class="card">
                 <div class="profile-row">
@@ -375,156 +382,12 @@ function runSearch() {
     listDiv.innerHTML = html || "<p style='text-align:center;'>검색 결과가 없습니다.</p>";
 }
 
-// 초기화: 데이터 로드 실행
+// 초기 로드 설정
 window.onload = loadData;
-
-// 엔터키 지원
-document.getElementById('pw').addEventListener('keypress', (e) => {
+document.getElementById('pw')?.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') unlock();
 });
-
-// 2. 헤더 기반 데이터 매핑
-    header.forEach((h, i) => {
-        obj[h] = r[i] || "";
-    });
-
-// 3. 사진 목록 처리 (안전하게 접근)
-    const photoList = obj['사진목록'];
-    if (photoList && photoList !== "-") {
-        photoList.split('|').forEach(p => {
-            const cleanPath = p.trim();
-            if (cleanPath) {
-                // 문자열 템플릿 사용 시 가독성 확보
-                const name = obj['이름'] || 'unknown';
-                obj._imgs.push({
-                    path: `img/${name}/${cleanPath}`,
-                    folder: cleanPath.split('/')[0]
-                });
-            }
-        });
-    }
-
-// 4. 초기 탭 설정 업데이트
-    if (obj._imgs.length > 0) {
-        obj._currentTab = obj._imgs[0].folder;
-    }
-
-    return obj;
-});
-
-            obj._imgs = [];
-            if (obj['사진목록'] && obj['사진목록'] !== "-") {
-                obj['사진목록'].split('|').forEach(p => {
-                    const cleanPath = p.trim();
-                    if(cleanPath) obj._imgs.push({ path: `img/${obj['이름']}/${cleanPath}`, folder: cleanPath.split('/')[0] });
-                });
-            }
-            obj._currentTab = obj._imgs.length > 0 ? obj._imgs[0].folder : '전체';
-            obj._isExpanded = false;
-            return obj;
-        });
-        console.log("데이터 로드 완료:", masterDB.length, "건");
-    } catch (e) {
-        console.error("CSV 로드 실패. 파일명과 경로를 확인하세요:", e);
-    }
-}
-
-// 2. 보안 해제
-function unlock() {
-    const pw = document.getElementById('pw').value;
-    if (pw === "1234") { // 비밀번호 설정
-        document.getElementById('auth-section').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'block';
-        runSearch();
-    } else {
-        alert("비밀번호가 일치하지 않습니다.");
-    }
-}
-
-/**
- * 엔터 키 입력 시 자동으로 unlock 함수 호출
- */
-document.getElementById('pw')?.addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        unlock();
-    }
-});
-
-async function loadData() {
-    try {
-        const res = await fetch('인명.csv');
-        const ab = await res.arrayBuffer();
-        let text = new TextDecoder('utf-8').decode(ab).replace(/^\uFEFF/, "");
-        
-        const rows = text.split(/\r?\n/).filter(row => row.trim() !== "").map(row => row.split(',').map(cell => cell.trim()));
-        const header = rows[0].map(h => h.trim());
-        
-        masterDB = rows.slice(1).map(r => {
-            let obj = {};
-            header.forEach((h, i) => obj[h] = r[i] || "");
-            
-            obj._imgs = [];
-            const name = (obj['이름'] || "").trim();
-
-            // 1. CSV '사진목록' 컬럼 기반 경로 생성 (최우선)
-            if (obj['사진목록'] && obj['사진목록'] !== "-") {
-                const paths = obj['사진목록'].split('|');
-                paths.forEach(p => {
-                    const cleanPath = p.trim();
-                    if (cleanPath) {
-                        const folderName = cleanPath.split('/')[0]; 
-                        obj._imgs.push({ 
-                            path: `img/${name}/${cleanPath}`, 
-                            folder: folderName 
-                        });
-                    }
-                });
-            } 
-            // 2. 사진목록이 비어있을 때만 기본 하위 폴더에서 파일 탐색 (선택 사항)
-            // 모든 사진이 40장으로 나오는게 싫으시면 이 else if 문 전체를 삭제하셔도 됩니다.
-            else if (name) {
-                // 여기에 반복문이 있으면 사진 장수가 고정되므로, 
-                // 명확한 관리를 위해 사진목록 컬럼 사용을 권장합니다.
-            }
-
-            obj._currentTab = '전체';
-            obj._isExpanded = false;
-            return obj;
-        });
-
-// 3. 검색 및 렌더링
-function runSearch() {
-    const term = document.getElementById('searchInput').value.toLowerCase();
-    const listDiv = document.getElementById('list');
-    const filtered = masterDB.filter(p => (p['이름'] || '').includes(term) || (p['소속'] || '').includes(term));
-
-    listDiv.innerHTML = filtered.map((p, idx) => {
-        const getV = (key) => p[key] || "-";
-        
-        // 섹션 렌더링 헬퍼
-        const section = (title, icon, items) => `
-            <div class="section-title">${icon} ${title}</div>
-            <div class="grid">
-                ${items.map(it => `
-                    <div class="box ${it.full ? 'full' : ''}">
-                        <span class="label">${it.label}</span>
-                        <span class="val" style="${it.color ? 'color:'+it.color : ''}">${it.val}</span>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-
-        return `
-            <div class="card">
-                <div class="profile-row">
-                    <div class="name">${getV('이름')} <small style="font-size:12px; color:#666;">${getV('연락처')}</small></div>
-                    <div style="color:var(--포인트); font-weight:bold;">${getV('소속')}</div>
-                </div>
-
-                <div id="photos-${idx}" class="photo-list">
-                    ${p._imgs.length > 0 ? `<p style="font-size:12px; color:#999;">사진을 로드하려면 검색어를 입력하거나 초기화하세요.</p>` : '사진 없음'}
-                </div>
-
+</script>
 function renderCardPhotos(idx, showAll = false) {
     const p = masterDB[idx];
     const photoContainer = document.getElementById(`photos-${idx}`);
