@@ -280,13 +280,14 @@ const alertColor = diffDays > 30 ? 'red' : 'green'; // 30일 이상 지나면 �
     </div>
 
 <script>
-let masterDB = [];
-
-// 1. 데이터 로드 함수
+/**
+ * 1. 데이터 로드 단계
+ * CSV 파일을 읽어와 JSON 객체 배열로 변환합니다.
+ */
 async function loadData() {
     try {
         const res = await fetch('인명.csv');
-        if (!res.ok) throw new Error('CSV 파일을 불러올 수 없습니다.');
+        if (!res.ok) throw new Error('CSV 파일을 찾을 수 없습니다.');
         
         const ab = await res.arrayBuffer();
         let text = new TextDecoder('utf-8').decode(ab).replace(/^\uFEFF/, "");
@@ -300,7 +301,7 @@ async function loadData() {
                 obj[h] = r[i] || "";
             });
             
-            // 이미지 배열 초기화 (생략 없이 구현)
+            // 이미지 데이터 처리
             obj._imgs = [];
             if (obj['사진목록'] && obj['사진목록'] !== "-") {
                 obj['사진목록'].split('|').forEach(p => {
@@ -316,28 +317,33 @@ async function loadData() {
             obj._currentTab = obj._imgs.length > 0 ? obj._imgs[0].folder : '전체';
             obj._isExpanded = false;
             
-            // 함수 내부에서 객체 반환 (정상 위치)
-            return obj;
+            return obj; // 함수 내부에서 정상적으로 반환
         });
         console.log("데이터 로드 완료:", masterDB.length, "건");
     } catch (error) {
-        console.error("오류 발생:", error);
+        console.error("데이터 로드 중 에러 발생:", error);
     }
 }
 
-// 2. 보안 해제
+/**
+ * 2. 보안 해제 단계
+ * 비밀번호 일치 여부를 확인하고 메인 화면을 표시합니다.
+ */
 function unlock() {
     const inputPw = document.getElementById('pw').value;
-    if (inputPw === "1234") { 
+    if (inputPw === "1234") { // 설정하신 비밀번호
         document.getElementById('auth-section').style.display = 'none';
         document.getElementById('mainContent').style.display = 'block';
         runSearch();
     } else {
-        alert("비밀번호가 올바르지 않습니다.");
+        alert("비밀번호가 틀렸습니다.");
     }
 }
 
-// 3. 검색 및 전체 결과 표출 (생략 없음)
+/**
+ * 3. 검색 및 화면 출력 (생략 없음)
+ * 필터링된 데이터를 바탕으로 상세 카드를 생성합니다.
+ */
 function runSearch() {
     const term = document.getElementById('searchInput').value.toLowerCase();
     const listDiv = document.getElementById('list');
@@ -350,37 +356,55 @@ function runSearch() {
     filtered.forEach((p, idx) => {
         const getV = (key) => p[key] || "-";
         
-        // 카드 레이아웃 생성
+        // 이미지 속 디자인을 반영한 전체 HTML 생성
         html += `
-            <div class="card">
-                <div class="profile-row">
-                    <div class="name">${getV('이름')} <small style="font-size:12px; color:#666;">${getV('연락처')}</small></div>
-                    <div style="color:var(--포인트); font-weight:bold;">${getV('소속')}</div>
+            <div class="card" style="border: 1px solid #e2e8f0; border-radius: 18px; padding: 20px; background: white; margin-bottom: 20px;">
+                <div class="profile-row" style="display: flex; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">
+                    <div class="name" style="font-size: 1.5em; font-weight: 900;">
+                        ${getV('이름')} <small style="font-size: 12px; color: #666;">${getV('연락처')}</small>
+                    </div>
+                    <div style="color: #2563eb; font-weight: bold;">${getV('소속')}</div>
                 </div>
 
-                <div class="section-title">📍 기본 정보</div>
-                <div class="grid">
-                    <div class="box full"><span class="label">주소</span><span class="val">${getV('주소')}</span></div>
-                    <div class="box"><span class="label">사이즈</span><span class="val" style="color:red">${getV('사이즈')}</span></div>
-                    <div class="box"><span class="label">첫만남</span><span class="val">${getV('첫만남')}</span></div>
+                <div class="section-title" style="background: #f8fafc; padding: 5px 10px; margin-top: 15px; font-weight: bold; border-left: 4px solid #94a3b8;">📍 기본 정보</div>
+                <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <div class="box" style="grid-column: span 2; background: #f8fafc; padding: 8px;">
+                        <span style="font-size: 12px; color: #64748b;">주소:</span> <strong>${getV('주소')}</strong>
+                    </div>
+                    <div class="box" style="background: #f8fafc; padding: 8px;">
+                        <span style="font-size: 12px; color: #64748b;">사이즈:</span> <strong style="color: red;">${getV('사이즈')}</strong>
+                    </div>
+                    <div class="box" style="background: #f8fafc; padding: 8px;">
+                        <span style="font-size: 12px; color: #64748b;">첫만남:</span> <strong>${getV('첫만남')}</strong>
+                    </div>
                 </div>
 
-                <div class="section-title">📈 관계 상태</div>
-                <div class="grid">
-                    <div class="box"><span class="label">진척도</span><span class="val" style="color:red">${getV('진척도')}</span></div>
-                    <div class="box"><span class="label">호감도</span><span class="val" style="color:red">${getV('호감도')}</span></div>
-                    <div class="box full"><span class="label">관계설명</span><span class="val">${getV('관계설명')}</span></div>
+                <div class="section-title" style="background: #f8fafc; padding: 5px 10px; margin-top: 15px; font-weight: bold; border-left: 4px solid #94a3b8;">📈 관계 상태</div>
+                <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <div class="box" style="background: #f8fafc; padding: 8px;">
+                        <span style="font-size: 12px; color: #64748b;">진척도:</span> <strong style="color: red;">${getV('진척도')}</strong>
+                    </div>
+                    <div class="box" style="background: #f8fafc; padding: 8px;">
+                        <span style="font-size: 12px; color: #64748b;">호감도:</span> <strong style="color: red;">${getV('호감도')}</strong>
+                    </div>
+                    <div class="box" style="grid-column: span 2; background: #f8fafc; padding: 8px;">
+                        <span style="font-size: 12px; color: #64748b;">관계설명:</span> <strong>${getV('관계설명')}</strong>
+                    </div>
                 </div>
-                
-                <div style="margin-top:15px; text-align:right;">
-                    <small style="color:#ccc;">Last Update: ${getV('최근연락일')}</small>
+
+                <div style="text-align: right; margin-top: 15px;">
+                    <small style="color: #ccc;">업데이트: ${getV('최근연락일')}</small>
                 </div>
             </div>
         `;
     });
     
-    listDiv.innerHTML = html || "<p style='text-align:center;'>검색 결과가 없습니다.</p>";
+    listDiv.innerHTML = html || "<p style='text-align:center;'>일치하는 데이터가 없습니다.</p>";
 }
+
+// 이벤트 리스너 등록
+window.onload = loadData;
+document.getElementById('pw')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') unlock(); });
 
 // 초기 로드 설정
 window.onload = loadData;
