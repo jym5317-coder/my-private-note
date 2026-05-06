@@ -285,32 +285,17 @@ const subFolders = ['body', 'day', 'face', 'secret'];
 
 window.onload = () => { document.getElementById('pw').focus(); };
 
-/**
- * 비밀번호를 확인하고 메인 콘텐츠를 표시하는 함수
- */
-/**
-     * 1. 보안 해제 함수
-     */
-    function unlock() {
-        const pwInput = document.getElementById('pw');
-        const passwordValue = pwInput.value.trim();
-
-        if (passwordValue === "1234") { // 비밀번호 설정
-            document.getElementById('auth-section').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-            
-            // 본 화면이 뜰 때 데이터를 로드하고 검색 실행
-            if (typeof loadData === 'function') {
-                loadData(); 
-            } else {
-                runSearch(); // 데이터가 이미 있다면 바로 실행
-            }
-        } else {
-            alert("비밀번호가 틀렸습니다.");
-            pwInput.value = "";
-            pwInput.focus();
-        }
+// 2. 보안 해제
+function unlock() {
+    const pw = document.getElementById('pw').value;
+    if (pw === "1234") { // 비밀번호 설정
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        runSearch();
+    } else {
+        alert("비밀번호가 일치하지 않습니다.");
     }
+}
 
 /**
  * 엔터 키 입력 시 자동으로 unlock 함수 호출
