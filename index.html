@@ -290,7 +290,13 @@ async function loadData() {
         
         const rows = text.split(/\r?\n/).filter(row => row.trim() !== "").map(row => row.split(',').map(cell => cell.trim()));
         const header = rows[0];
-        
+        console.log("데이터 로드 완료:", masterDB.length, "건");
+    } catch (error) {
+        // 이 catch 블록이 누락되어 SyntaxError가 발생한 것입니다!
+        console.error("데이터를 불러오는 중 오류가 발생했습니다:", error);
+    }
+}
+
         masterDB = rows.slice(1).map(r => {
     // 1. 기본 속성들을 포함하여 객체 초기화
     let obj = {
