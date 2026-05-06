@@ -281,6 +281,11 @@ const alertColor = diffDays > 30 ? 'red' : 'green'; // 30일 이상 지나면 �
 
 <script>
 /**
+ * 전역 변수 선언
+ */
+let masterDB = [];
+
+/**
  * 1. 데이터 로드 단계
  * CSV 파일을 읽어와 JSON 객체 배열로 변환합니다.
  */
@@ -290,6 +295,7 @@ async function loadData() {
         if (!res.ok) throw new Error('CSV 파일을 찾을 수 없습니다.');
         
         const ab = await res.arrayBuffer();
+        // BOM 제거 및 UTF-8 디코딩
         let text = new TextDecoder('utf-8').decode(ab).replace(/^\uFEFF/, "");
         
         const rows = text.split(/\r?\n/).filter(row => row.trim() !== "").map(row => row.split(',').map(cell => cell.trim()));
@@ -301,15 +307,16 @@ async function loadData() {
                 obj[h] = r[i] || "";
             });
             
-            // 이미지 데이터 처리
+            // 이미지 데이터 처리 (image_91b71f.png 에러 방지를 위해 경로 검증 추가)
             obj._imgs = [];
             if (obj['사진목록'] && obj['사진목록'] !== "-") {
                 obj['사진목록'].split('|').forEach(p => {
-                    const cleanPath = p.trim();
-                    if(cleanPath) {
+                    const cleanFileName = p.trim();
+                    if(cleanFileName) {
+                        // 템플릿 리터럴을 사용하여 정확한 경로 생성
                         obj._imgs.push({ 
-                            path: `img/${obj['이름']}/${cleanPath}`, 
-                            folder: cleanPath.split('/')[0] 
+                            path: `img/${obj['이름']}/${cleanFileName}`, 
+                            folder: cleanFileName.split('/')[0] 
                         });
                     }
                 });
@@ -317,7 +324,7 @@ async function loadData() {
             obj._currentTab = obj._imgs.length > 0 ? obj._imgs[0].folder : '전체';
             obj._isExpanded = false;
             
-            return obj; // 함수 내부에서 정상적으로 반환
+            return obj; 
         });
         console.log("데이터 로드 완료:", masterDB.length, "건");
     } catch (error) {
@@ -327,11 +334,13 @@ async function loadData() {
 
 /**
  * 2. 보안 해제 단계
- * 비밀번호 일치 여부를 확인하고 메인 화면을 표시합니다.
  */
 function unlock() {
-    const inputPw = document.getElementById('pw').value;
-    if (inputPw === "1234") { // 설정하신 비밀번호
+    const pwElement = document.getElementById('pw');
+    if (!pwElement) return;
+
+    const inputPw = pwElement.value;
+    if (inputPw === "1234") { 
         document.getElementById('auth-section').style.display = 'none';
         document.getElementById('mainContent').style.display = 'block';
         runSearch();
@@ -341,12 +350,15 @@ function unlock() {
 }
 
 /**
- * 3. 검색 및 화면 출력 (생략 없음)
+ * 3. 검색 및 화면 출력
  * 필터링된 데이터를 바탕으로 상세 카드를 생성합니다.
  */
 function runSearch() {
-    const term = document.getElementById('searchInput').value.toLowerCase();
+    const searchInput = document.getElementById('searchInput');
     const listDiv = document.getElementById('list');
+    if (!searchInput || !listDiv) return;
+
+    const term = searchInput.value.toLowerCase();
     
     const filtered = masterDB.filter(p => 
         (p['이름'] || '').includes(term) || (p['소속'] || '').includes(term)
@@ -356,9 +368,8 @@ function runSearch() {
     filtered.forEach((p, idx) => {
         const getV = (key) => p[key] || "-";
         
-        // 이미지 속 디자인을 반영한 전체 HTML 생성
         html += `
-            <div class="card" style="border: 1px solid #e2e8f0; border-radius: 18px; padding: 20px; background: white; margin-bottom: 20px;">
+            <div class="card" style="border: 1px solid #e2e8f0; border-radius: 18px; padding: 20px; background: white; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                 <div class="profile-row" style="display: flex; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">
                     <div class="name" style="font-size: 1.5em; font-weight: 900;">
                         ${getV('이름')} <small style="font-size: 12px; color: #666;">${getV('연락처')}</small>
@@ -402,16 +413,22 @@ function runSearch() {
     listDiv.innerHTML = html || "<p style='text-align:center;'>일치하는 데이터가 없습니다.</p>";
 }
 
-// 이벤트 리스너 등록
+/**
+ * 4. 이벤트 리스너 통합 (중복 제거)
+ */
 window.onload = loadData;
-document.getElementById('pw')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') unlock(); });
 
-// 초기 로드 설정
-window.onload = loadData;
-document.getElementById('pw')?.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') unlock();
+document.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        const pwElement = document.getElementById('pw');
+        // 비밀번호 입력창에 포커스가 있을 때만 실행하거나, 인증 섹션이 보일 때만 실행
+        if (document.activeElement === pwElement) {
+            unlock();
+        }
+    }
 });
 </script>
+
 function renderCardPhotos(idx, showAll = false) {
     const p = masterDB[idx];
     const photoContainer = document.getElementById(`photos-${idx}`);
