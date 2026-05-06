@@ -8,14 +8,14 @@
         :root { --메인: #e11d48; --포인트: #2563eb; --배경: #f1f5f9; --테두리: #e2e8f0; }
         body { font-family: 'Malgun Gothic', sans-serif; background: var(--배경); margin: 0; padding: 10px; color: #1e293b; line-height: 1.4; }
         
-        /* 로그인 섹션 */
+        /* 로그인 */
         #auth-section { margin: 100px auto; text-align: center; max-width: 350px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         input[type="password"] { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 70%; margin-bottom: 10px; font-size: 16px; outline: none; }
         .login-btn { padding: 12px 20px; background: var(--메인); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 80%; }
 
         #mainContent { max-width: 700px; margin: 0 auto; display: none; }
         .sticky-header { position: sticky; top: 0; background: var(--배경); z-index: 1000; padding: 10px 0; }
-        .search-box { width: 100%; padding: 14px; border: 2px solid var(--테두리); border-radius: 12px; box-sizing: border-box; font-size: 16px; outline: none; }
+        .search-box { width: 100%; padding: 14px; border: 2px solid var(--테두리); border-radius: 12px; box-sizing: border-box; font-size: 16px; outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
         /* 카드 레이아웃 */
         .card { background: white; border-radius: 18px; padding: 20px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid var(--테두리); }
@@ -207,54 +207,6 @@ const alertColor = diffDays > 30 ? 'red' : 'green'; // 30일 이상 지나면 �
     white-space: normal;
 }
 
-/* 공통 섹션 스타일 (8번 디자인 모티브) */
-.section-wrapper {
-    width: 100%; /* 부모 너비에 맞춤 */
-    box-sizing: border-box; /* 패딩을 너비 내부로 포함 (삐져나옴 방지) */
-    background: #f0fdf4; /* 연한 초록색 배경 */
-    border-left: 5px solid #22c55e; /* 좌측 포인트 라인 */
-    border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-/* 내부 흰색 박스 스타일 */
-.info-item {
-    background: #ffffff;
-    border-radius: 8px;
-    padding: 10px 15px;
-    display: flex;
-    justify-content: space-between; /* 라벨 왼쪽, 값 오른쪽 정렬 */
-    align-items: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.label-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #4b5563;
-    font-size: 0.95rem;
-}
-
-.value-text {
-    font-weight: 600;
-    color: #1f2937;
-}
-
-/* 체크 리스트 스타일 */
-.check-item {
-    display: flex;
-    justify-content: flex-end; /* 오른쪽 정렬 */
-    align-items: center;
-    gap: 5px;
-    color: #16a34a;
-    font-size: 0.9rem;
-}
-
         /* 기타 정보 */
         .blue-memo { background: rgba(255,255,255,0.5); border-left: 4px solid #0ea5e9; padding: 10px; font-size: 12px; border-radius: 4px; line-height: 1.5; margin-top: 5px;}
         .notion-btn { text-decoration: none; background: #000; color: white; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; }
@@ -280,159 +232,94 @@ const alertColor = diffDays > 30 ? 'red' : 'green'; // 30일 이상 지나면 �
     </div>
 
 <script>
-/**
- * 전역 변수 선언
- */
 let masterDB = [];
+const subFolders = ['body', 'day', 'face', 'secret'];
+
+window.onload = () => { document.getElementById('pw').focus(); };
 
 /**
- * 1. 데이터 로드 단계
- * CSV 파일을 읽어와 JSON 객체 배열로 변환합니다.
+ * 비밀번호를 확인하고 메인 콘텐츠를 표시하는 함수
  */
+/**
+     * 1. 보안 해제 함수
+     */
+    function unlock() {
+        const pwInput = document.getElementById('pw');
+        const passwordValue = pwInput.value.trim();
+
+        if (passwordValue === "1234") { // 비밀번호 설정
+            document.getElementById('auth-section').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            
+            // 본 화면이 뜰 때 데이터를 로드하고 검색 실행
+            if (typeof loadData === 'function') {
+                loadData(); 
+            } else {
+                runSearch(); // 데이터가 이미 있다면 바로 실행
+            }
+        } else {
+            alert("비밀번호가 틀렸습니다.");
+            pwInput.value = "";
+            pwInput.focus();
+        }
+    }
+
+/**
+ * 엔터 키 입력 시 자동으로 unlock 함수 호출
+ */
+document.getElementById('pw')?.addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        unlock();
+    }
+});
+
 async function loadData() {
     try {
         const res = await fetch('인명.csv');
-        if (!res.ok) throw new Error('CSV 파일을 찾을 수 없습니다.');
-        
         const ab = await res.arrayBuffer();
-        // BOM 제거 및 UTF-8 디코딩
         let text = new TextDecoder('utf-8').decode(ab).replace(/^\uFEFF/, "");
         
         const rows = text.split(/\r?\n/).filter(row => row.trim() !== "").map(row => row.split(',').map(cell => cell.trim()));
-        const header = rows[0];
+        const header = rows[0].map(h => h.trim());
         
         masterDB = rows.slice(1).map(r => {
             let obj = {};
-            header.forEach((h, i) => {
-                obj[h] = r[i] || "";
-            });
+            header.forEach((h, i) => obj[h] = r[i] || "");
             
-            // 이미지 데이터 처리 (image_91b71f.png 에러 방지를 위해 경로 검증 추가)
             obj._imgs = [];
+            const name = (obj['이름'] || "").trim();
+
+            // 1. CSV '사진목록' 컬럼 기반 경로 생성 (최우선)
             if (obj['사진목록'] && obj['사진목록'] !== "-") {
-                obj['사진목록'].split('|').forEach(p => {
-                    const cleanFileName = p.trim();
-                    if(cleanFileName) {
-                        // 템플릿 리터럴을 사용하여 정확한 경로 생성
+                const paths = obj['사진목록'].split('|');
+                paths.forEach(p => {
+                    const cleanPath = p.trim();
+                    if (cleanPath) {
+                        const folderName = cleanPath.split('/')[0]; 
                         obj._imgs.push({ 
-                            path: `img/${obj['이름']}/${cleanFileName}`, 
-                            folder: cleanFileName.split('/')[0] 
+                            path: `img/${name}/${cleanPath}`, 
+                            folder: folderName 
                         });
                     }
                 });
+            } 
+            // 2. 사진목록이 비어있을 때만 기본 하위 폴더에서 파일 탐색 (선택 사항)
+            // 모든 사진이 40장으로 나오는게 싫으시면 이 else if 문 전체를 삭제하셔도 됩니다.
+            else if (name) {
+                // 여기에 반복문이 있으면 사진 장수가 고정되므로, 
+                // 명확한 관리를 위해 사진목록 컬럼 사용을 권장합니다.
             }
-            obj._currentTab = obj._imgs.length > 0 ? obj._imgs[0].folder : '전체';
+
+            obj._currentTab = '전체';
             obj._isExpanded = false;
-            
-            return obj; 
+            return obj;
         });
-        console.log("데이터 로드 완료:", masterDB.length, "건");
-    } catch (error) {
-        console.error("데이터 로드 중 에러 발생:", error);
-    }
-}
 
-/**
- * 2. 보안 해제 단계
- */
-function unlock() {
-    const pwElement = document.getElementById('pw');
-    if (!pwElement) return;
-
-    const inputPw = pwElement.value;
-    if (inputPw === "1234") { 
-        document.getElementById('auth-section').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'block';
         runSearch();
-    } else {
-        alert("비밀번호가 틀렸습니다.");
+    } catch (e) { 
+        console.error("로드 오류:", e);
     }
 }
-
-/**
- * 3. 검색 및 화면 출력
- * 필터링된 데이터를 바탕으로 상세 카드를 생성합니다.
- */
-function runSearch() {
-    const searchInput = document.getElementById('searchInput');
-    const listDiv = document.getElementById('list');
-    if (!searchInput || !listDiv) return;
-
-    const term = searchInput.value.toLowerCase();
-    
-    const filtered = masterDB.filter(p => 
-        (p['이름'] || '').includes(term) || (p['소속'] || '').includes(term)
-    );
-
-    let html = "";
-    filtered.forEach((p, idx) => {
-        const getV = (key) => p[key] || "-";
-        
-        html += `
-            <div class="card" style="border: 1px solid #e2e8f0; border-radius: 18px; padding: 20px; background: white; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                <div class="profile-row" style="display: flex; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">
-                    <div class="name" style="font-size: 1.5em; font-weight: 900;">
-                        ${getV('이름')} <small style="font-size: 12px; color: #666;">${getV('연락처')}</small>
-                    </div>
-                    <div style="color: #2563eb; font-weight: bold;">${getV('소속')}</div>
-                </div>
-<div class="photo-area" style="margin-top: 15px; display: flex; gap: 10px;">
-                    ${p._imgs && p._imgs.length > 0 ? p._imgs.map(img => `
-                        <img src="${img.path}" 
-                             style="width: 100px; height: 100px; object-fit: cover; border-radius: 10px;"
-                             onerror="this.src='https://via.placeholder.com/100?text=No+Img'">
-                    `).join('') : '<span style="color:#ccc; font-size:12px;">사진 없음</span>'}
-                </div>
-                <div class="section-title" style="background: #f8fafc; padding: 5px 10px; margin-top: 15px; font-weight: bold; border-left: 4px solid #94a3b8;">📍 기본 정보</div>
-                <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-                    <div class="box" style="grid-column: span 2; background: #f8fafc; padding: 8px;">
-                        <span style="font-size: 12px; color: #64748b;">주소:</span> <strong>${getV('주소')}</strong>
-                    </div>
-                    <div class="box" style="background: #f8fafc; padding: 8px;">
-                        <span style="font-size: 12px; color: #64748b;">사이즈:</span> <strong style="color: red;">${getV('사이즈')}</strong>
-                    </div>
-                    <div class="box" style="background: #f8fafc; padding: 8px;">
-                        <span style="font-size: 12px; color: #64748b;">첫만남:</span> <strong>${getV('첫만남')}</strong>
-                    </div>
-                </div>
-
-                <div class="section-title" style="background: #f8fafc; padding: 5px 10px; margin-top: 15px; font-weight: bold; border-left: 4px solid #94a3b8;">📈 관계 상태</div>
-                <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-                    <div class="box" style="background: #f8fafc; padding: 8px;">
-                        <span style="font-size: 12px; color: #64748b;">진척도:</span> <strong style="color: red;">${getV('진척도')}</strong>
-                    </div>
-                    <div class="box" style="background: #f8fafc; padding: 8px;">
-                        <span style="font-size: 12px; color: #64748b;">호감도:</span> <strong style="color: red;">${getV('호감도')}</strong>
-                    </div>
-                    <div class="box" style="grid-column: span 2; background: #f8fafc; padding: 8px;">
-                        <span style="font-size: 12px; color: #64748b;">관계설명:</span> <strong>${getV('관계설명')}</strong>
-                    </div>
-                </div>
-
-                <div style="text-align: right; margin-top: 15px;">
-                    <small style="color: #ccc;">업데이트: ${getV('최근연락일')}</small>
-                </div>
-            </div>
-        `;
-    });
-    
-    listDiv.innerHTML = html || "<p style='text-align:center;'>일치하는 데이터가 없습니다.</p>";
-}
-
-/**
- * 4. 이벤트 리스너 통합 (중복 제거)
- */
-window.onload = loadData;
-
-document.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        const pwElement = document.getElementById('pw');
-        // 비밀번호 입력창에 포커스가 있을 때만 실행하거나, 인증 섹션이 보일 때만 실행
-        if (document.activeElement === pwElement) {
-            unlock();
-        }
-    }
-});
 
 function renderCardPhotos(idx, showAll = false) {
     const p = masterDB[idx];
@@ -531,32 +418,25 @@ function setCardTab(idx, folder) {
     renderCardPhotos(idx);
 }
 
-const filtered = masterDB.filter(p => 
-        (p['이름'] || '').includes(term) || (p['소속'] || '').includes(term)
-    );
+/**
+     * 2. 검색 및 카드 렌더링 함수 (레이아웃 완벽 보존)
+     */
+    function runSearch() {
+        const searchInput = document.getElementById('searchInput');
+        const term = searchInput ? searchInput.value.toLowerCase() : "";
+        const container = document.getElementById('list');
+        if (!container) return;
+        
+        container.innerHTML = ""; // 기존 리스트 초기화
 
-    // [도구] 8번 섹션 스타일의 HTML을 만들어주는 내부 함수
-    const renderSection = (title, icon, items) => {
-        return `
-        <div class="section-wrapper" style="width: 100%; box-sizing: border-box; background: #f0fdf4; border-left: 5px solid #22c55e; border-radius: 12px; padding: 12px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px;">
-            <div style="font-weight: bold; font-size: 1.05rem; display: flex; align-items: center; gap: 6px; margin-bottom: 4px; color: #166534;">
-                <span>${icon}</span> <span>${title}</span>
-            </div>
-            ${items.map(item => `
-                <div class="info-item" style="background: #ffffff; border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); box-sizing: border-box; width: 100%;">
-                    <div style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem; color: #4b5563;">
-                        <span>${item.icon}</span>
-                        <span>${item.label}</span>
-                    </div>
-                    <div style="font-weight: 600; font-size: 0.9rem; color: #1f2937; text-align: right;">${item.value || '-'}</div>
-                </div>
-            `).join('')}
-        </div>`;
-    };
+        // 데이터 필터링
+        const filtered = masterDB.filter(p => 
+            (p['이름'] || '').includes(term) || (p['소속'] || '').includes(term)
+        );
 
-filtered.forEach((p, idx) => {
-        const getV = (key) => p[key] || "-";
-        const calc = typeof getBehaviorStatus === 'function' ? getBehaviorStatus(p) : {score:0, access:0, risk:0};
+        filtered.forEach(p => {
+            const idx = masterDB.indexOf(p);
+            const getV = (key) => p[key] || "-";
             
             // 로직 계산 영역
             const calc = typeof getBehaviorStatus === 'function' ? getBehaviorStatus(p) : {status: '미정', score:0, access:0, risk:0};
@@ -569,75 +449,8 @@ filtered.forEach((p, idx) => {
             const diffDays = isNaN(lastDate) ? "-" : Math.ceil(Math.abs(today - lastDate) / (1000 * 60 * 60 * 24));
             const alertColor = diffDays > 7 ? '#e11d48' : '#16a34a';
 
-// 1~9 섹션 데이터 구성
-        const s1 = renderSection("1. 기본 정보", "📍", [
-            { icon: "🏠", label: "주소", value: getV('주소') },
-            { icon: "📦", label: "보유자료", value: getV('보유자료') },
-            { icon: "📏", label: "사이즈", value: `<span style="color:red;">${getV('사이즈')}</span>` }
-        ]);
-            { icon: "💡", label: "관찰동기", value: getV('관찰동기') },
-            { icon: "📅", label: "첫만남", value: getV('첫만남') },
-            { icon: "🤝", label: "첫스킨십", value: getV('첫스킨십') },
-            { icon: "🔞", label: "첫빠구리", value: getV('첫빠구리') }
-        ]);
-
-        const s2 = renderSection("2. 관계 상태", "📈", [
-            { icon: "🤝", label: "진척도", value: getV('진척도') },
-            { icon: "❤️", label: "호감도", value: getV('호감도') }
-        ]);
-            { icon: "🌡️", label: "관계온도", value: getV('관계온도') },
-            { icon: "💭", label: "최근고민", value: getV('최근고민') }
-        ]);
-
-        const s3 = renderSection("3. 성향 / 취향", "🎭", [
-            { icon: "✨", label: "선호취향", value: getV('선호취향') },
-            { icon: "🔍", label: "특이사항", value: getV('특이사항') }
-        ]);
-
-        const s4 = renderSection("4. 시크릿 기록 & 미디어", "🔒", [
-            { icon: "📓", label: "비밀기록", value: getV('은밀한기록') },
-            { icon: "📸", label: "체형특징", value: getV('체형특징') }
-        ]);
-
-        const s5 = renderSection("5. 리스크 / 주의사항", "⚠️", [
-            { icon: "🚩", label: "주의사항", value: `<span style="color:red;">${getV('주의사항')}</span>` },
-            { icon: "🛡️", label: "경계인물", value: getV('경계인물') }
-        ]);
-
-        const s6 = renderSection("6. 접근성 / 운영 정보", "💰", [
-            { icon: "🗺️", label: "접근가능", value: getV('접근가능') },
-            { icon: "💵", label: "가성비", value: getV('가성비') },
-            { icon: "💳", label: "누적지출", value: getV('누적지출') },
-            { icon: "🏫", label: "상", value: getV('상') }
-        ]);
-
-        const s7 = renderSection("7. 난이도 / 전략", "🎯", [
-            { icon: "📊", label: "난이도", value: getV('난이도') },
-            { icon: "📝", label: "공략계획", value: getV('공략계획') }
-        ]);
-
-        const s8 = renderSection("8. 맞춤형 공략 계획", "🔮", [
-            { icon: "📌", label: "현재 목표", value: getV('공략단계') },
-            { icon: "🛠️", label: "실행아이템", value: getV('세부전략') }
-        ]);
-
-        const s9 = renderSection("9. 집중 공략 관리", "🚀", [
-            { icon: "💥", label: "핵심 액션", value: getV('다음액션') },
-            { icon: "⭐", label: "우선순위", value: getV('우선순위') },
-            { icon: "⏳", label: "방치기간", value: `${diffDays}일째` }
-        ]);
-
-        const s10 = renderSection("10. 시스템 정보", "⚙️", [
-            { icon: "🆔", label: "상세정보", value: getV('상세정보') },
-            { icon: "🔗", label: "노션링크", value: `<a href="${getV('노션링크')}" target="_blank">바로가기</a>` }
-        ]);
-
             // [보존사항] S1 ~ S10 레이아웃 통합
             const cardHtml = `
-                 <div class="card" style="width: 100%; box-sizing: border-box;">
-                 ${s1} ${s2} ${s3} ${s4} ${s5} ${s6} ${s7} ${s8} ${s9} ${s10}
-    </div>
-</script>
         <!-- 상단 프로필 정보 -->
         <div class="profile-row">
             <div class="name-part"><span class="name">${getV('이름')}</span><span class="contact">${getV('연락처')}</span></div>
