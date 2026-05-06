@@ -281,9 +281,35 @@ const alertColor = diffDays > 30 ? 'red' : 'green'; // 30일 이상 지나면 �
 
 <script>
 let masterDB = [];
-const subFolders = ['body', 'day', 'face', 'secret'];
-
-window.onload = () => { document.getElementById('pw').focus(); };
+// 1. 데이터 로드 (페이지 접속 시 바로 실행)
+async function loadData() {
+    try {
+        const res = await fetch('인명.csv');
+        const ab = await res.arrayBuffer();
+        let text = new TextDecoder('utf-8').decode(ab).replace(/^\uFEFF/, "");
+        
+        const rows = text.split(/\r?\n/).filter(row => row.trim() !== "").map(row => row.split(',').map(cell => cell.trim()));
+        const header = rows[0];
+        
+        masterDB = rows.slice(1).map(r => {
+            let obj = {};
+            header.forEach((h, i) => obj[h] = r[i] || "");
+            obj._imgs = [];
+            if (obj['사진목록'] && obj['사진목록'] !== "-") {
+                obj['사진목록'].split('|').forEach(p => {
+                    const cleanPath = p.trim();
+                    if(cleanPath) obj._imgs.push({ path: `img/${obj['이름']}/${cleanPath}`, folder: cleanPath.split('/')[0] });
+                });
+            }
+            obj._currentTab = obj._imgs.length > 0 ? obj._imgs[0].folder : '전체';
+            obj._isExpanded = false;
+            return obj;
+        });
+        console.log("데이터 로드 완료:", masterDB.length, "건");
+    } catch (e) {
+        console.error("CSV 로드 실패. 파일명과 경로를 확인하세요:", e);
+    }
+}
 
 // 2. 보안 해제
 function unlock() {
